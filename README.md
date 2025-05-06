@@ -22,7 +22,7 @@
 | Componente  | Versione consigliata | Note |
 |-------------|----------------------|------|
 | `bash`      | >= 4.x               | Presente su Linux/macOS. Su Windows: WSL o Git Bash |
-| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`, ecc. |
+| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`. |
 | GPU (opz.)  | NVIDIA CUDA          | Per usare `-hwaccel cuda` (opzionale) |
 
 ---
