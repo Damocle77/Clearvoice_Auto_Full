@@ -1,15 +1,15 @@
-# Clearvoice 5.1 (v0.43)
+# Clearvoice 5.1 – SP7 Edition (v0.43)
 
-> _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intellegibili, soundstage cinematografico."_  
+> _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intelligenti, soundstage cinematografico."_  
 > Ottimizzato su **soundbar Meridian SP7 5.1.2** – ma amato anche dai vicini di casa.
 
 ---
 
 ## 📦 Cos'è
 
-`clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un "palco" sonoro realistico.
+`clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un palco sonoro realistico.
 
-- 🎙️ Boost selettivo sui dialoghi
+- 🎙️ Boost selettivo sui dialoghi (Center)
 - 🔉 Surround ampio ma controllato
 - 🧠 Subwoofer ripulito e compresso
 - 🧪 Codec AC3, EAC3 o DTS a scelta
@@ -20,17 +20,17 @@
 ## ⚙️ Requisiti
 
 | Componente  | Versione consigliata | Note |
-|-------------|----------------------|---------------------------------------------------------------------------------
+|-------------|----------------------|------|
 | `bash`      | >= 4.x               | Presente su Linux/macOS. Su Windows: WSL o Git Bash |
-| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`, ecc. 
-| GPU (opz.)  |  NVIDIA, ATI, ARC    | Per usare `-hwaccel cuda -hwaccel vaapi -hwaccel qsv (opzionale) 
+| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`, ecc. |
+| GPU (opz.)  | NVIDIA CUDA          | Per usare `-hwaccel cuda` (opzionale) |
 
 ---
 
 ## 🚀 Uso rapido
 
 ```bash
-./clearvoice043.sh [dts|eac3|ac3] [756k|768k|640k] "Film.mkv"
+./clearvoice043.sh [dts|eac3|ac3] 640k "Film.mkv"
 ./clearvoice043.sh --no-keep-old dts 384k
 ```
 
@@ -56,7 +56,7 @@
   - 300 Hz: +0.1 dB
   - 250 Hz: +0.8 dB
 
-> 🎯 Risultato: voce calda ma nitida, mai tagliente.
+> 🎯 Risultato: voce calda, nitida, mai tagliente, intellegibile anche a basso volume.
 
 ---
 
@@ -72,7 +72,7 @@
 - **Shelf**: +2 dB @75 Hz
 - **Limiter**: `limit=0.75`, attack 3ms, release 200ms
 
-> 🧠 Basso presente ma mai invadente, con un briciolo di vibrazione (anche con subwoofer potenti).
+> 🧠 Basso presente, mai invadente con un "briciolo" di vibrazione (anche su subwoofer potenti).
 
 ---
 
@@ -124,13 +124,33 @@ Lo script utilizza una pipeline FFmpeg composta da più filtri audio applicati *
 
 > Il tutto avviene senza alterare il video, né gli altri stream (sottotitoli, capitoli, ecc).
 
+
+## 🧬 Frequenze della voce umana (e perché ci interessano)
+
+La voce umana si sviluppa su un **range di frequenze** ben preciso. Per migliorare la chiarezza dei dialoghi nei film, è fondamentale sapere **dove agire** con equalizzazione e compressione:
+
+| Banda di frequenza | Contenuto | Trattamento |
+|--------------------|-----------|-------------|
+| **60–100 Hz**      | Voce maschile profonda, rimbombi | Di solito attenuata (high-pass) |
+| **150–300 Hz**     | Corposità vocale, tono base | Leggero boost per "calore" |
+| **500–1000 Hz**    | Intellegibilità, formanti vocali | Stabilizzata |
+| **1–2 kHz**        | Chiarezza e presenza | Leggero aumento |
+| **3–5 kHz**        | Nitidezza consonanti | Equalizzazioni mirate, evitare l’asprezza |
+| **6–8 kHz**        | Sibili, "S" e "F" | Spesso attenuata per evitare fastidio |
+| **10 kHz+**        | Aria e brillantezza | Non sempre utile nei dialoghi |
+
+🎙️ La zona più importante per **capire cosa viene detto** è quella tra **1 kHz e 4 kHz**, ma serve un bilanciamento fine: troppa presenza rende la voce metallica, troppo poco la rende ovattata.
+
+Lo script Clearvoice applica equalizzazioni specifiche proprio in questi punti critici, migliorando la **presenza vocale senza stridori**.
+
+> 🎧 Sì, è un po’ come l’equalizzatore dell’autoradio… ma con il cervello (e FFmpeg).
 ## 🔁 Codec supportati
 
 | Codec | Bitrate default | Note |
 |-------|------------------|------|
-| EAC3  | `768k`           | Standard, compatibile con 5.1 |
-| AC3   | `640k`           | Compatibile con sistemi legacy |
-| DTS   | `756k`           | Alta fedeltà, ma richiede supporto dedicato |
+| EAC3  | `384k`           | Standard, compatibile con 5.1 |
+| AC3   | `448k`           | Compatibile con sistemi legacy |
+| DTS   | `768k`           | Alta fedeltà, ma richiede supporto dedicato |
 
 ---
 
@@ -169,7 +189,7 @@ Con codec e bitrate selezionati, audio taggato `ita`, video **non ricodificato**
 
 - [ ] Auto-normalizzazione con loudnorm
 - [ ] Output HEVC con tag audio dinamici
-- [ ] Versione GUI 
+- [ ] Versione GUI in Electron
 
 ---
 
