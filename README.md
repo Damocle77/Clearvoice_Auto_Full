@@ -7,7 +7,7 @@
 
 ## 📦 Cos'è
 
-`clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un palco sonoro realistico.
+`clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un "palco" sonoro realistico.
 
 - 🎙️ Boost selettivo sui dialoghi
 - 🔉 Surround ampio ma controllato
