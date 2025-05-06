@@ -128,9 +128,9 @@ Lo script utilizza una pipeline FFmpeg composta da più filtri audio applicati *
 
 | Codec | Bitrate default | Note |
 |-------|------------------|------|
-| EAC3  | `384k`           | Standard, compatibile con 5.1 |
-| AC3   | `448k`           | Compatibile con sistemi legacy |
-| DTS   | `768k`           | Alta fedeltà, ma richiede supporto dedicato |
+| EAC3  | `768k`           | Standard, compatibile con 5.1 |
+| AC3   | `640k`           | Compatibile con sistemi legacy |
+| DTS   | `756k`           | Alta fedeltà, ma richiede supporto dedicato |
 
 ---
 
