@@ -1,7 +1,7 @@
 # Clearvoice 5.1 (v0.43)
 
 > _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intellegibili, soundstage cinematografico."_  
-> Ottimizzato per **soundbar LG SP7 5.1.2** – ma amato anche dai vicini di casa.
+> Ottimizzato su **soundbar Meridian SP7 5.1.2** – ma amato anche dai vicini di casa.
 
 ---
 
