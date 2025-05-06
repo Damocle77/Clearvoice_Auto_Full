@@ -72,7 +72,7 @@
 - **Shelf**: +2 dB @75 Hz
 - **Limiter**: `limit=0.75`, attack 3ms, release 200ms
 
-> 🧠 Basso presente ma mai invadente, anche con subwoofer potenti.
+> 🧠 Basso presente ma mai invadente, con un briciolo di vibrazione (anche con subwoofer potenti).
 
 ---
 
