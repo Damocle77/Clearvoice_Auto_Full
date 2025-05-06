@@ -1,4 +1,4 @@
-# Clearvoice 5.1 – SP7 Edition
+# Clearvoice 5.1 (v0.43)
 
 > _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intelligenti, soundstage cinematografico."_  
 > Ottimizzato per **soundbar LG SP7 5.1.2** – ma amato anche dai vicini di casa.
@@ -9,7 +9,7 @@
 
 `clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un palco sonoro realistico.
 
-- 🎙️ Boost selettivo sui dialoghi (Center)
+- 🎙️ Boost selettivo sui dialoghi
 - 🔉 Surround ampio ma controllato
 - 🧠 Subwoofer ripulito e compresso
 - 🧪 Codec AC3, EAC3 o DTS a scelta
@@ -89,6 +89,41 @@
 
 ---
 
+## 🔬 Pipeline FFmpeg
+
+Lo script utilizza una pipeline FFmpeg composta da più filtri audio applicati **per canale** tramite `channelsplit`, `pan`, `filter_complex` e `amerge`, in questo ordine generale:
+
+1. **Split e routing dei canali**:
+   - Il flusso 5.1 viene separato in: FL, FR, C, LFE, SL, SR
+
+2. **Elaborazione canale centrale (voce)**:
+   ```bash
+   [c] highpass=100Hz → equalizer x5 → compand → compand → compressor → limiter
+   ```
+
+3. **Elaborazione subwoofer (LFE)**:
+   ```bash
+   [lfe] highpass=28Hz → equalizer x3 → lowpass=100Hz → bass shelf → limiter
+   ```
+
+4. **Frontali (FL/FR)**:
+   ```bash
+   [fl/fr] volume=1.12 → adelay=8ms/4ms
+   ```
+
+5. **Surround (SL/SR)**:
+   ```bash
+   [sl/sr] volume=2.24 → adelay=4ms/2ms
+   ```
+
+6. **Ricostruzione 5.1**:
+   - I canali trattati vengono rimessi insieme tramite `amerge` e `pan=5.1`.
+
+7. **Limiter finale (master)**:
+   - L'intera traccia viene infine passata in un `alimiter=limit=0.92`
+
+> Il tutto avviene senza alterare il video, né gli altri stream (sottotitoli, capitoli, ecc).
+
 ## 🔁 Codec supportati
 
 | Codec | Bitrate default | Note |
@@ -134,7 +169,7 @@ Con codec e bitrate selezionati, audio taggato `ita`, video **non ricodificato**
 
 - [ ] Auto-normalizzazione con loudnorm
 - [ ] Output HEVC con tag audio dinamici
-- [ ] Versione GUI in Electron
+- [ ] Versione GUI 
 
 ---
 
