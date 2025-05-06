@@ -30,8 +30,8 @@
 ## 🚀 Uso rapido
 
 ```bash
-./clearvoice043.sh [dts|eac3|ac3] 384k "Film.mkv"
-./clearvoice043.sh --no-keep-old dts 768k
+./clearvoice043.sh [dts|eac3|ac3] [756k|768k|640k] "Film.mkv"
+./clearvoice043.sh --no-keep-old dts 384k
 ```
 
 - Se non indichi alcun file, elabora **tutti i `.mkv`** presenti.
