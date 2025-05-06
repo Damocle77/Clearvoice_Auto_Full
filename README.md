@@ -85,7 +85,7 @@
   - Volume: +6 dB (`SURROUND_VOL=2.24`)
   - Delay: SL 4 ms, SR 2 ms
 
-> 🎧 Delay asimmetrici ampliano il palco, enfatizzano il fronte centrale e il retro avvolgente.
+> 🎧 Delay asimmetrici ampliano il palco, enfatizzano il fronte e rendono il retro avvolgente.
 
 ---
 
