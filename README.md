@@ -1,4 +1,4 @@
-# Clearvoice 5.1 – SP7 Edition (v0.43)
+# Clearvoice 5.1 (v0.43)
 
 > _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intelligenti, soundstage cinematografico."_  
 > Ottimizzato su **soundbar Meridian SP7 5.1.2** – ma amato anche dai vicini di casa.
