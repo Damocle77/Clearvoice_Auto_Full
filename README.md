@@ -1,146 +1,150 @@
-# Clearvoice 5.1 – README
+# Clearvoice 5.1 – SP7 Edition
 
-> *"Perché accontentarsi di un film qualunque, quando puoi far cantare la tua soundbar LG Meridian SP7 5.1.2 come un coro angelico?"*
-
-Questo script **`clearvoice0.sh`** elabora tracce audio 5.1 in contenitori MKV e le riconfeziona in un mix piú "\:crystal\_ball:" *futuribile* ottimizzato per sound‑bar LG con tecnologia Meridian. Basterà un comando per trasformare dialoghi sommersi e bassi invadenti in un’esperienza sonora precisa, spaziale e – soprattutto – centrata sulla voce.
-
----
-
-## Indice
-
-1. [Caratteristiche](#caratteristiche)
-2. [Prerequisiti](#prerequisiti)
-3. [Installazione](#installazione)
-4. [Utilizzo rapido](#utilizzo-rapido)
-5. [Parametri & personalizzazioni](#parametri--personalizzazioni)
-6. [Workflow interno](#workflow-interno)
-7. [Troubleshooting](#troubleshooting)
-8. [Roadmap & idee future](#roadmap--idee-future)
-9. [Licenza](#licenza)
+> _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intelligenti, soundstage cinematografico."_  
+> Ottimizzato per **soundbar LG SP7 5.1.2** – ma amato anche dai vicini di casa.
 
 ---
 
-## Caratteristiche
+## 📦 Cos'è
 
-* **Split & Delay** – separa i 6 canali, applica ritardi millimetrici per ampliare lo *stage* frontale e surround.
-* **Voice‑Boost intelligente** – filtra, equalizza, normalizza e alza la voce del canale FC; addio dialoghi sussurrati.
-* **LFE domato** – low‑pass, equalizzazione mirata, compressione e limitatore per bassi puliti e controllati.
-* **Codec on‑demand** – *EAC3* (default) o *DTS* con un semplice flag.
-* **Batch mode** – nessun file resta indietro: lanciato senza argomenti, processa tutti i `.mkv` presenti.
-* **Keep it or kill it** – conserva (o meno) tracce audio originali, sottotitoli e capitoli.
+`clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un palco sonoro realistico.
 
-## Prerequisiti
+- 🎙️ Boost selettivo sui dialoghi (Center)
+- 🔉 Surround ampio ma controllato
+- 🧠 Subwoofer ripulito e compresso
+- 🧪 Codec AC3, EAC3 o DTS a scelta
+- ⚙️ Nessuna ricodifica video
 
-| Dipendenza            | Versione consigliata | Note                                                                                                                             |
-| --------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Bash**              | >= 4.x               | Presente di serie su Linux/macOS; su Windows usa WSL o Git Bash.                                                                 |
-| **FFmpeg**            | >= 6.x               | Compilato con i filtri `channelsplit`, `speechnorm`, `acompressor`, `alimiter` e – se vuoi GPU speed – con `--enable-cuda-nvcc`. |
-| **GPU NVIDIA** (opz.) | Driver CUDA recenti  | Per l’opzione `-hwaccel cuda`.                                                                                                   |
+---
 
-> 💡 **Tip nerd:** su Ubuntu puoi installare FFmpeg build "jonathonf/ffmpeg-6" per avere l’intero pacchetto di filtri senza sudare.
+## ⚙️ Requisiti
 
-## Installazione
+| Componente  | Versione consigliata | Note |
+|-------------|----------------------|------|
+| `bash`      | >= 4.x               | Presente su Linux/macOS. Su Windows: WSL o Git Bash |
+| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`, ecc. |
+| GPU (opz.)  | NVIDIA CUDA          | Per usare `-hwaccel cuda` (opzionale) |
+
+---
+
+## 🚀 Uso rapido
 
 ```bash
-# Clona (o copia) lo script dove preferisci
-mkdir -p ~/bin && cd ~/bin
-curl -O https://example.com/clearvoice0.sh
-chmod +x clearvoice0.sh
+./clearvoice043.sh [dts|eac3|ac3] 384k "Film.mkv"
+./clearvoice043.sh --no-keep-old dts 768k
 ```
 
-Aggiungi *\~/bin* al `$PATH` se necessario – così potrai evocarlo da qualunque directory.
-
-## Utilizzo rapido
-
-```bash
-./clearvoice0.sh <codec> <bitrate> [file.mkv]
-```
-
-* **`codec`**: `eac3` *(default)* | `dts`
-* **`bitrate`**: es. `768k`, `512k`, `384k`
-  (se omesso, usa il preset migliore per il codec scelto)
-* **`file.mkv`**: facoltativo.
-  ➜ Se non lo specifichi, verranno processati **tutti** i `.mkv` nella cartella.
-
-### Esempi
-
-| Azione                                    | Comando                               |
-| ----------------------------------------- | ------------------------------------- |
-| Converti un singolo file in EAC3 768 kbps | `./clearvoice0.sh eac3 768k film.mkv` |
-| Batch DTS a 756 kbps                      | `./clearvoice0.sh dts 756k`           |
-| Batch EAC3 bitrate ridotto                | `./clearvoice0.sh eac3 384k`          |
-
-## Parametri & personalizzazioni
-
-Il cuore dello script è una manciata di variabili… modificabili senza varcare il reame pericoloso di *ffmpeg filtergraph*.
-
-| Variabile                                    | Default          | Cosa fa                              |
-| -------------------------------------------- | ---------------- | ------------------------------------ |
-| `KEEP_ORIGINAL_AUDIO`                        | `true`           | Mantieni tracce audio originali?     |
-| `KEEP_SUBTITLES`                             | `true`           | Mantieni sottotitoli & capitoli?     |
-| `FRONT_LEFT_DELAY` `FRONT_RIGHT_DELAY`       | `5`, `7` ms      | Allarga lo stage frontale.           |
-| `SURROUND_LEFT_DELAY` `SURROUND_RIGHT_DELAY` | `8`, `10` ms     | Ritarda i rear per maggior realismo. |
-| `VOICE_VOL`                                  | `4.0` (\~+12 dB) | Boost centrato sui dialoghi.         |
-| `LFE_VOL`                                    | `0.10`           | Mix sub ridotto (0‑1).               |
-| `LFE_LIMIT`                                  | `0.7`            | Limite massimo output sub.           |
-| `SURROUND_VOL`                               | `4.5`            | Gain surround.                       |
-
-> 🔧 **Come modifico?** Apri lo script in un editor, cambia i valori e salva. Non serve ricompilare nulla.
-
-## Workflow interno
-
-```
-[MKV 5.1] → channelsplit →
-  • FL/FR → delay + EQ + volume
-  • SL/SR → delay + EQ + volume
-  • FC    → highpass → speechnorm → EQ → limiter
-  • LFE   → lowpass → EQ → compressor → limiter
-→ join (5.1) → remux via FFmpeg
-```
-
-Il tutto avviene in un’unica passata, ***zero*** ricodifica video. Con una GPU NVIDIA il demux/mux è pura formalità.
-
-## Troubleshooting
-
-| Problema                                  | Soluzione                                                                                            |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **`ffmpeg: Unknown filter 'speechnorm'`** | Aggiorna FFmpeg: la build pre‑6.0 non include il filtro.                                             |
-| **`-hwaccel cuda: device not found`**     | Assicurati di avere driver NVIDIA e toolkit CUDA installati. In alternativa rimuovi `-hwaccel cuda`. |
-| Output audio distorto                     | Riduci `VOICE_VOL` o `LFE_VOL`; assicurati di non superare 0 dBFS nel mix.                           |
-
-## Roadmap & idee future
-
-* [ ] Output **Atmos** (EC‑3 JOC) sperimentale
-* [ ] Auto‑detect lingua e rinomina tracce (IT, EN, etc.)
-* [ ] GUI cross‑platform in Electron + FFmpeg WASM 🍿
-
-> ✨ **Pull request** & feedback sono i benvenuti – il futuro suona meglio se lo accordiamo insieme.
-
-## Variabili interne (estratte dallo script)
-
-*(generato automaticamente leggendo `clearvoice0.sh` al 3 maggio 2025)*
-
-| Variabile              | Valore di default      |
-| ---------------------- | ---------------------- |
-| `KEEP_ORIGINAL_AUDIO`  | `true`                 |
-| `KEEP_SUBTITLES`       | `true`                 |
-| `FRONT_LEFT_DELAY`     | `5` ms                 |
-| `FRONT_RIGHT_DELAY`    | `7` ms                 |
-| `SURROUND_LEFT_DELAY`  | `8` ms                 |
-| `SURROUND_RIGHT_DELAY` | `10` ms                |
-| `VOICE_VOL`            | `4.0` (+12 dB approx.) |
-| `LFE_VOL`              | `0.10`                 |
-| `LFE_LIMIT`            | `0.7`                  |
-| `SURROUND_VOL`         | `4.5`                  |
-
-> **Nota bitrate di default**
-> Se non specifichi il secondo argomento, lo script imposta automaticamente:
->
-> * **EAC3** → `768k`
-> * **DTS**  → `756k`
+- Se non indichi alcun file, elabora **tutti i `.mkv`** presenti.
+- Flag `--no-keep-old` rimuove le tracce audio originali.
 
 ---
 
-## Licenza
+## 🎛️ Audio: Trattamento per Frequenze & Canali
 
-Rilasciato con licenza **MIT**. Usa, modifica, condividi senza timore… ma non dare la colpa allo script se il tuo subwoofer decide di fare un *coup d’état* nel soggiorno.
+### 🎤 Canale Centrale (Dialoghi)
+
+- **Volume**: +12.6 dB (`VOICE_VOL=4.25`)
+- **High-pass**: 100 Hz – rimuove i rimbombi
+- **Compand**: solleva i passaggi deboli (curve -35/-20dB)
+- **Compressore**: 4:1, soglia -22dB, attack 6ms
+- **Limiter**: -0.8 dBFS (`limit=0.92`)
+- **Equalizzazioni vocali**:
+  - 6 kHz: –3 dB (sibilanti)
+  - 4 kHz: –0.8 dB
+  - 2 kHz: +0.8 dB
+  - 1.5 kHz: +1.2 dB
+  - 300 Hz: +0.1 dB
+  - 250 Hz: +0.8 dB
+
+> 🎯 Risultato: voce calda ma nitida, mai tagliente.
+
+---
+
+### 🔊 Subwoofer (LFE)
+
+- **Volume**: –4.7 dB (`LFE_VOL=0.58`)
+- **High-pass**: 28 Hz – taglia l’infrabasso spurio
+- **Equalizzazioni**:
+  - 40 Hz: –5 dB (anti-rimbombo)
+  - 60 Hz: +1.5 dB (mid-bass caldo)
+  - 80 Hz: +1.0 dB (punch)
+- **Low-pass**: 100 Hz
+- **Shelf**: +2 dB @75 Hz
+- **Limiter**: `limit=0.75`, attack 3ms, release 200ms
+
+> 🧠 Basso presente ma mai invadente, anche con subwoofer potenti.
+
+---
+
+### 🔈 Frontali e Surround
+
+- **Front L/R**:
+  - Volume: +1 dB (`FRONT_VOL=1.12`)
+  - Delay: FL 8 ms, FR 4 ms
+- **Surround L/R**:
+  - Volume: +6 dB (`SURROUND_VOL=2.24`)
+  - Delay: SL 4 ms, SR 2 ms
+
+> 🎧 Delay asimmetrici ampliano il palco, enfatizzano il fronte centrale e il retro avvolgente.
+
+---
+
+## 🔁 Codec supportati
+
+| Codec | Bitrate default | Note |
+|-------|------------------|------|
+| EAC3  | `384k`           | Standard, compatibile con 5.1 |
+| AC3   | `448k`           | Compatibile con sistemi legacy |
+| DTS   | `768k`           | Alta fedeltà, ma richiede supporto dedicato |
+
+---
+
+## 🔧 Parametri interni modificabili
+
+Apri lo script e modifica a piacere:
+
+```bash
+KEEP_OLD=true         # conserva le tracce audio originali
+VOICE_VOL=4.25        # gain voce
+LFE_VOL=0.58          # gain subwoofer
+LFE_LIMIT=0.75        # limitazione LFE
+FRONT_VOL=1.12        # frontali
+SURROUND_VOL=2.24     # surround
+FL_DELAY=8            # front-left delay (ms)
+FR_DELAY=4
+SL_DELAY=4            # surround-left delay (ms)
+SR_DELAY=2
+```
+
+---
+
+## 🛠️ Output
+
+Ogni file elaborato verrà salvato come:
+
+```
+Nomefile_clearvoice0.mkv
+```
+
+Con codec e bitrate selezionati, audio taggato `ita`, video **non ricodificato**.
+
+---
+
+## 🧪 Roadmap
+
+- [ ] Auto-normalizzazione con loudnorm
+- [ ] Output HEVC con tag audio dinamici
+- [ ] Versione GUI in Electron
+
+---
+
+## 📜 Licenza
+
+MIT. Usalo, adattalo, remixalo. Se il tuo sub si ribella… è una feature, non un bug.
+
+---
+
+## ❤️ Contribuisci
+
+Hai idee, miglioramenti o preset per altri modelli di soundbar?  
+Fai una pull request o apri una issue. Il suono perfetto è un lavoro di squadra.
