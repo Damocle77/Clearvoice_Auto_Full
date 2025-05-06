@@ -125,7 +125,7 @@ Lo script utilizza una pipeline FFmpeg composta da più filtri audio applicati *
 > Il tutto avviene senza alterare il video, né gli altri stream (sottotitoli, capitoli, ecc).
 
 
-## 🧬 Frequenze della voce umana e italiana in particolare (e perché ci interessano)
+## 🧬 Frequenze della voce umana italiana (e perché ci interessano)
 
 La voce umana si sviluppa su un **range di frequenze** ben preciso. Per migliorare la chiarezza dei dialoghi nei film, è fondamentale sapere **dove agire** con equalizzazione e compressione:
 
