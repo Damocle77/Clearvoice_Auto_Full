@@ -20,10 +20,10 @@
 ## ⚙️ Requisiti
 
 | Componente  | Versione consigliata | Note |
-|-------------|----------------------|------|
+|-------------|----------------------|---------------------------------------------------------------------------------
 | `bash`      | >= 4.x               | Presente su Linux/macOS. Su Windows: WSL o Git Bash |
-| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`, ecc. |
-| GPU (opz.)  | NVIDIA CUDA          | Per usare `-hwaccel cuda` (opzionale) |
+| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`, ecc. 
+| GPU (opz.)  |  NVIDIA, ATI, ARC    | Per usare `-hwaccel cuda -hwaccel vaapi -hwaccel qsv (opzionale) 
 
 ---
 
