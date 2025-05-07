@@ -1,4 +1,4 @@
-# Clearvoice 5.1 (v4.3)
+# Clearvoice 5.1 (v4.5)
 
 > _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intelligenti, soundstage cinematografico."_  
 > Ottimizzato su **soundbar Meridian SP7 5.1.2** – ma amato anche dai vicini di casa.
