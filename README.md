@@ -160,10 +160,10 @@ Apri lo script e modifica a piacere:
 
 ```bash
 KEEP_OLD=true         # conserva le tracce audio originali
-VOICE_VOL=4.25        # gain voce
+VOICE_VOL=4.56        # gain voce
 LFE_VOL=0.58          # gain subwoofer
 LFE_LIMIT=0.75        # limitazione LFE
-FRONT_VOL=1.12        # frontali
+FRONT_VOL=1.10        # frontali
 SURROUND_VOL=2.24     # surround
 FL_DELAY=8            # front-left delay (ms)
 FR_DELAY=4
