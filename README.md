@@ -133,7 +133,7 @@ La voce umana si sviluppa su un **range di frequenze** ben preciso. Per migliora
 |--------------------|-----------|-------------|
 | **60–100 Hz**      | Voce maschile profonda, rimbombi | Di solito attenuata (high-pass) |
 | **150–300 Hz**     | Corposità vocale, tono base | Leggero boost per "calore" |
-| **500–1000 Hz**    | Intellegibilità, formanti vocali | Poco presente in Ita | 
+| **500–1000 Hz**    | Intellegibilità, formanti vocali | Poco marcata in lingua italiana | 
 | **1–2 kHz**        | Chiarezza e presenza | Leggero aumento |
 | **3–5 kHz**        | Nitidezza consonanti | Equalizzazioni mirate, evitare l’asprezza |
 | **6–8 kHz**        | Sibili, "S" e "F" | Spesso attenuata per evitare fastidio |
