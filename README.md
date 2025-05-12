@@ -8,25 +8,6 @@
 * **Bash** (script testato su Linux con `bash` 5.x, compatibile con macOS).
 * **(Opzionale)** CUDA-enabled GPU se si desidera accelerazione hardware: script utilizza `-hwaccel cuda`.
 
-## 🛠️ Installazione
-
-1. Clona questo repository:
-
-   ```bash
-   git clone https://github.com/tuo-utente/clearvoice-5.1.git
-   cd clearvoice-5.1
-   ```
-2. Rendi eseguibile lo script:
-
-   ```bash
-   chmod +x clearvoice050.sh
-   ```
-3. Verifica la configurazione:
-
-   ```bash
-   ./clearvoice050.sh --help
-   ```
-
 ## ⚙️ Configurazione dei Parametri
 
 All'inizio dello script `clearvoice050.sh` trovi le variabili di tuning che puoi personalizzare:
