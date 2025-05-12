@@ -1,205 +1,122 @@
-# Clearvoice 5.1 (v4.5)
+# Clearvoice 5.1 Dialog Enhancer
 
-> _"Per chi non vuole solo sentire, ma ascoltare. Dialoghi chiari, bassi intelligenti, soundstage cinematografico."_  
-> Ottimizzato su **soundbar Meridian SP7 5.1.2** – ma amato anche dai vicini di casa.
+**Clearvoice 5.1** è uno script Bash per migliorare l'intelligibilità dei dialoghi in tracce audio 5.1, ottimizzato per ambienti domestici e sistemi LG SP7 (versione 2025). Applicando una serie di filtri FFmpeg, mantiene i dialoghi in primo piano, controlla i bassi e amplia la scena sonora.
 
----
+## 📋 Prerequisiti
 
-## 📦 Cos'è
+* **FFmpeg** con supporto per i filtri: `dynaudnorm`, `agate`, `acompressor`, `deesser`, `highshelf`, `equalizer`, `aecho`.
+* **Bash** (script testato su Linux con `bash` 5.x, compatibile con macOS).
+* **(Opzionale)** CUDA-enabled GPU se si desidera accelerazione hardware: script utilizza `-hwaccel cuda`.
 
-`clearvoice043.sh` è uno script **Bash + FFmpeg** che elabora tracce **audio 5.1** all’interno di file `.mkv`, riscrivendole in una versione ottimizzata per la chiarezza dei dialoghi, l’equilibrio del subwoofer e un palco sonoro realistico.
+## 🛠️ Installazione
 
-- 🎙️ Boost selettivo sui dialoghi (Center)
-- 🔉 Surround ampio ma controllato
-- 🧠 Subwoofer ripulito e compresso
-- 🧪 Codec AC3, EAC3 o DTS a scelta
-- ⚙️ Nessuna ricodifica video
+1. Clona questo repository:
 
----
+   ```bash
+   git clone https://github.com/tuo-utente/clearvoice-5.1.git
+   cd clearvoice-5.1
+   ```
+2. Rendi eseguibile lo script:
 
-## ⚙️ Requisiti
+   ```bash
+   chmod +x clearvoice050.sh
+   ```
+3. Verifica la configurazione:
 
-| Componente  | Versione consigliata | Note |
-|-------------|----------------------|------|
-| `bash`      | >= 4.x               | Presente su Linux/macOS. Su Windows: WSL o Git Bash |
-| `ffmpeg`    | >= 6.x               | Deve includere `channelsplit`, `compand`, `equalizer`, `adelay`, `alimiter`. |
-| GPU (opz.)  | NVIDIA CUDA          | Per usare `-hwaccel cuda` (opzionale) |
+   ```bash
+   ./clearvoice050.sh --help
+   ```
 
----
+## ⚙️ Configurazione dei Parametri
 
-## 🚀 Uso rapido
+All'inizio dello script `clearvoice050.sh` trovi le variabili di tuning che puoi personalizzare:
 
 ```bash
-./clearvoice043.sh [dts|eac3|ac3] 640k "Film.mkv"
-./clearvoice043.sh --no-keep-old dts 384k
+KEEP_OLD=true         # true = conserva la traccia audio originale come seconda traccia
+VOICE_VOL=5.9         # Boost center (dialoghi): +12 dB circa
+LFE_VOL=0.38          # Attenuazione subwoofer (~-7 dB)
+LFE_LIMIT=0.75        # Ceiling limiter per LFE
+FRONT_VOL=1.10        # Boost frontali L/R (+0.8 dB)
+SURROUND_VOL=3.5      # Boost rear surround (+9 dB)
+FL_DELAY=8            # Delay front-left (ms)
+FR_DELAY=4            # Delay front-right (ms)
+SL_DELAY=4            # Delay surround-left (ms)
+SR_DELAY=2            # Delay surround-right (ms)
 ```
 
-- Se non indichi alcun file, elabora **tutti i `.mkv`** presenti.
-- Flag `--no-keep-old` rimuove le tracce audio originali.
+> **Consiglio:** modifica solo queste variabili per cambiare bilanciamento generale.
 
----
-
-## 🎛️ Audio: Trattamento per Frequenze & Canali
-
-### 🎤 Canale Centrale (Dialoghi)
-
-- **Volume**: +12.6 dB (`VOICE_VOL=4.25`)
-- **High-pass**: 100 Hz – rimuove i rimbombi
-- **Compand**: solleva i passaggi deboli (curve -35/-20dB)
-- **Compressore**: 4:1, soglia -22dB, attack 6ms
-- **Limiter**: -0.8 dBFS (`limit=0.92`)
-- **Equalizzazioni vocali**:
-  - 6 kHz: –3 dB (sibilanti)
-  - 4 kHz: –0.8 dB
-  - 2 kHz: +0.8 dB
-  - 1.5 kHz: +1.2 dB
-  - 300 Hz: +0.1 dB
-  - 250 Hz: +0.8 dB
-
-> 🎯 Risultato: voce calda, nitida, mai tagliente, intellegibile anche a basso volume.
-
----
-
-### 🔊 Subwoofer (LFE)
-
-- **Volume**: –4.7 dB (`LFE_VOL=0.58`)
-- **High-pass**: 28 Hz – taglia l’infrabasso spurio
-- **Equalizzazioni**:
-  - 40 Hz: –5 dB (anti-rimbombo)
-  - 60 Hz: +1.5 dB (mid-bass caldo)
-  - 80 Hz: +1.0 dB (punch)
-- **Low-pass**: 100 Hz
-- **Shelf**: +2 dB @75 Hz
-- **Limiter**: `limit=0.75`, attack 3ms, release 200ms
-
-> 🧠 Basso presente, mai invadente con un "briciolo" di vibrazione (anche su subwoofer potenti).
-
----
-
-### 🔈 Frontali e Surround
-
-- **Front L/R**:
-  - Volume: +1 dB (`FRONT_VOL=1.12`)
-  - Delay: FL 8 ms, FR 4 ms
-- **Surround L/R**:
-  - Volume: +6 dB (`SURROUND_VOL=2.24`)
-  - Delay: SL 4 ms, SR 2 ms
-
-> 🎧 Delay asimmetrici ampliano il palco, enfatizzano il fronte e rendono il retro avvolgente.
-
----
-
-## 🔬 Pipeline FFmpeg
-
-Lo script utilizza una pipeline FFmpeg composta da più filtri audio applicati **per canale** tramite `channelsplit`, `pan`, `filter_complex` e `amerge`, in questo ordine generale:
-
-1. **Split e routing dei canali**:
-   - Il flusso 5.1 viene separato in: FL, FR, C, LFE, SL, SR
-
-2. **Elaborazione canale centrale (voce)**:
-   ```bash
-   [c] highpass=100Hz → equalizer x5 → compand → compand → compressor → limiter
-   ```
-
-3. **Elaborazione subwoofer (LFE)**:
-   ```bash
-   [lfe] highpass=28Hz → equalizer x3 → lowpass=100Hz → bass shelf → limiter
-   ```
-
-4. **Frontali (FL/FR)**:
-   ```bash
-   [fl/fr] volume=1.12 → adelay=8ms/4ms
-   ```
-
-5. **Surround (SL/SR)**:
-   ```bash
-   [sl/sr] volume=2.24 → adelay=4ms/2ms
-   ```
-
-6. **Ricostruzione 5.1**:
-   - I canali trattati vengono rimessi insieme tramite `amerge` e `pan=5.1`.
-
-7. **Limiter finale (master)**:
-   - L'intera traccia viene infine passata in un `alimiter=limit=0.92`
-
-> Il tutto avviene senza alterare il video, né gli altri stream (sottotitoli, capitoli, ecc).
-
-
-## 🧬 Frequenze della voce umana italiana (e perché ci interessano)
-
-La voce umana si sviluppa su un **range di frequenze** ben preciso. Per migliorare la chiarezza dei dialoghi nei film, è fondamentale sapere **dove agire** con equalizzazione e compressione:
-
-| Banda di frequenza | Contenuto | Trattamento |
-|--------------------|-----------|-------------|
-| **60–100 Hz**      | Voce maschile profonda, rimbombi | Di solito attenuata (high-pass) |
-| **150–300 Hz**     | Corposità vocale, tono base | Leggero boost per "calore" |
-| **500–1000 Hz**    | Intellegibilità, formanti vocali | Poco marcata in lingua italiana | 
-| **1–2 kHz**        | Chiarezza e presenza | Leggero aumento |
-| **3–5 kHz**        | Nitidezza consonanti | Equalizzazioni mirate, evitare l’asprezza |
-| **6–8 kHz**        | Sibili, "S" e "F" | Spesso attenuata per evitare fastidio |
-| **10 kHz+**        | Aria e brillantezza | Non sempre utile nei dialoghi |
-
-🎙️ La zona più importante per **capire cosa viene detto** è quella tra **1 kHz e 4 kHz**, ma serve un bilanciamento fine: troppa presenza rende la voce metallica, troppo poco la rende ovattata.
-
-Lo script Clearvoice applica equalizzazioni specifiche proprio in questi punti critici, migliorando la **presenza vocale senza stridori**.
-
-> 🎧 Sì, è un po’ come l’equalizzatore dell’autoradio… ma con il cervello (e FFmpeg).
-## 🔁 Codec supportati
-
-| Codec | Bitrate default | Note |
-|-------|------------------|------|
-| EAC3  | `758k`           | Standard, compatibile con 5.1 |
-| AC3   | `640k`           | Compatibile con sistemi legacy |
-| DTS   | `756k`           | Alta fedeltà (con supporto dedicato) |
-
----
-
-## 🔧 Parametri interni modificabili
-
-Apri lo script e modifica a piacere:
+## 📡 Uso CLI
 
 ```bash
-KEEP_OLD=true         # conserva le tracce audio originali
-VOICE_VOL=4.56        # gain voce
-LFE_VOL=0.58          # gain subwoofer
-LFE_LIMIT=0.75        # limitazione LFE
-FRONT_VOL=1.10        # frontali
-SURROUND_VOL=2.24     # surround
-FL_DELAY=8            # front-left delay (ms)
-FR_DELAY=4
-SL_DELAY=4            # surround-left delay (ms)
-SR_DELAY=2
+./clearvoice050.sh [codec] [bitrate] <file1.mkv> [file2.mkv ...]
 ```
 
----
+* `codec`: `eac3` (default), `ac3`, `dts`
+* `bitrate`: `384k` (EAC3), `448k` (AC3), `768k` (DTS)
+* `--no-keep-old`: rimuove la traccia originale
+* Se non specifichi file, processa **tutti i `.mkv`** nella cartella corrente.
 
-## 🛠️ Output
+**Esempi:**
 
-Ogni file elaborato verrà salvato come:
+```bash
+# Processa un singolo file in EAC3/384k
+./clearvoice050.sh eac3 384k Film.mkv
 
+# Processa tutti i .mkv in AC3/448k, senza traccia originale
+./clearvoice050.sh --no-keep-old ac3 448k
 ```
-Nomefile_clearvoice0.mkv
-```
 
-Con codec e bitrate selezionati, audio taggato `ita`, video **non ricodificato**.
+## 🎛️ Pipeline Filtri Audio (filter\_complex)
+
+Lo script costruisce un filtro complesso (`ADV_FILTER`) suddiviso in tre macro-sezioni:
+
+1. **Pre-Split & Loudness Globale**
+
+   * `dynaudnorm=f=150:m=2:p=0.90`: make-up gain leggero (+2 dB max) su finestra 150 ms
+   * `channelmap` + `channelsplit`: normalizza e separa in 6 stream (FL, FR, FC, LFE, SL, SR)
+
+2. **Center (Dialoghi)**
+
+   * `agate`: noise gate per sopprimere frusci sotto –55 dB
+   * `acompressor`: compressione soft (1.6:1) per aumentare corpo senza pompare
+   * `deesser`: attenua S/Z (bandwidth stretta 0.27:0.015)
+   * `highshelf`: shelf +1 dB sopra 9 kHz per brillantezza
+   * `volume`: boost dialoghi (`VOICE_VOL`)
+
+3. **LFE (Subwoofer)**
+
+   * Filtri passa-alto/inferiore (38–90 Hz) + piccole boost EQ per armoniche (50–85 Hz)
+   * Compressore + limiter per controllo picchi e vibrazioni
+   * `volume`: attenuazione sub (`LFE_VOL`)
+
+4. **Front & Surround**
+
+   * Delay microsecondi per creare scena
+   * Boost frontale/rear e riverbero leggero (`aecho`) per gli surround
+
+5. **Join & Master**
+
+   * Ricomposizione 5.1
+   * Boost finale (`volume=1.2`)
+   * Limitazione (`alimiter=0.95`)
+   * Reset timestamp con `asetpts`
+
+## 📑 File Output
+
+Il file generato sarà `<nome_input>_clearvoice0.mkv`, contenente:
+
+* Video originale (stream copiato)
+* Traccia audio Clearvoice 5.1 (EAC3/AC3/DTS) + traccia originale opzionale
+* Sottotitoli (stream copiato)
+
+## 💡 Suggerimenti & Tweak
+
+* **Dialoghi troppo deboli**: aumenta `VOICE_VOL` di 0.2
+* **Sub troppo invadente**: riduci `LFE_VOL` a 0.35
+* **Voice più calda**: aumenta `highshelf` a +1.5 dB
+* **Meno fruscio**: riduci `p` in `dynaudnorm` o abbassa `threshold` in `agate`
 
 ---
 
-## 🧪 Roadmap
-
-- [ ] Auto-normalizzazione con loudnorm
-- [ ] Output HEVC con tag audio dinamici
-- [ ] Versione GUI in Electron
-
----
-
-## 📜 Licenza
-
-MIT. Usalo, adattalo, remixalo. Se il tuo sub si ribella… è una feature, non un bug.
-
----
-
-## ❤️ Contribuisci
-
-Hai idee, miglioramenti o preset per altri modelli di soundbar?  
-Fai una pull request o apri una issue. Il suono perfetto è un lavoro di squadra.
+*Questo progetto è licenziato MIT. Buon editing audio!*
