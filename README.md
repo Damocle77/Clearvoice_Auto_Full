@@ -12,7 +12,7 @@ Pensata per sistemi soundbar multicanale LG Meridian e compatibili, ma estendibi
 * **Preset dedicati**: film, serie TV e cartoni animati
 * **Pilota LFE** e volumi bilanciati per ogni canale
 * **Compressione e soft-clipping** per evitare distorsioni
-* **Accelerazione hardware CUDA** abilitata di default
+* **Accelerazione hardware (opzionale)** abilitata di default
 * **Supporto multi-file e directory** con globbing `.mkv`
 * **Salvataggio dei metadati** (titoli, lingua ita, tracciati secondari, sottotitoli)
 
