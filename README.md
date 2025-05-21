@@ -22,7 +22,7 @@ Pensata per sistemi soundbar multicanale LG Meridian e compatibili, ma estendibi
 
 * **FFmpeg** (con supporto `libfdk_aac`, `nvenc` o simili)
 * **sotto Windows 11: winget install ffmpeg**
-* **bash** (versione 4+ consigliata)
+* **bash** (versione 4+ consigliata) *Gitbash sotto Windows
 * **Hardware**: GPU NVIDIA per CUDA (opzionale ma consigliata)
 
 ---
