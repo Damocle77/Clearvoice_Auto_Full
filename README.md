@@ -86,8 +86,7 @@ chmod +x clearvoice070_preset.sh
 ## 🚀 Prospettive future
 
 * **Interfaccia Web**: controllo via browser per un workflow ancora più fluido
-* **Supporto Audio Immersivo**: Dolby Atmos / MPEG-H
-* **Contributi**: apri una pull request e fai sentire la tua voce! 🎉
+* **Supporto Audio 3D**: Dolby Atmos / MPEG-H
 
 ---
 
