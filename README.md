@@ -2,7 +2,8 @@
 
 **Ottimizzazione audio 5.1.2 con focus sulla chiarezza dei dialoghi e bilanciamento surround**
 
-Una soluzione semplice e potente per dare voce chiara ai tuoi film, serie e cartoni animati. Pensato per sistemi LG Meridian e compatibili, ma estendibile a qualsiasi amplificatore multicanale.
+Una soluzione semplice e potente per dare voce chiara ai tuoi film, serie e cartoni animati. 
+Pensata per sistemi soundbar multicanale LG Meridian e compatibili, ma estendibile a qualsiasi AVR.
 
 ---
 
