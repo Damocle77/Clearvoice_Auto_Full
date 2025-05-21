@@ -75,10 +75,10 @@ chmod +x clearvoice070_preset.sh
 ```bash
 # Serie TV in DD+ 384k\ n./clearvoice070_preset.sh --serie eac3 384k "LaTuaSerie.mkv"
 
-# Tutti i film in DTS 768k nella cartella corrente\ n./clearvoice070_preset.sh --film dts 768k
+# Tutti i film in DTS 756k nella cartella corrente\ n./clearvoice070_preset.sh --film dts 756k
 
-# Cartoni animati in AC3 448k da directory specifica
-./clearvoice070_preset.sh --cartoni ac3 448k /media/cartoni
+# Cartoni animati in AC3 640k da directory specifica
+./clearvoice070_preset.sh --cartoni ac3 640k /media/cartoni
 ```
 
 ---
