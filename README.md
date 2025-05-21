@@ -64,9 +64,9 @@ chmod +x clearvoice070_preset.sh
 
 ## 🔊 Codec supportati
 
-* **eac3**: default `384k`, titolazione "EAC3 Clearvoice 5.1"
-* **ac3**: default `448k`, titolazione "AC3 Clearvoice 5.1"
-* **dts**: default `768k`, titolazione "DTS Clearvoice 5.1" + equalizzatori specifici
+* **eac3**: default `768k`, titolazione "EAC3 Clearvoice 5.1"
+* **ac3**: default `640k`, titolazione "AC3 Clearvoice 5.1"
+* **dts**: default `756k`, titolazione "DTS Clearvoice 5.1" + equalizzatori specifici
 
 ---
 
