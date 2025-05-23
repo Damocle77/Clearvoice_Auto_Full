@@ -1,4 +1,4 @@
-# ClearVoice 5.1 Pipeline 0.70
+# ClearVoice 5.1 Pipeline 0.73
 
 **Ottimizzazione audio 5.1.2 con focus sulla chiarezza dei dialoghi e bilanciamento surround**
 
@@ -56,9 +56,9 @@ chmod +x clearvoice070_preset.sh
 
 | Preset    | Uso consigliato                          | Parametri voce (center) | LFE  | Surround | Compressione       |
 | --------- | ---------------------------------------- | ----------------------- | ---- | -------- | ------------------ |
-| `film`    | Film ad alto dinamismo                   | `VOICE_VOL=7.4`         | 0.30 | 3.5      | `0.48:1.15:45:450` |
-| `serie`   | Serie TV e documentari                   | `VOICE_VOL=7.3`         | 0.29 | 3.4      | `0.44:1.18:50:400` |
-| `cartoni` | Cartoni animati e musical                | `VOICE_VOL=6.5`         | 0.31 | 3.6      | `0.47:1.12:40:300` |
+| `film`    | Film ad alto dinamismo                   | `VOICE_VOL=7.4`         | 0.29 | 3.5      | `0.32:1.3:40:400`  |
+| `serie`   | Serie TV e documentari                   | `VOICE_VOL=7.3`         | 0.29 | 3.4      | `0.28:1.25:55:350` |
+| `cartoni` | Cartoni animati e musical                | `VOICE_VOL=6.8`         | 0.30 | 3.6      | `0.40:1.15:45:300` |
 
 *Filtri center*: highpass, lowpass, compressor, softclipper.
 
@@ -75,12 +75,12 @@ chmod +x clearvoice070_preset.sh
 ## 🛠️ Esempi rapidi
 
 ```bash
-# Serie TV in DD+ 384k\ n./clearvoice070_preset.sh --serie eac3 384k "LaTuaSerie.mkv"
+# Serie TV in DD+ 384k\ n./clearvoice_preset.sh --serie eac3 384k "LaTuaSerie.mkv"
 
-# Tutti i film in DTS 756k nella cartella corrente\ n./clearvoice070_preset.sh --film dts 756k
+# Tutti i film in DTS 756k nella cartella corrente\ n./clearvoice_preset.sh --film dts 756k
 
 # Cartoni animati in AC3 640k da directory specifica
-./clearvoice070_preset.sh --cartoni ac3 640k /media/cartoni
+./clearvoice_preset.sh --cartoni ac3 640k /media/cartoni
 ```
 
 ---
