@@ -1,6 +1,7 @@
 # ClearVoice 0.75 - Ottimizzazione Audio 5.1
 
 **Script avanzato per ottimizzazione audio 5.1 con focus su chiarezza dialoghi e controllo LFE**
+*Sound engineering by Sandro <D@mocle77> Sabbioni*
 
 Soluzione professionale testata su sistema LG Meridian SP7 5.1.2 e usabile su soundbar o AVR compatibili.<br>
 Ottimizza film, serie TV e cartoni animati con parametri testati per eliminare boom del subwoofer e migliorare l'intelligibilità.
@@ -174,6 +175,8 @@ File processati: 3
 
 ## 📄 Licenza
 
-MIT License © 2025 - Testato su Soundbar LG Meridian SP7 5.1.2
+MIT License © 2025 - Sandro <D@mocle77> Sabbioni
+
+**Testato su**: Soundbar LG Meridian SP7 5.1.2
 
 **Nota**: I parametri sono stati testati per SP7. Per altri sistemi audio, potrebbero essere necessari aggiustamenti.
