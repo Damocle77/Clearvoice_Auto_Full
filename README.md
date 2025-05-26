@@ -22,7 +22,7 @@ Ottimizza film, serie TV e cartoni animati (EAC3-DTS) per eliminare "booming" de
 
 ## 📋 Requisiti
 
-* **FFmpeg** 4.0+ (con supporti codec moderni)
+* **FFmpeg** 6.0+ (con supporti codec moderni)
 * **Windows 11**: `winget install ffmpeg`
 * **Git Bash** o WSL per ambiente Unix
 * **Hardware**: LG Meridian SP7 5.1.2 (testato e ottimizzato)
