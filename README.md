@@ -87,7 +87,7 @@ chmod +x clearvoice075_preset.sh
 
 ```bash
 # Serie TV sussurrate in DD+ 384k
-./clearvoice075_preset.sh --serie eac3 384k "Breaking.Bad.mkv"
+./clearvoice075_preset.sh --serie eac3 384k "Episodio.mkv"
 
 # Film d'azione in DTS alta qualità
 ./clearvoice075_preset.sh --film dts 768k *.mkv
