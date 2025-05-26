@@ -144,7 +144,7 @@ File processati: 3
 **Hardware testato:**
 - LG Meridian SP7 5.1.2
 - Windows 11
-- FFmpeg 6.x/7.x
+- FFmpeg 7.x
 
 **Metodologia di test:**
 - Dialoghi sussurrati (serie TV drama)
