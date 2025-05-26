@@ -5,7 +5,7 @@
 
 Soluzione professionale testata su sistema LG Meridian SP7 5.1.2 e usabile su soundbar o AVR compatibili.<br>
 
-Ottimizza film, serie TV e cartoni animati per eliminare boom del subwoofer e migliorare l'intelligibilità della voce.
+Ottimizza film, serie TV e cartoni animati per eliminare "booming" del subwoofer e migliorare l'intelligibilità del parlato.
 ---
 
 ## 🚀 Caratteristiche principali
