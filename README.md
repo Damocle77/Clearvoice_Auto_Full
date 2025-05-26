@@ -35,6 +35,8 @@ Ottimizza film, serie TV e cartoni animati (EAC3-DTS) per eliminare "booming" de
 git clone https://github.com/Damocle77/Clearvoice_5.1/
 cd clearvoice075
 chmod +x clearvoice075_preset.sh
+
+winget install ffmpeg
 ```
 
 ---
