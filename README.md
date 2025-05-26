@@ -52,7 +52,7 @@ chmod +x clearvoice075_preset.sh
 
 ---
 
-## 🎛️ Preset disponibili (calibrati per SP7)
+## 🎛️ Preset disponibili
 
 ### **🎬 --film** : Contenuti cinematografici con action e dialoghi
 - **Parametri**: `VOICE_VOL=8.5`, `LFE=0.24`, `SURR=3.6`, `COMP=0.35:1.30:40:390`
