@@ -722,6 +722,7 @@ done
 if [[ $MAX_PARALLEL -gt 1 ]]; then
     wait_all_jobs
 fi
+print_summary
 
 # -----------------------------------------------------------------------------------------------
 #  STATISTICHE FINALI E RIEPILOGO AVANZATO
