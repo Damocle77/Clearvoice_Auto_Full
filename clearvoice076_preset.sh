@@ -265,8 +265,8 @@ CODEC="${CODEC:-eac3}"
 case "${CODEC,,}" in
   eac3) 
     ENC=eac3; BR=${BR:-384k}; TITLE="EAC3 Clearvoice 5.1"
-    # Parametri qualità EAC3 ottimizzati per SP7
-    EXTRA="-channel_layout 5.1 -mixing_level -1 -room_type 1 -copyright 0 -dialnorm -27 -dsur_mode 2"
+    # Parametri qualità EAC3 ottimizzati per SP7 - CORRETTI
+    EXTRA="-channel_layout 5.1 -mixing_level 108 -room_type 1 -copyright 0 -dialnorm -27 -dsur_mode 2"
     ;;
   ac3)  
     ENC=ac3; BR=${BR:-448k}; TITLE="AC3 Clearvoice 5.1"
@@ -292,7 +292,6 @@ build_audio_filter() {
         # ===== RAMO DTS: Parametri ottimizzati per codec DTS =====
         case "$PRESET" in
             film)
-                # DTS Film: sub molto più controllato per eliminare boom eccessivo
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.5}") 
                 front_vol_adj="0.85"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.82}")    
@@ -300,7 +299,6 @@ build_audio_filter() {
                 hp_freq=135; lp_freq=7700                                
                 ;;
             serie)
-                # DTS Serie: sub molto ridotto, voce massima sub minimale
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.0}")
                 front_vol_adj="0.80"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.85}")       
@@ -308,7 +306,6 @@ build_audio_filter() {
                 hp_freq=130; lp_freq=7500
                 ;;
             cartoni)
-                # DTS Cartoni: Bilanciamento musicale
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.7}")    
                 front_vol_adj="0.87"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")      
@@ -335,17 +332,14 @@ EOF
         # ===== RAMO EAC3/AC3: Parametri per codec Dolby =====
         case "$PRESET" in
             film)
-                # EAC3/AC3 Film: Voce presente ma non eccessiva
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.2}")
                 front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.12}")
                 ;;
             serie)
-                # EAC3/AC3 Serie: Ottimizzato per dialoghi TV
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.5}")
                 front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.08}")
                 ;;
             cartoni)
-                # EAC3/AC3 Cartoni: Bilanciato per contenuti misti
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.8}")
                 front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.02}")
                 ;;
@@ -354,31 +348,28 @@ EOF
         # Calcolo riduzione LFE specifica per preset
         case "$PRESET" in
             serie)
-                # Serie TV: Sub molto controllato per SP7 
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.80}")       # -20% per dialoghi TV
+                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.80}")
                 surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.92}")
                 ;;
             film)
-                # Film: Sub più controllato come richiesto
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.83}")       # -17% bilanciato
+                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.83}")
                 surround_vol_adj=${SURROUND_VOL}
                 ;;
             cartoni)
-                # Cartoni: LFE leggermente controllato per bilanciamento
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")       # -8% preserva impatto 
+                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")
                 surround_vol_adj=${SURROUND_VOL}
                 ;;
             *)
-                lfe_vol_adj=${LFE_VOL}  # Fallback sicuro
+                lfe_vol_adj=${LFE_VOL}
                 surround_vol_adj=${SURROUND_VOL}
                 ;;
         esac
         
-        # Filtro EAC3/AC3 con crossover LFE precisione, anti-aliasing surround e filtri Front
+        # Filtro EAC3/AC3 semplificato per evitare errori di parsing
         ADV_FILTER=$(cat <<EOF | tr -d '\n'
 [0:a]channelmap=channel_layout=5.1[audio5dot1];
 [audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];
-[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS},${SOFTCLIP_SETTINGS}[center];
+[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},acompressor=threshold=${VC_THRESHOLD}:ratio=${VC_RATIO}:attack=${VC_ATTACK}:release=${VC_RELEASE},${SOFTCLIP_SETTINGS}[center];
 [FL]${FRONT_FILTER},volume=${front_vol_adj}[left];
 [FR]${FRONT_FILTER},volume=${front_vol_adj}[right];
 [LFE]highpass=f=25:poles=2,lowpass=f=105:poles=2,volume=${lfe_vol_adj}[bass];
