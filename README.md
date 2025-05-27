@@ -38,7 +38,7 @@
 
 ### 🔧 **Tecnologie Avanzate**
 - **Crossover LFE precisione** con slopes controllati per SP7
-- **Resampling SoxR qualità audiophile** con dithering triangular
+- **Resampling SoxR qualità audiophile** (quando supportato)
 - **Anti-aliasing surround** per canali posteriori cristallini
 - **Filtri pulizia Front L/R** specifici per preset
 - **Processing parallelo** (2 file contemporaneamente per serie TV)
@@ -49,6 +49,7 @@
 - **Gestione robusta** file con layout audio "unknown"
 - **Preservazione completa** video, tracce audio aggiuntive e sottotitoli
 - **Validazione input avanzata** con analisi formati audio dettagliata
+- **Compatibilità estesa** encoder DTS con fallback automatico
 
 ---
 
@@ -117,8 +118,8 @@ chmod +x clearvoice077_preset.sh
 # Serie TV ottimizzata
 ./clearvoice077_preset.sh --serie *.mkv
 
-# Film alta qualità DTS
-./clearvoice077_preset.sh --film dts 768k Film/
+# Film alta qualità EAC3 (raccomandato)
+./clearvoice077_preset.sh --film eac3 384k Film/
 
 # Cartella con processing parallelo
 ./clearvoice077_preset.sh --serie /path/to/series/
@@ -194,7 +195,7 @@ chmod +x clearvoice077_preset.sh
 ```
 - **Bitrate:** 384k (default), 256k, 448k, 640k
 - **Qualità:** Ottima compressione/qualità
-- **Compatibilità:** Streaming, TV moderne
+- **Compatibilità:** Streaming, TV moderne, massima compatibilità
 - **Parametri:** Mixing level 108, Room type 1, Dialnorm -27
 
 ### 🎯 **AC3** (Dolby Digital) - *Universale*
@@ -213,7 +214,9 @@ chmod +x clearvoice077_preset.sh
 - **Bitrate:** 768k (default), 640k, 1024k, 1536k
 - **Qualità:** Massima fedeltà
 - **Compatibilità:** Player avanzati, Blu-ray
-- **Parametri:** DTS-HD, Compression level 0, 48kHz
+- **Parametri:** Channel layout 5.1(side), Compression level 1, 48kHz
+
+**⚠️ Nota DTS:** Richiede encoder compatibile. Se riscontri errori, usa EAC3/AC3.
 
 ---
 
@@ -221,8 +224,11 @@ chmod +x clearvoice077_preset.sh
 
 ### 🎬 Elaborazione Film Collection
 ```bash
-# Film d'azione con qualità DTS massima
-./clearvoice077_preset.sh --film dts 768k /Movies/Action/*.mkv
+# Film con qualità EAC3 ottimale (raccomandato)
+./clearvoice077_preset.sh --film eac3 384k /Movies/Action/*.mkv
+
+# Film con qualità DTS massima (se supportato)
+./clearvoice077_preset.sh --film dts 768k /Movies/Premium/*.mkv
 
 # Film misti con AC3 universale
 ./clearvoice077_preset.sh --film ac3 448k *.mkv
@@ -254,7 +260,7 @@ chmod +x clearvoice077_preset.sh
 # Mixed content con preset diversi
 for dir in /Movies/*; do
     if [[ "$dir" == *"Action"* ]]; then
-        ./clearvoice077_preset.sh --film dts 768k "$dir"/*.mkv
+        ./clearvoice077_preset.sh --film eac3 384k "$dir"/*.mkv
     elif [[ "$dir" == *"TV"* ]]; then
         ./clearvoice077_preset.sh --serie "$dir"/
     fi
@@ -270,12 +276,13 @@ done
 - ✅ **Correzione variabile lp_freq** mancante preset cartoni DTS
 - ✅ **Gestione migliorata** variabili locali nel filtro audio
 - ✅ **Validazione input robusta** con gestione array vuoti
+- ✅ **Compatibilità DTS estesa** con layout 5.1(side)
 
 ### 🎧 **Qualità Audio Avanzata**
 - 🆕 **Compressore multi-banda** per processing più naturale
 - 🆕 **Limitatore intelligente** specifico per ogni preset
 - 🆕 **Crossover LFE** con poles controllati per SP7
-- 🆕 **Resampling SoxR** precision 28-bit con dithering triangular
+- 🆕 **Resampling SoxR** precision 28-bit (quando supportato)
 - 🆕 **Anti-aliasing** su canali surround posteriori
 - 🆕 **Filtri pulizia** Front L/R specifici per preset
 
@@ -287,20 +294,21 @@ done
 - 💡 **Suggerimenti conversione** per mono, stereo, 7.1 surround
 
 ### 🎯 **Encoding Ottimizzato**
-- 🔧 **Parametri codec** ottimizzati (dialnorm, dsur_mode, dts_hd)
+- 🔧 **Parametri codec** ottimizzati (dialnorm, dsur_mode, compression)
 - 🧵 **Threading efficiente** con thread_queue_size
 - 📈 **Accelerazione hardware** GPU quando disponibile
+- 🛡️ **Fallback automatico** per encoder non supportati
 
 ---
 
 ## 📋 Requisiti Tecnici
 
 ### Software Richiesto
-| Componente | Versione Minima | Windows 11 | Linux | macOS |
-|------------|-----------------|------------|-------|--------|
-| **FFmpeg** | 6.0+ | ✅ Winget | ✅ APT/YUM | ✅ Homebrew |
-| **Bash** | 4.0+ | ✅ Git Bash | ✅ Nativo | ✅ Nativo |
-| **AWK** | Any | ✅ Git Bash | ✅ Nativo | ✅ Nativo |
+| Componente | Versione Minima | Testato Su | Windows 11 | Linux | macOS |
+|------------|-----------------|------------|------------|-------|--------|
+| **FFmpeg** | 6.0+ | 7.1+ | ✅ Winget | ✅ APT/YUM | ✅ Homebrew |
+| **Bash** | 4.0+ | 5.0+ | ✅ Git Bash | ✅ Nativo | ✅ Nativo |
+| **AWK** | Any | GAWK | ✅ Git Bash | ✅ Nativo | ✅ Nativo |
 
 ### Hardware Raccomandato
 - **CPU:** Multi-core (4+ thread per performance ottimali)
@@ -334,6 +342,28 @@ ffmpeg -i input.mkv -af "surround" -c:v copy output_51.mkv
 
 # 7.1 → 5.1  
 ffmpeg -i input.mkv -af "pan=5.1|FL=0.5*FL+0.707*FLC|FR=0.5*FR+0.707*FRC|FC=FC|LFE=LFE|BL=BL|BR=BR" -c:v copy output_51.mkv
+```
+
+#### "DTS encoder error: 5.1 not supported"
+```bash
+# L'encoder DTS richiede layout specifico
+# ERRORE: "Specified channel layout '5.1' is not supported"
+# SOLUZIONE: Script usa automaticamente 5.1(side) per compatibilità
+
+# Se persiste, usa codec alternativi:
+./clearvoice077_preset.sh --film eac3 384k file.mkv
+./clearvoice077_preset.sh --film ac3 448k file.mkv
+```
+
+#### "Filter 'adither' not found" o "Filter 'soxr' not found"
+```bash
+# Versioni FFmpeg meno recenti non supportano tutti i filtri
+# SOLUZIONE: Script usa filtri compatibili automaticamente
+# Verifica versione FFmpeg:
+ffmpeg -version
+
+# Aggiorna se necessario:
+winget upgrade ffmpeg
 ```
 
 #### "FFmpeg non trovato"
@@ -488,23 +518,6 @@ MIT License
 
 Copyright (c) 2025 Sandro "D@mocle77" Sabbioni
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 ```
 
 ---
@@ -519,8 +532,8 @@ SOFTWARE.
 
 ### 🚀 Quick Start Links
 ```bash
-# Clone and run in one command
-git clone https://github.com/Damocle77/Clearvoice_5.1.git && cd Clearvoice_5.1 && chmod +x clearvoice077_preset.sh && ./clearvoice077_preset.sh --help
+# Clone e test immediato (raccomandato)
+git clone https://github.com/Damocle77/Clearvoice_5.1.git && cd Clearvoice_5.1 && chmod +x clearvoice077_preset.sh && ./clearvoice077_preset.sh --film eac3 384k your_movie.mkv
 ```
 
 ---
