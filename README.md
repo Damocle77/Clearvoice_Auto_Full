@@ -1,4 +1,3 @@
-
 # 🎧 CLEARVOICE - Suite Avanzata per l'Ottimizzazione Audio 5.1
 
 **Script professionali per l'elaborazione audio ottimizzati per chiarezza dialoghi e controllo LFE**
@@ -97,8 +96,11 @@ chmod +x clearvoice075_preset.sh
 # Film singolo alta qualità
 ./clearvoice076_preset.sh --film dts 768k "Film.mkv"
 
-# Auto-configurazione
-./clearvoice076_preset.sh
+# Cartoni animati con codec AC3
+./clearvoice076_preset.sh --cartoni ac3 448k "Anime.mkv"
+
+# Elaborazione tutti i .mkv nella cartella corrente
+./clearvoice076_preset.sh --serie eac3 384k
 ```
 
 #### CLEARVOICE 0.75 (Stabile)
@@ -108,6 +110,9 @@ chmod +x clearvoice075_preset.sh
 
 # Film con preset ottimizzato
 ./clearvoice075_preset.sh --film dts 768k "Film.mkv"
+
+# Batch processing con preset default
+./clearvoice075_preset.sh --cartoni
 ```
 
 ---
