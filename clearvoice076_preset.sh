@@ -103,6 +103,11 @@ for cmd in ffmpeg awk; do
   fi
 done
 
+# Verifica nproc per Windows (opzionale)
+if ! command -v nproc &> /dev/null; then
+    echo "ℹ️  nproc non disponibile, usando 4 thread di default"
+fi
+
 # -----------------------------------------------------------------------------------------------
 #  ANALISI CLI
 # -----------------------------------------------------------------------------------------------
@@ -200,29 +205,20 @@ set_preset_params() {
     case "$PRESET" in
         film)
             # PRESET FILM: Bilanciato per contenuti cinematografici
-            # Voce presente ma non invadente, LFE controllato per action scenes
             VOICE_VOL=8.5; LFE_VOL=0.24; SURROUND_VOL=3.6  
             VOICE_COMP="0.35:1.30:40:390"  # Compressione moderata
-            # Compressore multi-banda per naturalezza
-            VOICE_COMP_MB="compand=attacks=0.02,0.05:decays=0.2,0.4:points=-90/-90,-45/-30,-25/-15,-5/-5|0.5"
             HP_FREQ=115; LP_FREQ=7900      # Range frequenze voce ottimale
             ;;
         serie)
             # PRESET SERIE TV: Massima intelligibilità dialoghi
-            # Ideale per contenuti con dialoghi sussurrati o problematici
             VOICE_VOL=8.6; LFE_VOL=0.24; SURROUND_VOL=3.4
             VOICE_COMP="0.32:1.18:50:380"  # Compressione delicata anti-vibrazione
-            # Compressore dialoghi: controllo massimo range dinamico
-            VOICE_COMP_MB="compand=attacks=0.01,0.03:decays=0.15,0.3:points=-90/-90,-50/-35,-30/-20,-8/-8|0.6"
             HP_FREQ=120; LP_FREQ=7600      # Pulizia maggiore dei bassi
             ;;
         cartoni)
             # PRESET CARTONI: Preserva musicalità e dinamica
-            # Bilanciato per voci chiare + colonne sonore elaborate
             VOICE_VOL=8.2; LFE_VOL=0.26; SURROUND_VOL=3.5  
             VOICE_COMP="0.40:1.15:50:330"  # Compressione leggera
-            # Compressore musicale: preserva dinamica
-            VOICE_COMP_MB="compand=attacks=0.03,0.08:decays=0.3,0.6:points=-90/-90,-40/-25,-20/-12,-3/-3|0.4"
             HP_FREQ=110; LP_FREQ=6900      # Range esteso per musica
             ;;
         *) echo "Preset sconosciuto: $PRESET"; exit 1;;
@@ -231,8 +227,8 @@ set_preset_params() {
     # Parsing parametri compressione dinamica   
     IFS=':' read -r VC_THRESHOLD VC_RATIO VC_ATTACK VC_RELEASE <<< "$VOICE_COMP"
     
-    # Compressore ibrido: standard + multiband per naturalezza
-    COMPRESSOR_SETTINGS="acompressor=threshold=${VC_THRESHOLD}:ratio=${VC_RATIO}:attack=${VC_ATTACK}:release=${VC_RELEASE},${VOICE_COMP_MB}"
+    # Compressore semplificato per evitare errori parsing
+    COMPRESSOR_SETTINGS="acompressor=threshold=${VC_THRESHOLD}:ratio=${VC_RATIO}:attack=${VC_ATTACK}:release=${VC_RELEASE}"
     
     # Limitatore intelligente specifico per preset
     SOFTCLIP_SETTINGS=$(build_limiter_settings)
@@ -292,6 +288,7 @@ build_audio_filter() {
         # ===== RAMO DTS: Parametri ottimizzati per codec DTS =====
         case "$PRESET" in
             film)
+                # DTS Film: sub molto più controllato per eliminare boom eccessivo
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.5}") 
                 front_vol_adj="0.85"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.82}")    
@@ -299,6 +296,7 @@ build_audio_filter() {
                 hp_freq=135; lp_freq=7700                                
                 ;;
             serie)
+                # DTS Serie: sub molto ridotto, voce massima sub minimale
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.0}")
                 front_vol_adj="0.80"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.85}")       
@@ -306,11 +304,12 @@ build_audio_filter() {
                 hp_freq=130; lp_freq=7500
                 ;;
             cartoni)
+                # DTS Cartoni: Bilanciamento musicale
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.7}")    
                 front_vol_adj="0.87"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")      
                 surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.85}") 
-                hp_freq=125
+                hp_freq=125; lp_freq=6800  # Aggiunto lp_freq mancante
                 ;;
         esac
         
@@ -332,14 +331,17 @@ EOF
         # ===== RAMO EAC3/AC3: Parametri per codec Dolby =====
         case "$PRESET" in
             film)
+                # EAC3/AC3 Film: Voce presente ma non eccessiva
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.2}")
                 front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.12}")
                 ;;
             serie)
+                # EAC3/AC3 Serie: Ottimizzato per dialoghi TV
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.5}")
                 front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.08}")
                 ;;
             cartoni)
+                # EAC3/AC3 Cartoni: Bilanciato per contenuti misti
                 voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.8}")
                 front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.02}")
                 ;;
@@ -348,28 +350,31 @@ EOF
         # Calcolo riduzione LFE specifica per preset
         case "$PRESET" in
             serie)
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.80}")
+                # Serie TV: Sub molto controllato per SP7 
+                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.80}")       # -20% per dialoghi TV
                 surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.92}")
                 ;;
             film)
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.83}")
+                # Film: Sub più controllato come richiesto
+                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.83}")       # -17% bilanciato
                 surround_vol_adj=${SURROUND_VOL}
                 ;;
             cartoni)
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")
+                # Cartoni: LFE leggermente controllato per bilanciamento
+                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")       # -8% preserva impatto 
                 surround_vol_adj=${SURROUND_VOL}
                 ;;
             *)
-                lfe_vol_adj=${LFE_VOL}
+                lfe_vol_adj=${LFE_VOL}  # Fallback sicuro
                 surround_vol_adj=${SURROUND_VOL}
                 ;;
         esac
         
-        # Filtro EAC3/AC3 semplificato per evitare errori di parsing
+        # Filtro EAC3/AC3 con crossover LFE precisione, anti-aliasing surround e filtri Front
         ADV_FILTER=$(cat <<EOF | tr -d '\n'
 [0:a]channelmap=channel_layout=5.1[audio5dot1];
 [audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];
-[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},acompressor=threshold=${VC_THRESHOLD}:ratio=${VC_RATIO}:attack=${VC_ATTACK}:release=${VC_RELEASE},${SOFTCLIP_SETTINGS}[center];
+[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS},${SOFTCLIP_SETTINGS}[center];
 [FL]${FRONT_FILTER},volume=${front_vol_adj}[left];
 [FR]${FRONT_FILTER},volume=${front_vol_adj}[right];
 [LFE]highpass=f=25:poles=2,lowpass=f=105:poles=2,volume=${lfe_vol_adj}[bass];
@@ -438,9 +443,11 @@ process() {
     fi
     
     # ===== CORREZIONE LAYOUT AUDIO =====
+    # Crea una copia locale del filtro per questo file specifico
+    local LOCAL_FILTER="$ADV_FILTER"
     if [[ "$channel_layout" == "unknown" && "$channels" == "6" ]]; then
         echo "ℹ️  File con 6 canali ma layout sconosciuto, assumo 5.1"
-        ADV_FILTER="${ADV_FILTER//channelmap=channel_layout=5.1/aformat=channel_layouts=5.1}"
+        LOCAL_FILTER="${ADV_FILTER//channelmap=channel_layout=5.1/aformat=channel_layouts=5.1}"
     fi
     
     echo -e "\n🎬 Processing: $(basename "$input_file") [Preset: $PRESET] $([ "$parallel_mode" = "true" ] && echo "[PARALLEL]" || echo "")"
@@ -461,16 +468,16 @@ process() {
     # ===== ESECUZIONE FFMPEG CON THREADING OTTIMIZZATO =====
     local START_TIME=$(date +%s)
     
-    # Riduzione threads per modalità parallela per evitare sovraccarico CPU
-    local thread_count=0
+    # Configurazione threads ottimizzata
+    local thread_count=$(nproc 2>/dev/null || echo "4")
     if [[ "$parallel_mode" = "true" ]]; then
-        thread_count=$(($(nproc) / MAX_PARALLEL))
+        thread_count=$((thread_count / MAX_PARALLEL))
         [[ $thread_count -lt 2 ]] && thread_count=2
     fi
     
     ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero -fflags +genpts+discardcorrupt \
         -threads $thread_count -filter_threads $thread_count -thread_queue_size 512 \
-        -i "$input_file" -filter_complex "$ADV_FILTER" \
+        -i "$input_file" -filter_complex "$LOCAL_FILTER" \
         -map 0:v -map "[out]" -map 0:a? -map 0:s? \
         -metadata:s:a:0 title="$TITLE" -metadata:s:a:0 language=ita -disposition:a:0 default \
         -c:v copy -c:a:0 $ENC $EXTRA -b:a:0 $BR -c:a:1 copy -c:s copy \
@@ -588,12 +595,14 @@ print_summary() {
                 echo "   • LFE controllato -17% per SP7"
                 echo "   • Limitatore intelligente preserva dinamica"
                 echo "   • Filtri Front L/R: anti-rumble 22Hz, lowpass 20kHz"
+                echo "   • Filtri Surround BL/BR: anti-aliasing 35Hz, lowpass 18kHz"
                 ;;
             serie)
                 echo "   • Compressore dialoghi per massima intelligibilità"
                 echo "   • LFE ridotto -20% per contenuti TV"
                 echo "   • Anti-aliasing surround per chiarezza"
                 echo "   • Filtri Front L/R: anti-rumble 28Hz, lowpass 18kHz"
+                echo "   • Filtri Surround BL/BR: pulizia 35Hz, lowpass 18kHz"
                 if [[ $MAX_PARALLEL -gt 1 ]]; then
                     echo "   • Processing parallelo per velocità massima"
                 fi
@@ -603,6 +612,7 @@ print_summary() {
                 echo "   • LFE bilanciato -8% per impatto sonoro"
                 echo "   • Limitatore gentile per contenuti misti"
                 echo "   • Filtri Front L/R: anti-rumble 18Hz, lowpass 24kHz"
+                echo "   • Filtri Surround BL/BR: pulizia gentile per musicalità"
                 ;;
         esac
         echo ""
@@ -611,7 +621,7 @@ print_summary() {
         echo "   • Su SP7: usa Sound Mode 'Cinema' per preservare dinamica naturale"
         echo "   • Evita 'AI Sound Pro' e 'Normal' che appiattiscono il range dinamico"
         echo "   • Per dialoghi difficili: attiva sottotitoli come backup"
-        echo "   • Filtri Front L/R applicati per pulizia ottimale senza interferire DSP Meridian"
+        echo "   • Filtri Front L/R + Surround applicati per pulizia ottimale"
         if [[ $MAX_PARALLEL -gt 1 ]]; then
             echo "   • Processing parallelo ha ridotto il tempo di elaborazione totale"
         fi
@@ -631,5 +641,5 @@ print_summary() {
     echo "═══════════════════════════════════════════════════════════════════════════════"
 }
 
-# Chiamata alla funzione di riepilogo
+# CHIAMATA FINALE AL RIEPILOGO - AGGIUNTA MANCANTE
 print_summary
