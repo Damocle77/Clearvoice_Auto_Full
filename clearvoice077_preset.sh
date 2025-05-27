@@ -24,7 +24,7 @@
 #                Filtri FC: Highpass 120Hz, Lowpass 7600Hz, Compressore delicato, Anti-aliasing
 #                Filtri FL/FR: Anti-rumble 28Hz, Lowpass 18kHz per focus dialoghi
 #                Ideale per: Serie TV, documentari, contenuti con dialoghi difficili
-#                ELABORAZIONE PARALLELA: 2 file contemporaneamente per cartelle
+#                ELABORAZIONE PARALLELA: 2 file contemporaneamente per più file
 #
 #   --cartoni  : Leggero per animazione con preservazione musicale e dinamica.
 #                Parametri: VOICE_VOL=8.2, LFE=0.26, SURR=3.5, COMP=0.40:1.15:50:330
@@ -38,11 +38,11 @@
 #   dts       : DTS, default 768k - Qualità premium per film e Blu-ray
 #
 # ESEMPI D'USO:
-#   ./clearvoice077_preset.sh --serie eac3 384k "Serie.mkv"    # Singolo file serie TV
-#   ./clearvoice077_preset.sh --film dts 768k *.mkv            # Batch film alta qualità  
-#   ./clearvoice077_preset.sh --cartoni ac3 448k               # Tutti i .mkv, preset cartoni
-#   ./clearvoice077_preset.sh                                  # Auto: serie, eac3, 384k
-#   ./clearvoice077_preset.sh --serie /path/to/series/         # Cartella serie: 2 file paralleli
+#   ./clearvoice077_preset.sh --serie eac3 320k *.mkv            # Serie TV con file specifici
+#   ./clearvoice077_preset.sh --film dts 768k *.mkv             # Batch film alta qualità  
+#   ./clearvoice077_preset.sh --cartoni ac3 448k *.mkv          # Cartoni con file specifici
+#   ./clearvoice077_preset.sh --serie *.mkv                     # Serie: default eac3 384k
+#   ./clearvoice077_preset.sh --serie /path/to/series/          # Cartella serie: 2 file paralleli
 #
 # ELABORAZIONE AVANZATA v0.77:
 #   ✓ Separazione e ottimizzazione individuale di ogni canale 5.1
@@ -55,7 +55,7 @@
 #   ✓ Anti-aliasing surround per canali posteriori cristallini
 #   ✓ Filtri pulizia Front L/R: anti-rumble e controllo frequenze acute
 #   ✓ Preservazione stereofonía FL/FR e surround BL/BR con processing ottimizzato
-#   ✓ Processing parallelo: 2 file contemporaneamente per preset --serie su cartelle
+#   ✓ Processing parallelo: 2 file contemporaneamente per preset --serie con più file
 #   ✓ Output: filename_[preset]_clearvoice0.mkv
 #
 # CARATTERISTICHE TECNICHE:
@@ -89,7 +89,9 @@
 #   - Gestione automatica risorse per evitare sovraccarico CPU
 #   - Validazione input avanzata con analisi formati audio dettagliata
 #   - Suggerimenti conversione per mono, stereo, 7.1 surround
-#   - Fix loop principale per processing completo di tutti i file validati
+#   - Fix definitivo loop principale per processing completo senza doppia validazione
+#   - Rimozione validazione ridondante dalla funzione process()
+#   - Attivazione processing parallelo per serie TV anche con *.mkv
 #
 # VERSIONE: 0.77 | TESTATO SU: LG SP7 5.1.2, Windows 11, ffmpeg 7.x
 # -----------------------------------------------------------------------------------------------
@@ -120,6 +122,9 @@ fi
 #  VALIDAZIONE INPUT AVANZATA
 # -----------------------------------------------------------------------------------------------
 
+# Array per raccogliere i file validati globalmente
+VALIDATED_FILES_GLOBAL=()
+
 # Analisi dettagliata tracce audio con suggerimenti specifici
 check_audio_streams() {
     local file="$1"
@@ -138,6 +143,8 @@ check_audio_streams() {
     # Verifica compatibilità 5.1
     if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
         echo "✅ Audio 5.1 compatibile con ClearVoice"
+        # AGGIUNGE il file all'array globale dei validati
+        VALIDATED_FILES_GLOBAL+=("$file")
         return 0
     else
         echo "❌ Audio non compatibile con ClearVoice (richiede 5.1 surround)"
@@ -169,6 +176,9 @@ check_audio_streams() {
 validate_inputs() {
     local valid_count=0 total_count=0
     local mono_count=0 stereo_count=0 surround71_count=0 other_count=0
+    
+    # Reset array globale
+    VALIDATED_FILES_GLOBAL=()
     
     echo "🔍 Validazione input ClearVoice..."
     
@@ -276,8 +286,8 @@ CODEC: eac3(def)|ac3|dts  BITRATE: 384k(def)|448k|640k|768k
 
 ESEMPI:
   ./clearvoice077_preset.sh --serie *.mkv           # Serie TV, EAC3 384k
-  ./clearvoice077_preset.sh --film dts 768k Film/   # Film DTS alta qualità
-  ./clearvoice077_preset.sh --cartoni ac3 448k      # Cartoni AC3
+  ./clearvoice077_preset.sh --film dts 768k *.mkv   # Film DTS alta qualità
+  ./clearvoice077_preset.sh --cartoni ac3 448k *.mkv # Cartoni AC3
   ./clearvoice077_preset.sh --serie /series/folder/ # Serie: 2 file paralleli
 
 OUTPUT: filename_[preset]_clearvoice0.mkv
@@ -295,7 +305,8 @@ MIGLIORAMENTI QUALITÀ v0.77:
   ✓ Threading efficiente con queue size
   ✓ Processing parallelo per serie TV (max 2 processi)
   ✓ Validazione input avanzata con analisi formati audio
-  ✓ Fix loop processing per elaborazione completa
+  ✓ Fix definitivo loop processing senza doppia validazione
+  ✓ Attivazione processing parallelo per serie TV anche con *.mkv
 EOF
       exit 0;;
     -*) echo "Unknown option $1"; exit 1;;
@@ -391,12 +402,18 @@ set_preset_params() {
 
 set_preset_params
 
-# Ripiego posizionale per CODEC e BR
+# Ripiego posizionale CORRETTO per CODEC e BR
 if [[ -z $CODEC && ${#INPUTS[@]} -ge 1 ]]; then
-  CODEC="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
+    # Se il primo elemento non è un file esistente E non è un bitrate, è un codec
+    if [[ ! -f "${INPUTS[0]}" && ! "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
+        CODEC="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
+    fi
 fi
-if [[ -z $BR && ${#INPUTS[@]} -ge 1 && "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-  BR="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
+if [[ -z $BR && ${#INPUTS[@]} -ge 1 ]]; then
+    # Se il primo elemento è un bitrate (pattern numerico + k/K)
+    if [[ "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
+        BR="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
+    fi
 fi
 # Se non sono specificati input, prendi tutti i file .mkv in cartella
 if [[ ${#INPUTS[@]} -eq 0 ]]; then
@@ -435,7 +452,6 @@ esac
 build_audio_filter() {
     local voice_vol_adj front_vol_adj lfe_vol_adj surround_vol_adj
     local hp_freq=${HP_FREQ} lp_freq=${LP_FREQ}
-    local LOCAL_FILTER  # Aggiunta dichiarazione mancante
     
     if [[ "${CODEC,,}" == "dts" ]]; then
         # ===== RAMO DTS: Parametri ottimizzati per codec DTS =====
@@ -462,7 +478,7 @@ build_audio_filter() {
                 front_vol_adj="0.87"                                     
                 lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")      
                 surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.85}") 
-                hp_freq=125; lp_freq=6800  # CORREZIONE: aggiunto lp_freq
+                hp_freq=125; lp_freq=6800
                 ;;
         esac
         
@@ -569,7 +585,7 @@ process() {
     local parallel_mode="${2:-false}"
     local out="${input_file%.*}_${PRESET}_clearvoice0.mkv"
     
-    # Validazioni più robuste
+    # Validazioni di base (NO doppia validazione audio)
     if [[ ! -f "$input_file" ]]; then
         echo "❌ File '$input_file' non trovato!" >&2
         ((FAILED_COUNT++))
@@ -585,28 +601,13 @@ process() {
         return 1
     fi
     
-    # ===== RILEVAMENTO TRACCIA AUDIO 5.1 CON ANALISI MIGLIORATA =====
+    # Rileva solo il layout per correzione (i file sono già stati validati)
     local channel_layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$input_file" 2>/dev/null)
-    local channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$input_file" 2>/dev/null)
-
-    if [[ "$channel_layout" != "5.1" && "$channels" != "6" ]]; then
-        echo "❌ File non 5.1: '$input_file'" >&2
-        echo "   Audio: $channels canali, layout: $channel_layout" >&2
-        case "$channels" in
-            1) echo "   💡 Mono→5.1: ffmpeg -af \"pan=5.1|FL=FC|FR=FC|FC=FC|LFE=0|BL=0|BR=0\"" >&2;;
-            2) echo "   💡 Stereo→5.1: ffmpeg -af \"surround\"" >&2;;
-            8) echo "   💡 7.1→5.1: ffmpeg -af \"pan=5.1|FL=0.5*FL+0.707*FLC|FR=0.5*FR+0.707*FRC|FC=FC|LFE=LFE|BL=BL|BR=BR\"" >&2;;
-            *) echo "   💡 Analisi: ffprobe -show_streams \"$input_file\"" >&2;;
-        esac
-        ((FAILED_COUNT++))
-        return 1
-    fi
     
     # ===== CORREZIONE LAYOUT AUDIO =====
-    # Crea una copia locale del filtro per questo file specifico
     local LOCAL_FILTER="$ADV_FILTER"
-    if [[ "$channel_layout" == "unknown" && "$channels" == "6" ]]; then
-        echo "ℹ️  File con 6 canali ma layout sconosciuto, assumo 5.1"
+    if [[ "$channel_layout" == "unknown" ]]; then
+        echo "ℹ️  File con layout sconosciuto, assumo 5.1"
         LOCAL_FILTER="${ADV_FILTER//channelmap=channel_layout=5.1/aformat=channel_layouts=5.1}"
     fi
     
@@ -746,11 +747,11 @@ print_summary() {
 }
 
 # -----------------------------------------------------------------------------------------------
-#  LOOP SUI FILE DI INPUT CON SUPPORTO PROCESSING PARALLELO - CORREZIONE COMPLETA
+#  LOOP SUI FILE DI INPUT - VERSIONE DEFINITIVA CON PROCESSING PARALLELO ATTIVATO
 # -----------------------------------------------------------------------------------------------
 echo "🚀 Avvio CLEARVOICE 0.77 - Preset: $PRESET | Codec: $CODEC ($BR)"
 
-# AGGIUNTA: Validazione preliminare con analisi dettagliata
+# VALIDAZIONE PRELIMINARE che popola VALIDATED_FILES_GLOBAL
 if ! validate_inputs; then
     echo ""
     echo "🆘 HELP:"
@@ -760,13 +761,8 @@ if ! validate_inputs; then
     exit 1
 fi
 
-# Determina modalità parallela: 2 file per cartelle con preset "serie"
-PROCESSING_DIRS=false
-for path in "${INPUTS[@]}"; do
-    [[ -d "$path" ]] && PROCESSING_DIRS=true && break
-done
-
-if [[ "$PROCESSING_DIRS" = "true" && "$PRESET" = "serie" ]]; then
+# CORREZIONE: Attiva processing parallelo per serie TV con più file (non solo cartelle)
+if [[ "$PRESET" = "serie" && ${#VALIDATED_FILES_GLOBAL[@]} -gt 1 ]]; then
     MAX_PARALLEL=2
     echo "🔄 Modalità parallela attivata: elaborazione 2 file contemporaneamente per serie TV"
     echo "💾 Threads per processo ridotti automaticamente per bilanciare carico CPU"
@@ -775,41 +771,12 @@ fi
 echo "🎛️  Miglioramenti qualità: Compressore multi-banda, Limitatore intelligente, Crossover LFE precisione, Filtri Front L/R"
 
 # ============================================================================
-# CORREZIONE SCOPE: Raccogli tutti i file validati e processali
+# PROCESSING FINALE: Usa direttamente i file validati globalmente
 # ============================================================================
-validated_files=()
-
-for path in "${INPUTS[@]}"; do
-    if [[ -d "$path" ]]; then
-        shopt -s nullglob
-        dir_files=("$path"/*.mkv)
-        shopt -u nullglob
-        
-        for f in "${dir_files[@]}"; do
-            # Verifica che il file sia 5.1 prima di aggiungerlo
-            channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$f" 2>/dev/null)
-            layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$f" 2>/dev/null)
-            
-            if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
-                validated_files+=("$f")
-            fi
-        done
-    elif [[ -f "$path" ]]; then
-        # Verifica file singolo
-        channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$path" 2>/dev/null)
-        layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$path" 2>/dev/null)
-        
-        if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
-            validated_files+=("$path")
-        fi
-    fi
-done
-
-# Processing di tutti i file validati
-if [[ ${#validated_files[@]} -gt 0 ]]; then
-    echo -e "\n📁 Processing ${#validated_files[@]} file validati..."
+if [[ ${#VALIDATED_FILES_GLOBAL[@]} -gt 0 ]]; then
+    echo -e "\n📁 Processing ${#VALIDATED_FILES_GLOBAL[@]} file validati..."
     
-    for f in "${validated_files[@]}"; do
+    for f in "${VALIDATED_FILES_GLOBAL[@]}"; do
         if [[ $MAX_PARALLEL -gt 1 ]]; then
             # Modalità parallela: attendi slot libero e lancia in background
             wait_for_slot
