@@ -89,6 +89,7 @@
 #   - Gestione automatica risorse per evitare sovraccarico CPU
 #   - Validazione input avanzata con analisi formati audio dettagliata
 #   - Suggerimenti conversione per mono, stereo, 7.1 surround
+#   - Fix loop principale per processing completo di tutti i file validati
 #
 # VERSIONE: 0.77 | TESTATO SU: LG SP7 5.1.2, Windows 11, ffmpeg 7.x
 # -----------------------------------------------------------------------------------------------
@@ -294,6 +295,7 @@ MIGLIORAMENTI QUALITÀ v0.77:
   ✓ Threading efficiente con queue size
   ✓ Processing parallelo per serie TV (max 2 processi)
   ✓ Validazione input avanzata con analisi formati audio
+  ✓ Fix loop processing per elaborazione completa
 EOF
       exit 0;;
     -*) echo "Unknown option $1"; exit 1;;
@@ -658,73 +660,6 @@ process() {
 }
 
 # -----------------------------------------------------------------------------------------------
-#  LOOP SUI FILE DI INPUT CON SUPPORTO PROCESSING PARALLELO
-# -----------------------------------------------------------------------------------------------
-echo "🚀 Avvio CLEARVOICE 0.77 - Preset: $PRESET | Codec: $CODEC ($BR)"
-
-# AGGIUNTA: Validazione preliminare con analisi dettagliata
-if ! validate_inputs; then
-    echo ""
-    echo "🆘 HELP:"
-    echo "   • ClearVoice richiede tracce audio 5.1 (6 canali)"
-    echo "   • Usa i comandi sopra per convertire i tuoi file"
-    echo "   • Poi rilancia: ./clearvoice077_preset.sh --$PRESET $CODEC $BR"
-    exit 1
-fi
-
-# Determina modalità parallela: 2 file per cartelle con preset "serie"
-PROCESSING_DIRS=false
-for path in "${INPUTS[@]}"; do
-    [[ -d "$path" ]] && PROCESSING_DIRS=true && break
-done
-
-if [[ "$PROCESSING_DIRS" = "true" && "$PRESET" = "serie" ]]; then
-    MAX_PARALLEL=2
-    echo "🔄 Modalità parallela attivata: elaborazione 2 file contemporaneamente per serie TV"
-    echo "💾 Threads per processo ridotti automaticamente per bilanciare carico CPU"
-fi
-
-echo "🎛️  Miglioramenti qualità: Compressore multi-banda, Limitatore intelligente, Crossover LFE precisione, Filtri Front L/R"
-
-for path in "${INPUTS[@]}"; do
-    if [[ -d "$path" ]]; then
-        shopt -s nullglob
-        dir_files=("$path"/*.mkv)
-        shopt -u nullglob
-        
-        if [[ ${#dir_files[@]} -gt 0 ]]; then
-            echo -e "\n📁 Elaborazione cartella: $path (${#dir_files[@]} file)"
-            
-            for f in "${dir_files[@]}"; do
-                if [[ $MAX_PARALLEL -gt 1 ]]; then
-                    # Modalità parallela: attendi slot libero e lancia in background
-                    wait_for_slot
-                    process "$f" "true" &
-                else
-                    # Modalità sequenziale standard
-                    process "$f" "false"
-                fi
-            done
-            
-            # Attendi completamento di tutti i processi paralleli per questa cartella
-            if [[ $MAX_PARALLEL -gt 1 ]]; then
-                echo "⏳ Attendo completamento processi paralleli..."
-                wait_all_jobs
-            fi
-        fi
-    else
-        # File singolo: sempre sequenziale
-        process "$path" "false"
-    fi
-done
-
-# Attendi eventuali processi rimasti in background
-if [[ $MAX_PARALLEL -gt 1 ]]; then
-    wait_all_jobs
-fi
-print_summary
-
-# -----------------------------------------------------------------------------------------------
 #  STATISTICHE FINALI E RIEPILOGO AVANZATO
 # -----------------------------------------------------------------------------------------------
 print_summary() {
@@ -809,6 +744,90 @@ print_summary() {
     fi
     echo "═══════════════════════════════════════════════════════════════════════════════"
 }
+
+# -----------------------------------------------------------------------------------------------
+#  LOOP SUI FILE DI INPUT CON SUPPORTO PROCESSING PARALLELO - CORREZIONE COMPLETA
+# -----------------------------------------------------------------------------------------------
+echo "🚀 Avvio CLEARVOICE 0.77 - Preset: $PRESET | Codec: $CODEC ($BR)"
+
+# AGGIUNTA: Validazione preliminare con analisi dettagliata
+if ! validate_inputs; then
+    echo ""
+    echo "🆘 HELP:"
+    echo "   • ClearVoice richiede tracce audio 5.1 (6 canali)"
+    echo "   • Usa i comandi sopra per convertire i tuoi file"
+    echo "   • Poi rilancia: ./clearvoice077_preset.sh --$PRESET $CODEC $BR"
+    exit 1
+fi
+
+# Determina modalità parallela: 2 file per cartelle con preset "serie"
+PROCESSING_DIRS=false
+for path in "${INPUTS[@]}"; do
+    [[ -d "$path" ]] && PROCESSING_DIRS=true && break
+done
+
+if [[ "$PROCESSING_DIRS" = "true" && "$PRESET" = "serie" ]]; then
+    MAX_PARALLEL=2
+    echo "🔄 Modalità parallela attivata: elaborazione 2 file contemporaneamente per serie TV"
+    echo "💾 Threads per processo ridotti automaticamente per bilanciare carico CPU"
+fi
+
+echo "🎛️  Miglioramenti qualità: Compressore multi-banda, Limitatore intelligente, Crossover LFE precisione, Filtri Front L/R"
+
+# ============================================================================
+# CORREZIONE SCOPE: Raccogli tutti i file validati e processali
+# ============================================================================
+validated_files=()
+
+for path in "${INPUTS[@]}"; do
+    if [[ -d "$path" ]]; then
+        shopt -s nullglob
+        dir_files=("$path"/*.mkv)
+        shopt -u nullglob
+        
+        for f in "${dir_files[@]}"; do
+            # Verifica che il file sia 5.1 prima di aggiungerlo
+            channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$f" 2>/dev/null)
+            layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$f" 2>/dev/null)
+            
+            if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
+                validated_files+=("$f")
+            fi
+        done
+    elif [[ -f "$path" ]]; then
+        # Verifica file singolo
+        channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$path" 2>/dev/null)
+        layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$path" 2>/dev/null)
+        
+        if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
+            validated_files+=("$path")
+        fi
+    fi
+done
+
+# Processing di tutti i file validati
+if [[ ${#validated_files[@]} -gt 0 ]]; then
+    echo -e "\n📁 Processing ${#validated_files[@]} file validati..."
+    
+    for f in "${validated_files[@]}"; do
+        if [[ $MAX_PARALLEL -gt 1 ]]; then
+            # Modalità parallela: attendi slot libero e lancia in background
+            wait_for_slot
+            process "$f" "true" &
+        else
+            # Modalità sequenziale standard
+            process "$f" "false"
+        fi
+    done
+    
+    # Attendi completamento di tutti i processi paralleli
+    if [[ $MAX_PARALLEL -gt 1 ]]; then
+        echo "⏳ Attendo completamento processi paralleli..."
+        wait_all_jobs
+    fi
+else
+    echo "❌ Nessun file 5.1 valido trovato per l'elaborazione!"
+fi
 
 # CHIAMATA FINALE AL RIEPILOGO
 print_summary
