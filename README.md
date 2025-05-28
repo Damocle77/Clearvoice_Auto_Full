@@ -222,9 +222,9 @@ chmod +x clearvoice077_preset.sh
 
 | Codec | Qualità | Compatibilità | Bitrate Raccomandato | Ideale Per |
 |-------|---------|---------------|---------------------|------------|
-| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 384k | Streaming, TV moderne |
-| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 448k | Player legacy, universale |
-| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 768k | Blu-ray, player avanzati |
+| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 768k | Streaming, TV moderne |
+| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 640k | Player legacy, universale |
+| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 756k | Blu-ray, player avanzati |
 
 <details>
 <summary>📋 Dettagli Codec</summary>
