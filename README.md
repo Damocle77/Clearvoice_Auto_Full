@@ -328,7 +328,7 @@ done
 
 ---
 
-## 🎧 Configurazione LG SP7
+## 🎧 Configurazione per Soundbar LG SP7 5.1.2 o AVR equivalenti
 
 ### ⚙️ **Impostazioni Ottimali**
 ```
