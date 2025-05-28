@@ -19,10 +19,10 @@ git clone https://github.com/Damocle77/Clearvoice_5.1.git
 cd Clearvoice_5.1
 chmod +x clearvoice077_preset.sh
 
-# Uso immediato (preset automatico per serie TV)
+# Uso immediato (preset automatico per serie TV, es. input.mkv -> input_serie_clearvoice0.mkv)
 ./clearvoice077_preset.sh *.mkv
 
-# Film alta qualità
+# Film alta qualità (es. your_movie.mkv -> your_movie_film_clearvoice0.mkv)
 ./clearvoice077_preset.sh --film eac3 384k your_movie.mkv
 ```
 
@@ -51,24 +51,24 @@ chmod +x clearvoice077_preset.sh
 ### 🎯 **Ottimizzazioni Audio Avanzate**
 - **Separazione e ottimizzazione individuale** di ogni canale 5.1 (FL/FR/FC/LFE/BL/BR)
 - **Boost intelligente canale centrale (FC)** senza interferenze DSP Meridian
-- **Controllo LFE anti-boom** con riduzione 8-20% calibrata per preset
+- **Controllo LFE anti-boom** con riduzione ~8-20% calibrata per preset e codec
 - **Compressione dinamica multi-banda** per intelligibilità naturale
 - **Limitatore intelligente anti-clipping** con lookahead adattivo
 
 ### 🔧 **Tecnologie Avanzate**
-- **Crossover LFE precisione** con slopes controllati per SP7
-- **Resampling SoxR qualità audiophile** (quando supportato)
+- **Crossover LFE precisione** con slopes controllati (es. ~25-115Hz, varia per codec/preset)
+- **Resampling SoxR qualità audiophile** (precisione 28-bit)
 - **Anti-aliasing surround** per canali posteriori cristallini
 - **Filtri pulizia Front L/R** specifici per preset
-- **Processing parallelo** (2 file contemporaneamente per serie TV)
+- **Processing parallelo** (2 file contemporaneamente per serie TV con più file)
 
 ### ⚡ **Performance e Compatibilità**
-- **Accelerazione hardware GPU** quando disponibile
+- **Accelerazione hardware GPU** quando disponibile (tramite FFmpeg)
 - **Threading ottimizzato** per CPU multi-core
 - **Gestione robusta** file con layout audio "unknown"
 - **Preservazione completa** video, tracce audio aggiuntive e sottotitoli
 - **Validazione input avanzata** con analisi formati audio dettagliata
-- **Compatibilità estesa** encoder DTS con fallback automatico
+- **Compatibilità estesa** encoder DTS
 
 ---
 
@@ -83,7 +83,7 @@ chmod +x clearvoice077_preset.sh
 # Apri PowerShell come amministratore e esegui:
 Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-choco install ffmpeg git -y
+choco install ffmpeg git awk -y # Aggiunto awk per completezza
 ```
 </details>
 
@@ -92,7 +92,7 @@ choco install ffmpeg git -y
 # 1. Installa FFmpeg
 winget install ffmpeg
 
-# 2. Installa Git Bash
+# 2. Installa Git Bash (include awk)
 winget install Git.Git
 
 # 3. Riavvia il terminale e clona il repository
@@ -105,13 +105,13 @@ chmod +x clearvoice077_preset.sh
 
 ```bash
 # Ubuntu/Debian
-sudo apt update && sudo apt install ffmpeg git -y
+sudo apt update && sudo apt install ffmpeg git awk -y
 
 # Fedora/RHEL
-sudo dnf install ffmpeg git -y
+sudo dnf install ffmpeg git gawk -y # gawk fornisce awk
 
 # Arch Linux
-sudo pacman -S ffmpeg git
+sudo pacman -S ffmpeg git awk
 
 # Clone e setup
 git clone https://github.com/Damocle77/Clearvoice_5.1.git
@@ -126,7 +126,7 @@ chmod +x clearvoice077_preset.sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Installa dipendenze
-brew install ffmpeg git
+brew install ffmpeg git awk
 
 # Clone e setup
 git clone https://github.com/Damocle77/Clearvoice_5.1.git
@@ -142,16 +142,17 @@ chmod +x clearvoice077_preset.sh
 ```bash
 ./clearvoice077_preset.sh [PRESET] [CODEC] [BITRATE] [FILES/DIRS]
 ```
+Output: `nomefile_[PRESET]_clearvoice0.mkv`
 
 ### 🎯 Esempi Base
 ```bash
-# Auto-detect preset (serie TV)
+# Auto-detect preset (serie TV) e codec/bitrate default (eac3 384k)
 ./clearvoice077_preset.sh *.mkv
 
 # Preset specifici
-./clearvoice077_preset.sh --serie *.mkv              # Serie TV ottimizzate
+./clearvoice077_preset.sh --serie *.mkv              # Serie TV ottimizzate (default eac3 384k)
 ./clearvoice077_preset.sh --film eac3 384k Film/     # Film alta qualità
-./clearvoice077_preset.sh --cartoni /Anime/          # Cartoni/Musicali
+./clearvoice077_preset.sh --cartoni ac3 448k /Anime/ # Cartoni/Musicali (default ac3 448k)
 ```
 
 ---
@@ -166,15 +167,15 @@ chmod +x clearvoice077_preset.sh
 | Parametro | Valore | Descrizione |
 |-----------|--------|-------------|
 | **VOICE_VOL** | 8.5 | Boost dialoghi bilanciato |
-| **LFE_VOL** | 0.24 (-17%) | Controllo sub per SP7 |
-| **SURROUND_VOL** | 3.6 | Effetti ambientali |
+| **LFE_VOL** | 0.24 (rid. ~17-18%) | Controllo sub per SP7 (varia per codec) |
+| **SURROUND_VOL** | 3.6 | Effetti ambientali (varia per codec) |
 | **COMPRESSIONE** | 0.35:1.30:40:390 | Multi-banda cinematografica |
 
 **✨ Filtri Specifici:**
-- **FC (Centro):** Highpass 115Hz, Lowpass 7900Hz
-- **FL/FR (Front):** Anti-rumble 22Hz, Lowpass 20kHz  
-- **BL/BR (Surround):** Anti-aliasing, pulizia fino 18kHz
-- **LFE:** Crossover precision 30-115Hz
+- **FC (Centro):** Highpass 115Hz, Lowpass 7900Hz (varia per codec DTS: HP 135Hz, LP 7700Hz)
+- **FL/FR (Front):** Anti-rumble 22Hz, Lowpass 20kHz
+- **BL/BR (Surround):** Filtri specifici (es. HP ~30-35Hz, LP ~18-19kHz, varia per codec)
+- **LFE:** Crossover ~25-105Hz (Dolby) / ~30-115Hz (DTS)
 
 </details>
 
@@ -186,13 +187,16 @@ chmod +x clearvoice077_preset.sh
 | Parametro | Valore | Descrizione |
 |-----------|--------|-------------|
 | **VOICE_VOL** | 8.6 | Boost dialoghi massimo |
-| **LFE_VOL** | 0.24 (-20%) | Sub ridotto per TV |
-| **SURROUND_VOL** | 3.4 | Ambientali controllati |
+| **LFE_VOL** | 0.24 (rid. ~15-20%) | Sub ridotto per TV (varia per codec) |
+| **SURROUND_VOL** | 3.4 | Ambientali controllati (varia per codec) |
 | **COMPRESSIONE** | 0.32:1.18:50:380 | Delicata anti-vibrazione |
 
 **🚀 Caratteristiche Speciali:**
-- **Processing Parallelo:** 2 file contemporaneamente
-- **Filtri FC:** Highpass 120Hz, Lowpass 7600Hz
+- **Processing Parallelo:** 2 file contemporaneamente (se più file input)
+- **Filtri FC:** Highpass 120Hz, Lowpass 7600Hz (varia per codec DTS: HP 130Hz, LP 7500Hz)
+- **Filtri FL/FR (Front):** Anti-rumble 28Hz, Lowpass 18kHz
+- **BL/BR (Surround):** Filtri specifici (es. HP ~30-35Hz, LP ~18-19kHz, varia per codec)
+- **LFE:** Crossover ~25-105Hz (Dolby) / ~30-115Hz (DTS)
 - **Threading ottimizzato** per velocità massima
 
 </details>
@@ -205,12 +209,15 @@ chmod +x clearvoice077_preset.sh
 | Parametro | Valore | Descrizione |
 |-----------|--------|-------------|
 | **VOICE_VOL** | 8.2 | Boost dialoghi leggero |
-| **LFE_VOL** | 0.26 (-8%) | Sub bilanciato |
-| **SURROUND_VOL** | 3.5 | Preserva musicalità |
+| **LFE_VOL** | 0.26 (rid. ~8%) | Sub bilanciato (varia per codec) |
+| **SURROUND_VOL** | 3.5 | Preserva musicalità (varia per codec) |
 | **COMPRESSIONE** | 0.40:1.15:50:330 | Minima per dinamica |
 
 **🎵 Filtri Ottimizzati:**
-- **FL/FR:** Anti-rumble 18Hz, Lowpass 24kHz
+- **FC (Centro):** Highpass 110Hz, Lowpass 6900Hz (varia per codec DTS: HP 125Hz, LP 6800Hz)
+- **FL/FR (Front):** Anti-rumble 18Hz, Lowpass 24kHz
+- **BL/BR (Surround):** Filtri specifici (es. HP ~30-35Hz, LP ~18-19kHz, varia per codec)
+- **LFE:** Crossover ~25-105Hz (Dolby) / ~30-115Hz (DTS)
 - **Limitatore gentile** per contenuti misti
 - **Range esteso** per colonne sonore elaborate
 
@@ -220,11 +227,11 @@ chmod +x clearvoice077_preset.sh
 
 ## 🎵 Codec Supportati
 
-| Codec | Qualità | Compatibilità | Bitrate Raccomandato | Ideale Per |
-|-------|---------|---------------|---------------------|------------|
-| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 768k | Streaming, TV moderne |
-| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 640k | Player legacy, universale |
-| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 756k | Blu-ray, player avanzati |
+| Codec | Qualità | Compatibilità | Bitrate Default (Script) | Ideale Per |
+|-------|---------|---------------|--------------------------|------------|
+| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 384k | Streaming, TV moderne |
+| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 448k | Player legacy, universale |
+| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 768k | Blu-ray, player avanzati |
 
 <details>
 <summary>📋 Dettagli Codec</summary>
@@ -233,22 +240,22 @@ chmod +x clearvoice077_preset.sh
 ```bash
 ./clearvoice077_preset.sh --serie eac3 384k *.mkv
 ```
-- **Bitrate:** 256k, 384k (default), 448k, 640k
-- **Parametri:** Mixing level 108, Room type 1, Dialnorm -27
+- **Bitrate Default:** 384k (Opzioni: 256k, 448k, 640k)
+- **Parametri Script:** `-channel_layout 5.1 -mixing_level 108 -room_type 1 -copyright 0 -dialnorm -27 -dsur_mode 2`
 
 ### AC3 (Dolby Digital) - Universale  
 ```bash
 ./clearvoice077_preset.sh --film ac3 448k *.mkv
 ```
-- **Bitrate:** 384k, 448k (default), 640k
-- **Parametri:** Center mixlev 0.594, Surround mixlev 0.5
+- **Bitrate Default:** 448k (Opzioni: 384k, 640k)
+- **Parametri Script:** `-channel_layout 5.1 -center_mixlev 0.594 -surround_mixlev 0.5 -dialnorm -27`
 
 ### DTS - Premium Quality
 ```bash
 ./clearvoice077_preset.sh --cartoni dts 768k *.mkv
 ```
-- **Bitrate:** 640k, 768k (default), 1024k, 1536k
-- **Layout:** 5.1(side) per compatibilità estesa
+- **Bitrate Default:** 768k (Opzioni: 640k, 1024k, 1536k)
+- **Parametri Script:** `-strict -2 -ar 48000 -channel_layout 5.1(side) -compression_level 1`
 
 </details>
 
@@ -260,13 +267,14 @@ chmod +x clearvoice077_preset.sh
 <summary>🎬 Film Collection</summary>
 
 ```bash
-# Film action con EAC3 ottimale
-./clearvoice077_preset.sh --film eac3 384k /Movies/Action/*.mkv
+# Film action con EAC3 ottimale (default 384k)
+./clearvoice077_preset.sh --film eac3 /Movies/Action/*.mkv 
+# Output: /Movies/Action/nomefilm_film_clearvoice0.mkv
 
-# Film premium con DTS massima qualità
-./clearvoice077_preset.sh --film dts 768k /Movies/4K/*.mkv
+# Film premium con DTS massima qualità (default 768k)
+./clearvoice077_preset.sh --film dts /Movies/4K/*.mkv
 
-# Processing batch di cartella
+# Processing batch di cartella (default eac3 384k per --film se non specificato)
 ./clearvoice077_preset.sh --film /Movies/Collection/
 ```
 </details>
@@ -275,7 +283,7 @@ chmod +x clearvoice077_preset.sh
 <summary>📺 Serie TV</summary>
 
 ```bash
-# Serie con processing parallelo (2x velocità)
+# Serie con processing parallelo (2x velocità, default eac3 384k)
 ./clearvoice077_preset.sh --serie /TV/BreakingBad/Season1/
 
 # Singola serie con codec specifico
@@ -292,13 +300,13 @@ done
 <summary>🎨 Contenuti Speciali</summary>
 
 ```bash
-# Anime con preservazione musicale
+# Anime con preservazione musicale (default eac3 384k per --cartoni se non specificato)
 ./clearvoice077_preset.sh --cartoni /Anime/StudioGhibli/*.mkv
 
-# Documentari con focus dialoghi
+# Documentari con focus dialoghi (preset --serie, default eac3 384k)
 ./clearvoice077_preset.sh --serie /Documentaries/*.mkv
 
-# Mix contenuti con preset automatico
+# Mix contenuti con preset automatico (serie, eac3 384k)
 ./clearvoice077_preset.sh /Media/Mixed/*.mkv
 ```
 </details>
@@ -311,19 +319,19 @@ done
 - ✅ **Fix parsing parametri** compressione dinamica
 - ✅ **Gestione robusta** variabili locali nei filtri audio
 - ✅ **Validazione input avanzata** con gestione array vuoti
-- ✅ **Compatibilità DTS estesa** con layout 5.1(side)
+- ✅ **Compatibilità DTS estesa** con layout `5.1(side)`
 
 ### 🎧 **Miglioramenti Audio**
 - 🆕 **Compressore multi-banda** per processing naturale
 - 🆕 **Limitatore intelligente** specifico per preset
 - 🆕 **Crossover LFE precision** calibrato per SP7
-- 🆕 **Resampling SoxR** 33-bit precision
+- 🆕 **Resampling SoxR** 28-bit precision
 - 🆕 **Anti-aliasing surround** per canali posteriori
 
 ### ⚡ **Performance**
-- 🚀 **Processing parallelo** (2 file per serie TV)
+- 🚀 **Processing parallelo** (2 file per preset `--serie` con più file)
 - 📊 **Statistiche dettagliate** con tempo medio
-- 🧠 **Auto-gestione risorse** CPU
+- 🧠 **Auto-gestione risorse** CPU (bilanciamento thread in parallelo)
 - 🔍 **Analisi formati** input avanzata
 
 ---
@@ -332,19 +340,19 @@ done
 
 ### ⚙️ **Impostazioni Ottimali**
 ```
-🔊 Sound Mode: Cinema
+🔊 Sound Mode: Cinema (o Standard/Music a seconda del contenuto e preferenze)
 ❌ AI Sound Pro: OFF  
-❌ Bass Boost: OFF
-❌ Clear Voice: OFF (sostituito da ClearVoice)
+❌ Bass Boost: OFF (o minimo se necessario)
+❌ Clear Voice (funzione TV/Soundbar): OFF (sostituito da questo script)
 ❌ Night Mode: OFF
-🔧 EQ: Flat/Manuale
+🔧 EQ: Flat/Manuale (evitare curve estreme)
 ```
 
 ### 🧪 **Test Post-Processing**
 1. **Dialoghi:** Scene sussurrate (intelligibilità)
-2. **LFE:** Bassi intensi (controllo boom)
-3. **Surround:** Effetti ambientali (chiarezza)
-4. **Dinamica:** Transizioni silenzio→forte
+2. **LFE:** Bassi intensi (controllo boom, no distorsione)
+3. **Surround:** Effetti ambientali (chiarezza, spazialità)
+4. **Dinamica:** Transizioni silenzio→forte (impatto preservato)
 
 ---
 
@@ -354,34 +362,40 @@ done
 <summary>❌ Errori Comuni</summary>
 
 ### "File non 5.1 compatibile"
+Lo script processa solo file con una traccia audio 5.1.
 ```bash
-# Identifica il problema
-ffprobe -show_streams input.mkv | grep channels
+# Identifica il problema (controlla 'channels' e 'channel_layout')
+ffprobe -show_streams input.mkv 
 
-# Conversioni automatiche
-# Stereo → 5.1
-ffmpeg -i input.mkv -af "surround" -c:v copy output.mkv
+# Conversioni di esempio (da adattare):
+# Stereo → 5.1 (upmix generico, qualità variabile)
+ffmpeg -i input.mkv -af "surround" -c:v copy output_51.mkv
 
-# 7.1 → 5.1
-ffmpeg -i input.mkv -af "pan=5.1|FL=0.5*FL+0.707*FLC|FR=0.5*FR+0.707*FRC|FC=FC|LFE=LFE|BL=BL|BR=BR" -c:v copy output.mkv
+# 7.1 → 5.1 (downmix di esempio)
+ffmpeg -i input.mkv -af "pan=5.1|FL=0.5*FL+0.707*FLC|FR=0.5*FR+0.707*FRC|FC=FC|LFE=LFE|BL=BL|BR=BR" -c:v copy output_51.mkv
 ```
+Lo script fornisce suggerimenti di conversione durante la validazione.
 
 ### "DTS encoder not supported"
+Assicurati che la tua build FFmpeg includa un encoder DTS (come `dcaenc`).
 ```bash
-# Fallback automatico a EAC3
+# Soluzione: Usa EAC3 o AC3 come codec di fallback
 ./clearvoice077_preset.sh --film eac3 384k file.mkv
 ```
 
-### "FFmpeg non trovato"
+### "FFmpeg non trovato" o "awk non trovato"
+Assicurati che FFmpeg e awk siano installati e nel PATH di sistema.
 ```bash
-# Windows
+# Windows (PowerShell)
 winget install ffmpeg
+# Git Bash per Windows include awk. Altrimenti, considera Chocolatey: choco install awk
 
-# Linux
-sudo apt install ffmpeg
+# Linux (esempio Ubuntu/Debian)
+sudo apt install ffmpeg awk
 
 # Verifica
 ffmpeg -version
+awk --version
 ```
 </details>
 
@@ -389,14 +403,16 @@ ffmpeg -version
 <summary>🐛 Debug Avanzato</summary>
 
 ```bash
-# Analisi completa file
+# Analisi completa file (output JSON)
 ffprobe -v quiet -print_format json -show_streams input.mkv
 
-# Test con log dettagliato
-./clearvoice077_preset.sh --serie input.mkv 2>&1 | tee debug.log
+# Test con log dettagliato su file
+./clearvoice077_preset.sh --serie input.mkv > debug.log 2>&1
 
-# Monitor performance
-htop -p $(pgrep ffmpeg)
+# Monitor performance (Linux/macOS)
+# Esegui lo script e poi in un altro terminale:
+htop # cerca processi ffmpeg
+# Su Windows, usa Task Manager.
 ```
 </details>
 
@@ -410,17 +426,18 @@ htop -p $(pgrep ffmpeg)
 ### Software
 | Componente | Min | Raccomandato | Note |
 |------------|-----|--------------|------|
-| **FFmpeg** | 6.0+ | 7.1+ | Con support SoxR |
-| **Bash** | 4.0+ | 5.0+ | Git Bash su Windows |
-| **CPU** | 2 core | 4+ core | Per processing parallelo |
-| **RAM** | 4GB | 8GB+ | Per file grandi |
-| **Storage** | 2x file size | SSD | Temp space |
+| **FFmpeg** | 6.0+ | 7.1+ | Con supporto SoxR, encoder per codec scelti (eac3, ac3, dts) |
+| **Bash**   | 4.0+ | 5.0+ | Git Bash su Windows |
+| **awk**    | Standard | Standard | Utilità GNU awk o compatibile |
+| **CPU**    | 2 core | 4+ core | Per processing parallelo |
+| **RAM**    | 4GB | 8GB+ | Per file grandi |
+| **Storage**| ~2x file size | SSD | Spazio per file temporanei e output |
 
 ### Input Supportati
-- ✅ **5.1 Surround** (nativo)
-- ✅ **5.1 Unknown** (auto-fix)
-- ⚠️ **Stereo** (conversione richiesta)
-- ⚠️ **7.1** (downmix richiesto)
+- ✅ **5.1 Surround** (nativo, layout `5.1` o `5.1(side)`)
+- ✅ **5.1 Unknown** (layout audio "unknown", script tenta auto-fix)
+- ⚠️ **Stereo, Mono, 7.1, etc.** (conversione a 5.1 richiesta prima di usare lo script)
+
 </details>
 
 ---
@@ -428,21 +445,23 @@ htop -p $(pgrep ffmpeg)
 ## 🤝 Contribuire
 
 ### 🐛 **Bug Report**
-1. [Crea issue](https://github.com/Damocle77/Clearvoice_5.1/issues/new) con template
-2. Include: OS, FFmpeg version, file sample
-3. Allega log completo: `script.sh file.mkv 2>&1 | tee log.txt`
+1. [Crea issue](https://github.com/Damocle77/Clearvoice_5.1/issues/new) usando il template.
+2. Includi: OS, versione FFmpeg (`ffmpeg -version`), versione Bash (`bash --version`), versione awk (`awk --version`).
+3. Fornisci un output `ffprobe -show_streams input.mkv` del file problematico.
+4. Allega log completo: `./clearvoice077_preset.sh [parametri] file.mkv > log.txt 2>&1`
 
 ### 💡 **Feature Request**
-1. Descrivi caso d'uso specifico
-2. Hardware target (soundbar/AVR model)
-3. Esempi audio problematici
+1. Descrivi il caso d'uso specifico e il beneficio atteso.
+2. Specifica l'hardware target (es. modello soundbar/AVR) se rilevante.
+3. Fornisci esempi audio o scenari problematici, se possibile.
 
 ### 🧪 **Testing**
 ```bash
 git clone https://github.com/Damocle77/Clearvoice_5.1.git
 cd Clearvoice_5.1
-# Test su file di esempio
-./clearvoice077_preset.sh --serie test_sample.mkv
+# Esegui test con file di esempio e diversi preset/codec
+./clearvoice077_preset.sh --serie eac3 384k test_sample_serie.mkv
+./clearvoice077_preset.sh --film dts 768k test_sample_film.mkv
 ```
 
 ---
@@ -453,7 +472,7 @@ cd Clearvoice_5.1
 MIT License - Copyright (c) 2025 Sandro "D@mocle77" Sabbioni
 ```
 
-Sentiti libero di usare, modificare e distribuire secondo i termini MIT.
+Sentiti libero di usare, modificare e distribuire secondo i termini della licenza MIT.
 
 ---
 
@@ -464,10 +483,11 @@ Sentiti libero di usare, modificare e distribuire secondo i termini MIT.
 - **Issues:** https://github.com/Damocle77/Clearvoice_5.1/issues
 - **Releases:** https://github.com/Damocle77/Clearvoice_5.1/releases
 
-### 🚀 **One-Liner Setup**
+### 🚀 **One-Liner Setup (Linux/macOS)**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Damocle77/Clearvoice_5.1/main/install.sh | bash
 ```
+*(Nota: lo script `install.sh` deve essere creato e mantenuto nel repository)*
 
 ---
 
