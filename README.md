@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.77-blue.svg)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#installazione)
-[![FFmpeg](https://img.shields.io/badge/ffmpeg-6.0%2B-orange.svg)](#requisiti)
+[![FFmpeg](https://img.shields.io/badge/ffmpeg-6.0%2B-orange.svg)](#requisiti-tecnici)
 
 > **✨ Specificamente calibrato per sistemi LG Meridian SP7 5.1.2 e soundbar/AVR compatibili**
 
@@ -30,19 +30,19 @@ chmod +x clearvoice077_preset.sh
 
 ## 📖 Indice
 
-- [Quick Start](#-quick-start)
-- [Caratteristiche](#-caratteristiche)
-- [Installazione](#-installazione)
-- [Uso](#-uso)
-- [Preset Disponibili](#️-preset-disponibili)
-- [Codec Supportati](#-codec-supportati)
-- [Esempi Pratici](#-esempi-pratici)
-- [Novità v0.77](#-novità-v077)
-- [Configurazione LG SP7](#-configurazione-lg-sp7)
-- [Troubleshooting](#-troubleshooting)
-- [Requisiti Tecnici](#-requisiti-tecnici)
-- [Contribuire](#-contribuire)
-- [Licenza](#-licenza)
+- [Quick Start](#quick-start)
+- [Caratteristiche](#caratteristiche)
+- [Installazione](#installazione)
+- [Uso](#uso)
+- [Preset Disponibili](#preset-disponibili)
+- [Codec Supportati](#codec-supportati)
+- [Esempi Pratici](#esempi-pratici)
+- [Novità v0.77](#novità-v077)
+- [Configurazione LG SP7](#configurazione-lg-sp7)
+- [Troubleshooting](#troubleshooting)
+- [Requisiti Tecnici](#requisiti-tecnici)
+- [Contribuire](#contribuire)
+- [Licenza](#licenza)
 
 ---
 
@@ -317,7 +317,7 @@ done
 - 🆕 **Compressore multi-banda** per processing naturale
 - 🆕 **Limitatore intelligente** specifico per preset
 - 🆕 **Crossover LFE precision** calibrato per SP7
-- 🆕 **Resampling SoxR** 28-bit precision
+- 🆕 **Resampling SoxR** 33-bit precision
 - 🆕 **Anti-aliasing surround** per canali posteriori
 
 ### ⚡ **Performance**
@@ -478,6 +478,7 @@ curl -fsSL https://raw.githubusercontent.com/Damocle77/Clearvoice_5.1/main/insta
 
 [![⭐ Star](https://img.shields.io/github/stars/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1)
 [![🍴 Fork](https://img.shields.io/github/forks/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/fork)
+[![📥 Download](https://img.shields.io/github/downloads/Damocle77/Clearvoice_5.1/total.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 
 **Trasforma il tuo audio 5.1 con un click**
 
