@@ -7,7 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#installazione)
 [![FFmpeg](https://img.shields.io/badge/ffmpeg-6.0%2B-orange.svg)](#requisiti-tecnici)
 
-> **✨ Specificamente calibrato per sistemi LG Meridian SP7 5.1.2 e soundbar/AVR compatibili**
+> **✨ Testato per sistemi LG Meridian SP7 5.1.2 e soundbar/AVR compatibili**
 
 ---
 
@@ -481,5 +481,6 @@ curl -fsSL https://raw.githubusercontent.com/Damocle77/Clearvoice_5.1/main/insta
 [![📥 Download](https://img.shields.io/github/downloads/Damocle77/Clearvoice_5.1/total.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 
 **Trasforma il tuo audio 5.1 con un click**
+*Sound Engineering Sandro 'D@mocle77' Sabbioni*
 
 </div>
