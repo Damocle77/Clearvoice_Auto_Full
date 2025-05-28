@@ -469,7 +469,7 @@ cd Clearvoice_5.1
 ## 📄 Licenza
 
 ```
-MIT License - Copyright (c) 2025 Sandro "D@mocle77" Sabbioni
+MIT License 2025
 ```
 
 Sentiti libero di usare, modificare e distribuire secondo i termini della licenza MIT.
