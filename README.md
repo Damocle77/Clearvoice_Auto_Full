@@ -480,6 +480,6 @@ curl -fsSL https://raw.githubusercontent.com/Damocle77/Clearvoice_5.1/main/insta
 [![🍴 Fork](https://img.shields.io/github/forks/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/fork)
 [![📥 Download](https://img.shields.io/github/downloads/Damocle77/Clearvoice_5.1/total.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 
-*Sound Engineering Sandro 'D@mocle77' Sabbioni*
+*Sound Engineering by Sandro 'D@mocle77' Sabbioni*
 
 </div>
