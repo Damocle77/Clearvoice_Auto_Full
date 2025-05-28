@@ -186,7 +186,7 @@ case "${CODEC,,}" in  # Converte il codec in minuscolo per il matching
     ;;
   dts)  
     ENC=dts; BR=${BR:-768k}; TITLE="DTS Clearvoice 5.1"
-    EXTRA="-strict -2 -ar 48000 -channel_layout 5.1 -compression_level 1"
+    EXTRA="-strict -2 -ar 48000 -channel_layout 5.1(side) -compression_level 1"
     ;;
   *) echo "Codec non supportato: $CODEC"; exit 1;;
 esac
@@ -232,7 +232,7 @@ build_audio_filter() {
 [FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS},${SOFTCLIP_SETTINGS}[center];
 [FL]${FRONT_FILTER},volume=${front_vol_adj}[left];
 [FR]${FRONT_FILTER},volume=${front_vol_adj}[right];
-[LFE]highpass=f=35:poles=2,lowpass=f=100:poles=3,volume=${lfe_vol_adj},acompressor=threshold=0.25:ratio=3.0:attack=15:release=150[bass];
+[LFE]highpass=f=35:poles=2,lowpass=f=100:poles=2,volume=${lfe_vol_adj},acompressor=threshold=0.25:ratio=3.0:attack=15:release=150[bass];
 [BL]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj}[surroundL];
 [BR]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj}[surroundR];
 [left][right][center][bass][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];
