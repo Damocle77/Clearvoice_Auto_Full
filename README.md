@@ -203,7 +203,7 @@ Output: `nomefile_[PRESET]_clearvoice0.mkv`
 </details>
 
 <details>
-<summary>📺 <strong>--tv</strong> - Materiale Problematico + EQ Intelligibile</summary>
+<summary>📺 <strong>--tv</strong> - Materiale Problematico/summary>
 
 **Ultra-conservativo per audio compresso con equalizzazione specifica**
 
@@ -248,9 +248,9 @@ Output: `nomefile_[PRESET]_clearvoice0.mkv`
 
 | Codec | Qualità | Compatibilità | Bitrate Default | Ideale Per |
 |-------|---------|---------------|-----------------|------------|
-| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 384k | Streaming, TV moderne |
-| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 448k | Player legacy, universale |
-| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 768k | Blu-ray, player avanzati |
+| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 768k | Streaming, TV moderne |
+| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 640k | Player legacy, universale |
+| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 756k | Blu-ray, player avanzati |
 
 <details>
 <summary>📋 Dettagli Codec con Parametri Qualità v0.78</summary>
