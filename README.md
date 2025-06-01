@@ -152,7 +152,7 @@ Output: `nomefile_[PRESET]_clearvoice0.mkv`
 ./clearvoice078_preset.sh *.mkv
 
 # Preset specifici
-./clearvoice078_preset.sh --serie *.mkv                    # Serie TV (2 file paralleli)
+./clearvoice078_preset.sh --serie *.mkv                   # Serie TV (2 file paralleli se lanciata cartella)
 ./clearvoice078_preset.sh --film dts 768k Film/           # Film DTS alta qualità
 ./clearvoice078_preset.sh --tv *.mkv                      # Materiale problematico + EQ
 ./clearvoice078_preset.sh --cartoni ac3 448k /Anime/      # Cartoni/Musicali
