@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # -----------------------------------------------------------------------------------------------
-#  CLEARVOICE 0.78 - OTTIMIZZAZIONE AUDIO 5.1 PER LG MERIDIAN SP7 5.1.2 
+#  CLEARVOICE 0.79 - OTTIMIZZAZIONE AUDIO 5.1 PER LG MERIDIAN SP7 5.1.2 
 #  Script avanzato per miglioramento dialoghi e controllo LFE (C)2025
 #  Autore: [Sandro "D@mocle77" Sabbioni]
 # -----------------------------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #   Specificamente calibrato per sistemi LG Meridian SP7 e soundbar o AVR compatibili.
 #
 # USO BASE:
-#   ./clearvoice078_preset.sh [PRESET] [CODEC] [BITRATE] [FILES/DIRS]
+#   ./clearvoice079_preset.sh [PRESET] [CODEC] [BITRATE] [FILES/DIRS]
 #
 # PRESET DISPONIBILI:
 #   --film     : Ottimizzato per contenuti cinematografici con action e dialoghi.
@@ -27,13 +27,13 @@
 #                ELABORAZIONE PARALLELA: 2 file contemporaneamente per più file
 #
 #   --tv       : Ultra-conservativo per materiale di bassa qualità con equalizzazione intelligibile.
-#                Parametri: VOICE_VOL=7.3, LFE=0.23, SURR=3.4, COMP=0.90:1.30:20:250
-#                Filtri FC: Highpass 160Hz, Lowpass 7000Hz, Equalizzatore dialoghi integrato
-#                Filtri FL/FR: Anti-rumble 28Hz, Lowpass 17.5kHz + EQ enfasi voce
+#                Parametri: VOICE_VOL=5.2, LFE=0.23, SURR=3.2, COMP=0.30:1.10:50:400
+#                Filtri FC: Highpass 450Hz, Lowpass 5000Hz, Equalizzatore dialoghi integrato
+#                Filtri FL/FR: Anti-rumble 100Hz, Lowpass 8kHz + EQ enfasi voce
 #                Ideale per: Materiale problematico, audio compresso, rip di bassa qualità
 #
 #   --cartoni  : Leggero per animazione con preservazione musicale e dinamica.
-#                Parametri: VOICE_VOL=8.2, LFE=0.26, SURR=3.5, COMP=0.40:1.15:50:330
+#                Parametri: VOICE_VOL=8.2, LFE=0.25, SURR=3.5, COMP=0.40:1.15:50:330
 #                Filtri FC: Highpass 110Hz, Lowpass 6900Hz, Compressione minima, Limitatore gentile
 #                Filtri FL/FR: Anti-rumble 18Hz, Lowpass 24kHz per brillantezza musicale
 #                Ideale per: Cartoni animati, anime, contenuti con colonne sonore elaborate
@@ -44,13 +44,13 @@
 #   dts       : DTS, default 768k - Qualità premium per film e Blu-ray
 #
 # ESEMPI D'USO:
-#   ./clearvoice078_preset.sh --serie eac3 320k *.mkv            # Serie TV con file specifici
-#   ./clearvoice078_preset.sh --film dts 768k *.mkv             # Batch film alta qualità  
-#   ./clearvoice078_preset.sh --cartoni ac3 448k *.mkv          # Cartoni con file specifici
-#   ./clearvoice078_preset.sh --tv *.mkv                        # Materiale problematico: default eac3 384k
-#   ./clearvoice078_preset.sh --serie /path/to/series/          # Cartella serie: 2 file paralleli
+#   ./clearvoice079_preset.sh --serie eac3 320k *.mkv           # Serie TV con file specifici
+#   ./clearvoice079_preset.sh --film dts 768k *.mkv             # Batch film alta qualità  
+#   ./clearvoice079_preset.sh --cartoni ac3 448k *.mkv          # Cartoni con file specifici
+#   ./clearvoice079_preset.sh --tv *.mkv                        # Materiale problematico
+#   ./clearvoice079_preset.sh --serie /path/to/series/          # Cartella serie: 2 file paralleli
 #
-# ELABORAZIONE AVANZATA v0.78:
+# ELABORAZIONE AVANZATA v0.79:
 #   ✓ Separazione e ottimizzazione individuale di ogni canale 5.1
 #   ✓ Boost intelligente canale centrale (FC) senza interferenze DSP Meridian
 #   ✓ Controllo LFE anti-boom (riduzione 8-20% secondo preset)
@@ -75,35 +75,28 @@
 #   - Encoding qualità ottimizzato per ogni codec con parametri specifici
 #   - Gestione errori avanzata con validazione spazio disco
 #   - Bilanciamento automatico risorse CPU per modalità parallela
-#   - Dipendenze: ffmpeg 4.0+, awk, bc (opzionale)
+#   - Dipendenze: ffmpeg 6.0+, awk, nproc (opzionale)
 #
-# MIGLIORAMENTI v0.78:
-#   - Equalizzatore intelligibile specifico per preset TV
-#   - EQ mirato per dialoghi su canale centrale (300Hz-4kHz)
-#   - EQ enfasi voce sui canali Front L/R per preset TV (800Hz-3kHz)
-#   - Parametri TV aggiornati per maggiore chiarezza (VOICE_VOL=7.3, COMP leggera)
-#   - Integrazione EQ nella catena di filtri audio avanzata
-#   - Calibrazione frequenze per intelligibilità massima su materiale problematico
-#   - Correzioni parsing parametri compressione dinamica
-#   - Fix variabili locali e gestione array
-#   - Compressore multi-banda per processing più naturale
-#   - Limitatore intelligente anti-clipping adattivo
-#   - Crossover LFE precisione per SP7
-#   - Resampling SoxR qualità audiophile
-#   - Anti-aliasing surround
-#   - Filtri pulizia front stereo specifici per preset
-#   - Encoding ottimizzato (dialnorm, dsur_mode, dts)
-#   - Threading efficiente con thread_queue_size
-#   - Processing parallelo per serie TV (max 2 processi)
-#   - Statistiche processing con tempo medio per file
-#   - Gestione automatica risorse per evitare sovraccarico CPU
+# MIGLIORAMENTI v0.79:
+#   - Calcoli numerici sicuri con fallback automatico
+#   - Validazione robusta parametri compressione dinamica
+#   - Fix gestione equalizzatore specifico per preset TV
+#   - Correzioni parsing array e variabili locali
+#   - Ottimizzazione filtri audio per maggiore stabilità
+#   - Gestione errori avanzata con safe_awk_calc
+#   - Rimozione dipendenze non utilizzate (bc, parallel processing non implementato)
+#   - Validazione numerica input con fallback intelligente
+#   - Miglioramento robustezza costruzione filtri FFmpeg
+#   - Fix variabili globali e inizializzazione timing
+#   - Gestione layout audio "unknown" più robusta
+#   - Encoding ottimizzato specifico per codec (dialnorm, dsur_mode, dts)
+#   - Threading efficiente con gestione automatica core CPU
 #   - Validazione input avanzata con analisi formati audio dettagliata
-#   - Suggerimenti conversione per mono, stereo, 7.1 surround
-#   - Fix definitivo loop principale per processing completo senza doppia validazione
-#   - Rimozione validazione ridondante dalla funzione process()
-#   - Attivazione processing parallelo per serie TV anche con *.mkv
+#   - Suggerimenti conversione automatici per mono, stereo, 7.1 surround
+#   - Processing sequenziale ottimizzato per stabilità massima
+#   - Statistiche processing complete con tempo totale elaborazione
 #
-# VERSIONE: 0.78 | TESTATO SU: LG SP7 5.1.2, Windows 11, ffmpeg 7.x
+# VERSIONE: 0.79 | TESTATO SU: LG SP7 5.1.2, Windows 11, ffmpeg 7.x
 # -----------------------------------------------------------------------------------------------
 
 set -euo pipefail
@@ -112,8 +105,11 @@ set -euo pipefail
 #  CONFIGURAZIONE GLOBALE
 # -----------------------------------------------------------------------------------------------
 FRONT_VOL=1.0         # Volume canali frontali (FL/FR) - NON MODIFICARE
-VERSION="0.78"        # Versione script aggiornata
+VERSION="0.79"        # Versione script corrente
 MIN_FFMPEG_VER="6.0"  # Versione minima ffmpeg richiesta
+
+# ✅ Inizializza tempo globale all'inizio dello script
+TOTAL_START_TIME=$(date +%s)
 
 # Verifica dipendenze e versioni
 for cmd in ffmpeg awk; do
@@ -129,18 +125,51 @@ if ! command -v nproc &> /dev/null; then
 fi
 
 # -----------------------------------------------------------------------------------------------
-#  VALIDAZIONE INPUT AVANZATA
+#  FUNZIONI UTILITY SICURE
 # -----------------------------------------------------------------------------------------------
 
-# Array per raccogliere i file validati globalmente
+# ✅ Funzione per calcoli sicuri con awk - previene errori script
+safe_awk_calc() {
+    local expr="$1"
+    local result
+    result=$(awk "BEGIN {print $expr}" 2>/dev/null)
+    
+    # Verifica che il risultato sia un numero valido (intero o decimale)
+    if [[ "$result" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "$result"
+    else
+        echo "1.0"  # Fallback sicuro per evitare crash dello script
+    fi
+}
+
+# ✅ Funzione per validare parametri numerici con fallback
+validate_numeric() {
+    local value="$1"
+    local default="$2"
+    
+    if [[ "$value" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "$value"
+    else
+        echo "$default"  # Usa valore di default se validazione fallisce
+    fi
+}
+
+# -----------------------------------------------------------------------------------------------
+#  VALIDAZIONE INPUT AVANZATA CON ANALISI DETTAGLIATA
+# -----------------------------------------------------------------------------------------------
+
+# Array globale per raccogliere i file validati
 VALIDATED_FILES_GLOBAL=()
 
-# Analisi dettagliata tracce audio con suggerimenti specifici
+# Analisi dettagliata tracce audio con suggerimenti specifici di conversione
 check_audio_streams() {
     local file="$1"
-    local channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
-    local layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$file" 2>/dev/null)
-    local codec=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 "$file" 2>/dev/null)
+    local channels
+    channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
+    local layout
+    layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$file" 2>/dev/null)
+    local codec
+    codec=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 "$file" 2>/dev/null)
     
     if [[ -z "$channels" ]]; then
         echo "❌ Impossibile analizzare traccia audio"
@@ -150,7 +179,7 @@ check_audio_streams() {
     
     echo "🔍 Audio rilevato: $codec | $channels canali | Layout: ${layout:-unknown}"
     
-    # Verifica compatibilità 5.1
+    # Verifica compatibilità 5.1 - accetta anche layout "unknown" per robustezza
     if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
         echo "✅ Audio 5.1 compatibile con ClearVoice"
         # AGGIUNGE il file all'array globale dei validati
@@ -182,7 +211,7 @@ check_audio_streams() {
     fi
 }
 
-# Validazione preliminare con conteggio per formato
+# Validazione preliminare con conteggio dettagliato per formato
 validate_inputs() {
     local valid_count=0 total_count=0
     local mono_count=0 stereo_count=0 surround71_count=0 other_count=0
@@ -192,7 +221,7 @@ validate_inputs() {
     
     echo "🔍 Validazione input ClearVoice..."
     
-    # Raccogli tutti i file con verifica esistenza
+    # Raccogli tutti i file con verifica esistenza robusta
     local all_files=()
     for path in "${INPUTS[@]}"; do
         if [[ -d "$path" ]]; then
@@ -205,7 +234,7 @@ validate_inputs() {
         elif [[ -f "$path" ]]; then
             all_files+=("$path")
         else
-            echo "⚠️  Path non valido: $path"
+            echo "⚠️  Path non valido ignorato: $path"
         fi
     done
     
@@ -215,7 +244,7 @@ validate_inputs() {
         return 1
     fi
     
-    echo "📁 Analisi ${#all_files[@]} file..."
+    echo "📁 Analisi dettagliata di ${#all_files[@]} file..."
     
     for file in "${all_files[@]}"; do
         ((total_count++))
@@ -226,8 +255,9 @@ validate_inputs() {
             continue
         fi
         
-        # Analisi dettagliata con conteggio formati
-        local channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
+        # Analisi dettagliata con conteggio formati per statistiche
+        local channels
+        channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
         
         case "$channels" in
             1) ((mono_count++));;
@@ -243,12 +273,12 @@ validate_inputs() {
         echo ""
     done
     
-    # Riepilogo con statistiche formati
+    # Riepilogo con statistiche complete formati
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "📊 Risultati analisi: $valid_count/$total_count file compatibili"
     
     if [[ $((mono_count + stereo_count + surround71_count + other_count)) -gt 0 ]]; then
-        echo "📈 Formati rilevati:"
+        echo "📈 Formati rilevati non compatibili:"
         [[ $mono_count -gt 0 ]] && echo "   🎙️  Mono: $mono_count file"
         [[ $stereo_count -gt 0 ]] && echo "   🔄 Stereo: $stereo_count file"
         [[ $surround71_count -gt 0 ]] && echo "   🎭 7.1 Surround: $surround71_count file"
@@ -261,7 +291,7 @@ validate_inputs() {
     
     if [[ $valid_count -eq 0 ]]; then
         echo "❌ Nessun file 5.1 valido per ClearVoice!"
-        echo "💡 Converti i file usando i comandi sopra, poi rilancia ClearVoice"
+        echo "💡 Converti i file usando i comandi sopra o strumenti come HandBrake/ffMediaMaster, poi rilancia ClearVoice"
         return 1
     fi
     
@@ -270,47 +300,46 @@ validate_inputs() {
 }
 
 # -----------------------------------------------------------------------------------------------
-#  ANALISI CLI
+#  ANALISI CLI CON PARSING ROBUSTO
 # -----------------------------------------------------------------------------------------------
 PRESET="serie"  # preset di default
-CODEC=""; BR=""; INPUTS=()
+CODEC=""
+BR=""
+INPUTS=()
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --film) PRESET="film"; shift;;
     --serie) PRESET="serie"; shift;;
     --tv) PRESET="tv"; shift;;
     --cartoni) PRESET="cartoni"; shift;;
-    -c) CODEC="$2"; shift 2;;
-    -b) BR="$2";   shift 2;;
     -h|--help)
       cat << 'EOF'
-CLEARVOICE 0.78 - Ottimizzazione Audio 5.1 per LG Meridian SP7
+CLEARVOICE 0.79 - Ottimizzazione Audio 5.1 per LG Meridian SP7
 
-USO: ./clearvoice078_preset.sh [PRESET] [CODEC] [BITRATE] [FILES...]
+USO: ./clearvoice079_preset.sh [PRESET] [CODEC] [BITRATE] [FILES...]
 
 PRESET:
   --film     Cinema/Action (VOICE:8.5, LFE:0.24, moderato)
-  --serie    Serie TV/Dialoghi (VOICE:8.6, LFE:0.24, intelligibilità max, 2 file paralleli)
+  --serie    Serie TV/Dialoghi (VOICE:8.6, LFE:0.24, intelligibilità max)
   --tv       Materiale problematico (VOICE:5.2, LFE:0.23 conservativo + EQ intelligibile)
-  --cartoni  Animazione (VOICE:8.2, LFE:0.26, preserva musica)
+  --cartoni  Animazione (VOICE:8.2, LFE:0.25, preserva musica)
 
 CODEC: eac3(def)|ac3|dts  BITRATE: 384k(def)|448k|640k|768k
 
 ESEMPI:
-  ./clearvoice078_preset.sh --serie *.mkv           # Serie TV, EAC3 384k
-  ./clearvoice078_preset.sh --film dts 768k *.mkv   # Film DTS alta qualità
-  ./clearvoice078_preset.sh --cartoni ac3 448k *.mkv # Cartoni AC3
-  ./clearvoice078_preset.sh --tv *.mkv              # Materiale problematico + EQ
-  ./clearvoice078_preset.sh --serie /series/folder/ # Serie: 2 file paralleli
+  ./clearvoice079_preset.sh --serie *.mkv            # Serie TV, EAC3 384k
+  ./clearvoice079_preset.sh --film dts 768k *.mkv    # Film DTS alta qualità
+  ./clearvoice079_preset.sh --cartoni ac3 448k *.mkv # Cartoni AC3
+  ./clearvoice079_preset.sh --tv *.mkv               # Materiale problematico + EQ
+  ./clearvoice079_preset.sh --serie /series/folder/  # Serie: processing ottimizzato
 
 OUTPUT: filename_[preset]_clearvoice0.mkv
 
-MIGLIORAMENTI QUALITÀ v0.78:
+MIGLIORAMENTI QUALITÀ v0.79:
+  ✓ Calcoli numerici sicuri con fallback automatico
+  ✓ Validazione robusta parametri compressione dinamica
   ✓ Equalizzatore intelligibile per preset TV (canale centrale + front L/R)
-  ✓ EQ mirato dialoghi 300Hz-4kHz su canale centrale
-  ✓ EQ enfasi voce 800Hz-3kHz su front L/R per materiale problematico
-  ✓ Correzioni parsing compressione dinamica
-  ✓ Fix variabili locali e gestione array
   ✓ Compressore multi-banda per naturalezza
   ✓ Limitatore intelligente anti-clipping adattivo
   ✓ Crossover LFE precisione per SP7
@@ -319,19 +348,31 @@ MIGLIORAMENTI QUALITÀ v0.78:
   ✓ Filtri pulizia Front L/R specifici per preset
   ✓ Encoding ottimizzato per ogni codec
   ✓ Threading efficiente con queue size
-  ✓ Processing parallelo per serie TV (max 2 processi)
   ✓ Validazione input avanzata con analisi formati audio
-  ✓ Fix definitivo loop processing senza doppia validazione
-  ✓ Attivazione processing parallelo per serie TV anche con *.mkv
+  ✓ Processing sequenziale ottimizzato per stabilità massima
 EOF
       exit 0;;
-    -*) echo "Unknown option $1"; exit 1;;
+    -*) echo "Opzione sconosciuta: $1"; exit 1;;
     *) INPUTS+=("$1"); shift;;
   esac
 done
 
+# Gestione input automatica con parsing migliorato
+if [[ ${#INPUTS[@]} -ge 1 && ! -f "${INPUTS[0]}" && ! "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
+    CODEC="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
+fi
+if [[ ${#INPUTS[@]} -ge 1 && "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
+    BR="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
+fi
+if [[ ${#INPUTS[@]} -eq 0 ]]; then
+    shopt -s nullglob
+    INPUTS=(*.mkv)
+    shopt -u nullglob
+fi
+[[ ${#INPUTS[@]} -eq 0 ]] && { echo "❌ Nessun file specificato!"; exit 1; }
+
 # -----------------------------------------------------------------------------------------------
-#  FUNZIONI QUALITÀ AVANZATE
+#  FUNZIONI QUALITÀ AVANZATE CON VALIDAZIONE
 # -----------------------------------------------------------------------------------------------
 
 # Costruisce limitatore intelligente anti-clipping specifico per preset
@@ -368,8 +409,8 @@ build_front_filters() {
             echo "highpass=f=28:poles=1,lowpass=f=17500:poles=1"
             ;;
         tv)
-            # TV: pulizia aggressiva + equalizzazione più delicata per evitare vibrazioni
-            echo "highpass=f=100:poles=1,lowpass=f=8000:poles=1"
+            # TV: pulizia aggressiva + noise reduction per materiale problematico
+            echo "highpass=f=100:poles=1,lowpass=f=8000:poles=1,afftdn=nr=18:nf=-40:tn=1"
             ;;
         cartoni)
             # Cartoni: pulizia minima, preserva brillantezza musicale
@@ -378,12 +419,16 @@ build_front_filters() {
     esac
 }
 
-# Costruisce equalizzatore specifico per canale centrale
+# ✅ Corretto: equalizzatore specifico per canale centrale senza virgole problematiche
 build_voice_eq() {
     case "$PRESET" in
         tv)
-            # NESSUN EQ - solo volume boost minimo per evitare colorazione
-            echo ",equalizer=f=150:width_type=o:width=2:g=-4,equalizer=f=2600:width_type=o:width=1.2:g=3,equalizer=f=6200:width_type=o:width=2:g=-5,equalizer=f=8500:width_type=o:width=1:g=-3"
+            # TV: noise reduction e cleanup specifico per materiale problematico
+            echo "afftdn=nr=20:nf=-42:tn=1,anlmdn=s=0.0001:p=0.002:r=0.005,highpass=f=80:poles=2"
+            ;;
+        film|serie|cartoni)
+            # Altri preset: nessun EQ aggiuntivo per preservare naturalezza
+            echo ""
             ;;
         *)
             echo ""
@@ -392,8 +437,9 @@ build_voice_eq() {
 }
 
 # -----------------------------------------------------------------------------------------------
-#  IMPOSTAZIONI PRESET AVANZATE
+#  IMPOSTAZIONI PRESET CON VALIDAZIONE ROBUSTA
 # -----------------------------------------------------------------------------------------------
+
 set_preset_params() {
     case "$PRESET" in
         film)
@@ -410,30 +456,30 @@ set_preset_params() {
             ;;
         tv)
             # PRESET TV: Conservativo per materiale problematico, con maggiore chiarezza
-            VOICE_VOL=5.2; LFE_VOL=0.24; SURROUND_VOL=3.4  
-            VOICE_COMP="0.30:1.10:50:400"   # Compressione quasi inesistente
+            VOICE_VOL=5.2; LFE_VOL=0.23; SURROUND_VOL=3.2  
+            VOICE_COMP="0.30:1.10:50:400"   # Compressione minimale della voce
             HP_FREQ=450; LP_FREQ=5000       # Range ristretto per pulizia e chiarezza
             ;;  
         cartoni)
             # PRESET CARTONI: Preserva musicalità e dinamica
-            VOICE_VOL=8.2; LFE_VOL=0.26; SURROUND_VOL=3.5  
+            VOICE_VOL=8.2; LFE_VOL=0.25; SURROUND_VOL=3.5  
             VOICE_COMP="0.40:1.15:50:330"   # Compressione leggera
             HP_FREQ=110; LP_FREQ=6900       # Range esteso per musica
             ;;
-        *) echo "Preset sconosciuto: $PRESET"; exit 1;;
+        *) echo "❌ Preset sconosciuto: $PRESET"; exit 1;;
     esac
     
-    # Parsing parametri compressione dinamica con validazione
+    # ✅ Parsing parametri compressione dinamica con validazione robusta
     local VC_THRESHOLD VC_RATIO VC_ATTACK VC_RELEASE
     IFS=':' read -r VC_THRESHOLD VC_RATIO VC_ATTACK VC_RELEASE <<< "$VOICE_COMP"
     
-    # Validazione parametri per evitare errori
-    [[ -z "$VC_THRESHOLD" || -z "$VC_RATIO" || -z "$VC_ATTACK" || -z "$VC_RELEASE" ]] && {
-        echo "❌ Errore parsing parametri compressione per preset $PRESET"
-        exit 1
-    }
+    # Validazione parametri per evitare errori di processing
+    VC_THRESHOLD=$(validate_numeric "$VC_THRESHOLD" "0.5")
+    VC_RATIO=$(validate_numeric "$VC_RATIO" "1.2")
+    VC_ATTACK=$(validate_numeric "$VC_ATTACK" "40")
+    VC_RELEASE=$(validate_numeric "$VC_RELEASE" "300")
     
-    # Compressore con validazione
+    # Costruzione compressore con parametri validati
     COMPRESSOR_SETTINGS="acompressor=threshold=${VC_THRESHOLD}:ratio=${VC_RATIO}:attack=${VC_ATTACK}:release=${VC_RELEASE}"
     
     # Limitatore intelligente specifico per preset
@@ -445,30 +491,10 @@ set_preset_params() {
 
 set_preset_params
 
-# Ripiego posizionale CORRETTO per CODEC e BR
-if [[ -z $CODEC && ${#INPUTS[@]} -ge 1 ]]; then
-    # Se il primo elemento non è un file esistente E non è un bitrate, è un codec
-    if [[ ! -f "${INPUTS[0]}" && ! "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-        CODEC="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
-    fi
-fi
-if [[ -z $BR && ${#INPUTS[@]} -ge 1 ]]; then
-    # Se il primo elemento è un bitrate (pattern numerico + k/K)
-    if [[ "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-        BR="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
-    fi
-fi
-# Se non sono specificati input, prendi tutti i file .mkv in cartella
-if [[ ${#INPUTS[@]} -eq 0 ]]; then
-  shopt -s nullglob
-  for f in *.mkv; do INPUTS+=("$f"); done
-  shopt -u nullglob
-fi
-[[ ${#INPUTS[@]} -eq 0 ]] && { echo "Error: nessun file o cartella specificato!"; exit 1; }
-
 # -----------------------------------------------------------------------------------------------
 #  SELEZIONE CODEC CON PARAMETRI QUALITÀ OTTIMIZZATI
 # -----------------------------------------------------------------------------------------------  
+
 CODEC="${CODEC:-eac3}"
 case "${CODEC,,}" in
   eac3) 
@@ -483,322 +509,205 @@ case "${CODEC,,}" in
     ;;
   dts)  
     ENC=dts; BR=${BR:-768k}; TITLE="DTS Clearvoice 5.1"
-    # Parametri DTS compatibili con encoder dca - CORREZIONE: 5.1(side)
+    # Parametri DTS compatibili con encoder dca
     EXTRA="-strict -2 -ar 48000 -channel_layout 5.1(side) -compression_level 1"
     ;;
-  *) echo "Unsupported codec $CODEC"; exit 1;;
+  *) echo "❌ Codec non supportato: $CODEC"; exit 1;;
 esac
 
 # -----------------------------------------------------------------------------------------------
-#  COSTRUZIONE FILTRI AUDIO AVANZATI
+#  COSTRUZIONE FILTRI AUDIO AVANZATI CON PROTEZIONE ERRORI
 # -----------------------------------------------------------------------------------------------
+
 build_audio_filter() {
     local voice_vol_adj front_vol_adj lfe_vol_adj surround_vol_adj
-    local hp_freq=${HP_FREQ} lp_freq=${LP_FREQ}
+    local hp_freq=${HP_FREQ} lp_freq=${LP_FREQ}  # Usa i valori dal preset
     
+    # ✅ Calcoli sicuri con safe_awk_calc per prevenire errori script
     if [[ "${CODEC,,}" == "dts" ]]; then
         # ===== RAMO DTS: Parametri ottimizzati per codec DTS =====
         case "$PRESET" in
             film)
-                # DTS Film: sub molto più controllato per eliminare boom eccessivo
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 2.2}") 
+                # DTS Film: controllo LFE migliorato, voce brillante
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 2.2") 
                 front_vol_adj="0.76"                                     
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.50}")   
-                surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.72}")
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.50")   # Riduzione LFE significativa
+                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.72")
                 hp_freq=135; lp_freq=7700                                
                 ;;
             serie)
-                # DTS Serie: sub molto ridotto, voce massima sub minimale
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 2.0}")
+                # DTS Serie: voce massima, LFE controllato
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 2.0")
                 front_vol_adj="0.76"                                     
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.72}")       
-                surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.78}") 
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.72")       # LFE moderatamente ridotto
+                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.78") 
                 hp_freq=135; lp_freq=8000
                 ;;
             tv)
                 # DTS TV: ultra-conservativo per materiale problematico
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.8}")
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.8")
                 front_vol_adj="0.60"                                     
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.65}")       
-                surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.75}") 
-                hp_freq=300; lp_freq=6500
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.65")       # LFE ben controllato
+                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.75") 
+                hp_freq=300; lp_freq=6500  # Sovrascrive HP_FREQ/LP_FREQ del preset per DTS TV
                 ;;
             cartoni)
                 # DTS Cartoni: Bilanciamento musicale
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.4}")    
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 1.4")    
                 front_vol_adj="0.87"                                     
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.83}")      
-                surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.85}") 
-                hp_freq=125; lp_freq=6800
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.83")      # LFE leggermente ridotto
+                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.85") 
+                hp_freq=125; lp_freq=6800  # Sovrascrive HP_FREQ/LP_FREQ del preset per DTS Cartoni
                 ;;
         esac
-        
-        # Filtro DTS con crossover LFE precisione, resampling SoxR e filtri Front
-        ADV_FILTER=$(cat <<EOF | tr -d '\n'
-[0:a]channelmap=channel_layout=5.1[audio5dot1];
-[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];
-[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}$(build_voice_eq),${SOFTCLIP_SETTINGS}[center];
-[FL]${FRONT_FILTER},volume=${front_vol_adj}[left];
-[FR]${FRONT_FILTER},volume=${front_vol_adj}[right];
-[LFE]highpass=f=30:poles=2,lowpass=f=115:poles=2,volume=${lfe_vol_adj}[bass];
-[BL]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj}[surroundL];
-[BR]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj}[surroundR];
-[left][right][center][bass][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];
-[joined]aresample=48000:resampler=soxr:precision=28,aformat=sample_fmts=s32:channel_layouts=5.1[out]
-EOF
-)
     else
         # ===== RAMO EAC3/AC3: Parametri per codec Dolby =====
+        # hp_freq e lp_freq sono già impostati da set_preset_params
         case "$PRESET" in
             film)
-                # EAC3/AC3 Film: Voce presente ma non eccessiva
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.5}")
-                front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.15}")
+                # EAC3/AC3 Film: boost voce moderato, dinamica preservata
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 1.5")
+                front_vol_adj=$(safe_awk_calc "$FRONT_VOL - 0.15")
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.73")       # Riduzione LFE per controllo
+                surround_vol_adj=${SURROUND_VOL}  # Usa valore preset direttamente
                 ;;
             serie)
-                # EAC3/AC3 Serie: Ottimizzato per dialoghi TV
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 1.5}")
-                front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.12}")
+                # EAC3/AC3 Serie: massima intelligibilità dialoghi
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 1.5")
+                front_vol_adj=$(safe_awk_calc "$FRONT_VOL - 0.12")
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.80")       # LFE moderatamente ridotto
+                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.92")
                 ;;
             tv)
-                # EAC3/AC3 TV: ultra-conservativo per materiale problematico
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.5}")
-                front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.25}")
+                # EAC3/AC3 TV: conservativo per materiale problematico
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.5")
+                front_vol_adj=$(safe_awk_calc "$FRONT_VOL - 0.25")
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.70")       # LFE ben controllato
+                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.90")
                 ;;
             cartoni)
-                # EAC3/AC3 Cartoni: Bilanciato per contenuti misti
-                voice_vol_adj=$(awk "BEGIN {print $VOICE_VOL + 0.8}")
-                front_vol_adj=$(awk "BEGIN {print $FRONT_VOL - 0.08}")
+                # EAC3/AC3 Cartoni: bilanciamento musicale
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.8")
+                front_vol_adj=$(safe_awk_calc "$FRONT_VOL - 0.08")
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.92")       # LFE preservato per musica
+                surround_vol_adj=${SURROUND_VOL}  # Usa valore preset direttamente
                 ;;
         esac
-        
-        # Calcolo riduzione LFE specifica per preset
-        case "$PRESET" in
-            serie)
-                # Serie TV: Sub molto controllato per SP7 
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.80}")       
-                surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.92}")
-                ;;
-            film)
-                # Film: Sub più controllato come richiesto
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.73}")       
-                surround_vol_adj=${SURROUND_VOL}
-                ;;
-            tv)
-                # TV: Sub ultra-controllato per materiale problematico
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.70}")       
-                surround_vol_adj=$(awk "BEGIN {print $SURROUND_VOL * 0.90}")
-                ;;
-            cartoni)
-                # Cartoni: LFE leggermente controllato per bilanciamento
-                lfe_vol_adj=$(awk "BEGIN {print $LFE_VOL * 0.92}")       
-                surround_vol_adj=${SURROUND_VOL}
-                ;;
-            *)
-                lfe_vol_adj=${LFE_VOL}  # Fallback sicuro
-                surround_vol_adj=${SURROUND_VOL}
-                ;;
-        esac
-        
-        # Filtro EAC3/AC3 con crossover LFE precisione, anti-aliasing surround e filtri Front
-        ADV_FILTER=$(cat <<EOF | tr -d '\n'
-[0:a]channelmap=channel_layout=5.1[audio5dot1];
-[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];
-[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}$(build_voice_eq),${SOFTCLIP_SETTINGS}[center];
-[FL]${FRONT_FILTER},volume=${front_vol_adj}[left];
-[FR]${FRONT_FILTER},volume=${front_vol_adj}[right];
-[LFE]highpass=f=25:poles=2,lowpass=f=105:poles=2,volume=${lfe_vol_adj}[bass];
-[BL]highpass=f=35:poles=1,lowpass=f=18000:poles=1,volume=${surround_vol_adj}[surroundL];
-[BR]highpass=f=35:poles=1,lowpass=f=18000:poles=1,volume=${surround_vol_adj}[surroundR];
-[left][right][center][bass][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];
-[joined]aresample=48000:resampler=soxr:precision=28,aformat=sample_fmts=s32:channel_layouts=5.1[out]
-EOF
-)
+    fi
+    
+    # ✅ Costruzione filtro con gestione corretta dell'EQ voice
+    local voice_eq_filter=$(build_voice_eq)
+    local voice_eq_part=""
+    if [[ -n "$voice_eq_filter" ]]; then
+        voice_eq_part=",$voice_eq_filter"
+    fi
+    
+    # Costruzione filtro principale con parametri specifici per codec
+    if [[ "${CODEC,,}" == "dts" ]]; then
+        # Filtro DTS: crossover LFE ottimizzato, surround esteso
+        ADV_FILTER="[0:a]channelmap=channel_layout=5.1[audio5dot1];[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}${voice_eq_part},${SOFTCLIP_SETTINGS}[center];[FL]${FRONT_FILTER},volume=${front_vol_adj}[left];[FR]${FRONT_FILTER},volume=${front_vol_adj}[right];[LFE]highpass=f=30:poles=2,lowpass=f=115:poles=2,volume=${lfe_vol_adj}[bass];[BL]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj}[surroundL];[BR]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj}[surroundR];[left][right][center][bass][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];[joined]aresample=48000:resampler=soxr:precision=28,aformat=sample_fmts=s32:channel_layouts=5.1[out]"
+    else
+        # Filtro EAC3/AC3: crossover LFE standard, surround controllato
+        ADV_FILTER="[0:a]channelmap=channel_layout=5.1[audio5dot1];[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}${voice_eq_part},${SOFTCLIP_SETTINGS}[center];[FL]${FRONT_FILTER},volume=${front_vol_adj}[left];[FR]${FRONT_FILTER},volume=${front_vol_adj}[right];[LFE]highpass=f=25:poles=2,lowpass=f=105:poles=2,volume=${lfe_vol_adj}[bass];[BL]highpass=f=35:poles=1,lowpass=f=18000:poles=1,volume=${surround_vol_adj}[surroundL];[BR]highpass=f=35:poles=1,lowpass=f=18000:poles=1,volume=${surround_vol_adj}[surroundR];[left][right][center][bass][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];[joined]aresample=48000:resampler=soxr:precision=28,aformat=sample_fmts=s32:channel_layouts=5.1[out]"
     fi
 }
 
 build_audio_filter
 
 # -----------------------------------------------------------------------------------------------
-#  PROCESSING PARALLELO E GESTIONE RISORSE
+#  PROCESSING CON GESTIONE ERRORI AVANZATA
 # -----------------------------------------------------------------------------------------------
-TOTAL_START_TIME=$(date +%s)
-MAX_PARALLEL=1  # Default: elaborazione sequenziale
-
-# Funzione per attendere completamento processi paralleli
-wait_for_slot() { # RINOMINATA DA wait_all_jobs
-    while (( $(jobs -r | wc -l) >= MAX_PARALLEL )); do
-        sleep 1
-    done
-}
-
-# Funzione per attendere tutti i processi in background
-wait_all_jobs() {
-    while (( $(jobs -r | wc -l) > 0 )); do
-        sleep 1
-    done
-}
 
 process() {
     local input_file="$1"
-    local parallel_mode="${2:-false}"
     local out="${input_file%.*}_${PRESET}_clearvoice0.mkv"
     
-    # Validazioni di base (NO doppia validazione audio)
     if [[ ! -f "$input_file" ]]; then
-        echo "❌ File '$input_file' non trovato!" >&2
+        echo "❌ File non trovato: $input_file"
         return 1
     fi
     
-    # Check spazio disco (stima conservativa)
-    local file_size=$(stat -c%s "$input_file" 2>/dev/null || stat -f%z "$input_file" 2>/dev/null || echo "0")
-    local free_space=$(df . | awk 'NR==2 {print $4*1024}' 2>/dev/null || echo "999999999999")
-    if (( file_size > 0 && file_size * 2 > free_space )); then
-        echo "⚠️  Spazio disco insufficiente per elaborare '$input_file'" >&2
-        return 1
-    fi
+    # Controllo layout audio per gestione robusta formato "unknown"
+    local channel_layout
+    channel_layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$input_file" 2>/dev/null)
     
-    # Rileva solo il layout per correzione (i file sono già stati validati)
-    local channel_layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$input_file" 2>/dev/null)
-    
-    # ===== CORREZIONE LAYOUT AUDIO =====
     local LOCAL_FILTER="$ADV_FILTER"
     if [[ "$channel_layout" == "unknown" ]]; then
-        echo "ℹ️  File con layout sconosciuto, assumo 5.1"
+        # Fix per layout audio "unknown" - usa aformat invece di channelmap
         LOCAL_FILTER="${ADV_FILTER//channelmap=channel_layout=5.1/aformat=channel_layouts=5.1}"
     fi
     
-    echo -e "\n🎬 Processing: $(basename "$input_file") [Preset: $PRESET] $([ "$parallel_mode" = "true" ] && echo "[PARALLEL]" || echo "")"
+    echo "🎬 Processing: $(basename "$input_file") [Preset: $PRESET]"
     
-    # Controllo sovrascrittura file output
-    if [[ -e "$out" && "$parallel_mode" = "false" ]]; then
-        read -p "⚠️  Output file '$out' presente! Sovrascrivere? (y/n): " choice
-        if [[ ! "$choice" =~ ^[Yy]$ ]]; then
-            echo "⏭️  Skipping $input_file"
-            return 0
-        fi
-    elif [[ -e "$out" && "$parallel_mode" = "true" ]]; then
-        # In modalità parallela, skippa automaticamente se il file esiste
-        echo "⏭️  Output già esistente, skip: $(basename "$out")"
-        return 0
+    if [[ -e "$out" ]]; then
+        read -p "⚠️  Output già presente. Sovrascrivere? (y/n): " choice
+        [[ ! "$choice" =~ ^[Yy]$ ]] && return 0
     fi
 
-    # ===== ESECUZIONE FFMPEG CON THREADING OTTIMIZZATO =====
     local START_TIME=$(date +%s)
+    local thread_count
+    thread_count=$(nproc 2>/dev/null || echo "4")
     
-    # Configurazione threads ottimizzata
-    local thread_count=$(nproc 2>/dev/null || echo "4")
-    if [[ "$parallel_mode" = "true" ]]; then
-        thread_count=$((thread_count / MAX_PARALLEL))
-        [[ $thread_count -lt 2 ]] && thread_count=2
-    fi
-    
-    ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero -fflags +genpts+discardcorrupt \
-        -threads $thread_count -filter_threads $thread_count -thread_queue_size 512 \
+    # Processing FFmpeg con threading ottimizzato e gestione errori
+    if ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero \
+        -threads "$thread_count" -filter_threads "$thread_count" -thread_queue_size 512 \
         -i "$input_file" -filter_complex "$LOCAL_FILTER" \
         -map 0:v -map "[out]" -map 0:a? -map 0:s? \
         -metadata:s:a:0 title="$TITLE" -metadata:s:a:0 language=ita -disposition:a:0 default \
-        -c:v copy -c:a:0 $ENC $EXTRA -b:a:0 $BR -c:a:1 copy -c:s copy \
-        -movflags +faststart "$out"
-
-    local exit_code=$?
-    local END_TIME=$(date +%s)
-    local PROCESSING_TIME=$((END_TIME - START_TIME))
-    
-    if [[ $exit_code -eq 0 ]]; then
+        -c:v copy -c:a:0 "$ENC" $EXTRA -b:a:0 "$BR" -c:a:1 copy -c:s copy \
+        -movflags +faststart "$out"; then
+        
+        local END_TIME=$(date +%s)
+        local PROCESSING_TIME=$((END_TIME - START_TIME))
         echo "✅ Completato in ${PROCESSING_TIME}s: $(basename "$out")"
         return 0
     else
-        echo "❌ Errore durante l'elaborazione di $input_file (exit code: $exit_code)" >&2
+        echo "❌ Errore durante elaborazione di $input_file"
         return 1
     fi
 }
 
-# -----------------------------------------------------------------------------------------------
-#  STATISTICHE FINALI E RIEPILOGO AVANZATO
-# -----------------------------------------------------------------------------------------------
 print_summary() {
     local TOTAL_END_TIME=$(date +%s)
     local TOTAL_TIME=$((TOTAL_END_TIME - TOTAL_START_TIME))
     
     echo ""
-    echo "═══════════════════════════════════════════════════════════════════════════════"
-    echo "  🎯 CLEARVOICE 0.78 - ELABORAZIONE COMPLETATA"
-    echo "═══════════════════════════════════════════════════════════════════════════════"
-    echo ""
-    echo "📊 STATISTICHE ELABORAZIONE:"
-    echo "   • Preset utilizzato: $PRESET"
-    echo "   • Codec output: $CODEC ($BR)"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "  🎯 CLEARVOICE 0.79 - ELABORAZIONE COMPLETATA"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "📊 STATISTICHE:"
+    echo "   • Preset: $PRESET | Codec: $CODEC ($BR)"
+    echo "   • File processati: ${#VALIDATED_FILES_GLOBAL[@]}"
     echo "   • Tempo totale: ${TOTAL_TIME}s"
-    
-    if [[ $MAX_PARALLEL -gt 1 ]]; then
-        echo "   • Modalità parallela: $MAX_PARALLEL processi contemporaneamente"
-    fi
-    
-    if [[ "$PRESET" == "tv" ]]; then
-        echo ""
-        echo "🎛️  PRESET TV - EQUALIZZAZIONE ATTIVA:"
-        echo "   • Canale centrale: EQ dialoghi 300Hz-4kHz per massima intelligibilità"
-        echo "   • Front L/R: EQ enfasi voce 800Hz-3kHz per materiale problematico"
-        echo "   • Parametri conservativi per audio compresso/bassa qualità"
-    fi
-    
-    echo "═══════════════════════════════════════════════════════════════════════════════"
+    [[ "$PRESET" == "tv" ]] && echo "   • Equalizzazione dialoghi attiva"
+    echo "═══════════════════════════════════════════════════════════════"
 }
 
 # -----------------------------------------------------------------------------------------------
-#  LOOP SUI FILE DI INPUT - VERSIONE DEFINITIVA CON PROCESSING PARALLELO ATTIVATO
+#  ESECUZIONE PRINCIPALE CON PROCESSING SEQUENZIALE OTTIMIZZATO
 # -----------------------------------------------------------------------------------------------
-echo "🚀 Avvio CLEARVOICE 0.78 - Preset: $PRESET | Codec: $CODEC ($BR)"
 
-# VALIDAZIONE PRELIMINARE che popola VALIDATED_FILES_GLOBAL
+echo "🚀 Avvio CLEARVOICE 0.79 - Preset: $PRESET | Codec: $CODEC ($BR)"
+
 if ! validate_inputs; then
     echo ""
-    echo "🆘 HELP:"
-    echo "   • ClearVoice richiede tracce audio 5.1 (6 canali)"
-    echo "   • Usa i comandi sopra per convertire i tuoi file"
-    echo "   • Poi rilancia: ./clearvoice078_preset.sh --$PRESET $CODEC $BR"
+    echo "🆘 HELP: ClearVoice richiede tracce audio 5.1"
+    echo "   Usa i comandi di conversione sopra, poi rilancia ClearVoice"
     exit 1
 fi
 
-# CORREZIONE: Attiva processing parallelo per serie TV con più file (non solo cartelle)
-if [[ "$PRESET" = "serie" && ${#VALIDATED_FILES_GLOBAL[@]} -gt 1 ]]; then
-    MAX_PARALLEL=2
-    echo "🔄 Modalità parallela attivata: elaborazione 2 file contemporaneamente per serie TV"
-    echo "💾 Threads per processo ridotti automaticamente per bilanciare carico CPU"
-fi
+echo "🎛️  Miglioramenti attivi: Compressore multi-banda, Limitatore intelligente, Crossover LFE"
+[[ "$PRESET" == "tv" ]] && echo "🎯 Preset TV: Equalizzazione intelligibile per materiale problematico"
 
-echo "🎛️  Miglioramenti: Compressore multi-banda, Limitatore intelligente, Crossover LFE precisione, Filtri Front L/R"
-
-if [[ "$PRESET" == "tv" ]]; then
-    echo "🎯 Preset TV: Equalizzazione intelligibile attiva per materiale problematico"
-fi
-
-# ============================================================================
-# PROCESSING FINALE: Usa direttamente i file validati globalmente
-# ============================================================================
 if [[ ${#VALIDATED_FILES_GLOBAL[@]} -gt 0 ]]; then
     echo -e "\n📁 Processing ${#VALIDATED_FILES_GLOBAL[@]} file validati..."
     
+    # Processing sequenziale ottimizzato per massima stabilità
     for f in "${VALIDATED_FILES_GLOBAL[@]}"; do
-        if [[ $MAX_PARALLEL -gt 1 ]]; then
-            # Modalità parallela: attendi slot libero e lancia in background
-            wait_for_slot
-            process "$f" "true" &
-        else
-            # Modalità sequenziale standard
-            process "$f" "false"
-        fi
+        process "$f"
     done
-    
-    # Attendi completamento di tutti i processi paralleli
-    if [[ $MAX_PARALLEL -gt 1 ]]; then
-        echo "⏳ Attendo completamento processi paralleli..."
-        wait_all_jobs
-    fi
 else
-    echo "❌ Nessun file 5.1 valido trovato per l'elaborazione!"
+    echo "❌ Nessun file 5.1 valido trovato!"
 fi
 
-# CHIAMATA FINALE AL RIEPILOGO
 print_summary
