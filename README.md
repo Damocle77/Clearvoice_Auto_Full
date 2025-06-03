@@ -153,7 +153,7 @@ Output: `nomefile_[PRESET]_clearvoice0.mkv`
 ./clearvoice079_preset.sh *.mkv
 
 # Preset specifici
-./clearvoice079_preset.sh --serie *.mkv                    # Serie TV ottimizzate
+./clearvoice079_preset.sh --serie *.mkv                   # Serie TV ottimizzate
 ./clearvoice079_preset.sh --film dts 768k Film/           # Film DTS alta qualità
 ./clearvoice079_preset.sh --tv *.mkv                      # Materiale problematico + EQ
 ./clearvoice079_preset.sh --cartoni ac3 448k /Anime/      # Cartoni/Musicali
@@ -538,7 +538,6 @@ Sentiti libero di usare, modificare e distribuire secondo i termini della licenz
 ### 🌐 **Repository**
 - **Main:** https://github.com/Damocle77/Clearvoice_5.1
 - **Issues:** https://github.com/Damocle77/Clearvoice_5.1/issues
-- **Releases:** https://github.com/Damocle77/Clearvoice_5.1/releases
 
 ### 🚀 **One-Liner Setup (Linux/macOS)**
 ```bash
@@ -554,7 +553,6 @@ curl -fsSL https://raw.githubusercontent.com/Damocle77/Clearvoice_5.1/main/insta
 
 [![⭐ Star](https://img.shields.io/github/stars/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1)
 [![🍴 Fork](https://img.shields.io/github/forks/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/fork)
-[![📥 Download](https://img.shields.io/github/downloads/Damocle77/Clearvoice_5.1/total.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 
 *Audio Engineering by Sandro 'D@mocle77' Sabbioni • v0.79 • 2025*
 
