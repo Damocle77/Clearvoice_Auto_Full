@@ -493,14 +493,6 @@ awk 'BEGIN {print 8.5 + 1.5}'  # Test awk functionality
 ---
 
 ## 🤝 Contribuire
-
-### 🐛 **Bug Report**
-1. [Crea issue](https://github.com/Damocle77/Clearvoice_5.1/issues/new) usando il template
-2. Includi: OS, FFmpeg version (`ffmpeg -version`), bash version
-3. Output validazione: `./clearvoice079_preset.sh --serie *.mkv` (mostra analisi formati)
-4. Log completo: `./clearvoice079_preset.sh [args] > log.txt 2>&1`
-
-### 💡 **Feature Request**
 1. Descrivi caso d'uso e beneficio specifico
 2. Specifica hardware target (soundbar/AVR model) se rilevante
 3. Fornisci esempi audio problematici, se possibile
