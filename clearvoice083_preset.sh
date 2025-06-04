@@ -705,23 +705,35 @@ parse_arguments() {
             --cartoni) PRESET="cartoni"; shift;;
             -h|--help) show_help; exit 0;;
             -*) echo "Opzione sconosciuta: $1"; exit 1;;
-            *) INPUTS+=("$1"); shift;;
+            *) 
+                # Se sembra un codec (eac3, ac3, dts)
+                if [[ "$1" =~ ^(eac3|ac3|dts)$ ]] && [[ -z "$CODEC" ]]; then
+                    CODEC="$1"
+                # Se sembra un bitrate (numero seguito da k o K)
+                elif [[ "$1" =~ ^[0-9]+[kK]$ ]] && [[ -z "$BR" ]]; then
+                    BR="$1"
+                # Altrimenti è un file/directory
+                else
+                    INPUTS+=("$1")
+                fi
+                shift
+                ;;
         esac
     done
     
-    # Gestione input automatica con parsing migliorato
-    if [[ ${#INPUTS[@]} -ge 1 && ! -f "${INPUTS[0]}" && ! "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-        CODEC="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
-    fi
-    if [[ ${#INPUTS[@]} -ge 1 && "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-        BR="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
-    fi
+    # Se non sono stati specificati file, usa tutti i .mkv nella directory corrente
     if [[ ${#INPUTS[@]} -eq 0 ]]; then
         shopt -s nullglob
         INPUTS=(*.mkv)
         shopt -u nullglob
     fi
-    [[ ${#INPUTS[@]} -eq 0 ]] && { echo "❌ Nessun file specificato!"; exit 1; }
+    
+    # Verifica che ci siano file da processare
+    if [[ ${#INPUTS[@]} -eq 0 ]]; then
+        echo "❌ Nessun file specificato e nessun .mkv trovato nella directory corrente!"
+        echo "💡 Usa: ls *.mkv per vedere i file disponibili"
+        exit 1
+    fi
 }
 
 # Help dettagliato con esempi pratici
