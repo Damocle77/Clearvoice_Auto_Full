@@ -246,7 +246,7 @@ chmod +x clearvoice079_preset.sh
 | Codec | Qualità | Compatibilità | Bitrate Default | Ideale Per |
 |-------|---------|---------------|----------------|------------|
 | **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 768k | Serie TV, streaming |
-| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 540k | Compatibilità universale |
+| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 640k | Compatibilità universale |
 | **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 756k | Film, Blu-ray |
 
 <details>
