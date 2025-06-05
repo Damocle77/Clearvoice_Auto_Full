@@ -245,9 +245,9 @@ chmod +x clearvoice079_preset.sh
 
 | Codec | Qualità | Compatibilità | Bitrate Default | Ideale Per |
 |-------|---------|---------------|----------------|------------|
-| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 384k | Serie TV, streaming |
-| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 448k | Compatibilità universale |
-| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 768k | Film, Blu-ray |
+| **🔥 EAC3** | ⭐⭐⭐⭐⭐ | Universale | 768k | Serie TV, streaming |
+| **🎯 AC3** | ⭐⭐⭐⭐ | Massima | 540k | Compatibilità universale |
+| **💎 DTS** | ⭐⭐⭐⭐⭐ | Premium | 756k | Film, Blu-ray |
 
 <details>
 <summary>📋 Dettagli Codec v0.79</summary>
@@ -502,11 +502,6 @@ Sentiti libero di usare, modificare e distribuire secondo i termini MIT.
 - **Main:** https://github.com/Damocle77/Clearvoice_5.1
 - **Issues:** https://github.com/Damocle77/Clearvoice_5.1/issues
 - **Releases:** https://github.com/Damocle77/Clearvoice_5.1/releases
-
-### 🚀 **One-Liner Setup v0.79**
-```bash
-curl -fsSL https://raw.githubusercontent.com/Damocle77/Clearvoice_5.1/main/install.sh | bash
-```
 
 ---
 
