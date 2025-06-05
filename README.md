@@ -615,18 +615,3 @@ Sentiti libero di usare, modificare e distribuire secondo i termini MIT.
 - **Releases:** https://github.com/Damocle77/Clearvoice_5.1/releases
 
 ```
-
----
-
-<div align="center">
-
-## 🎧 **ClearVoice 5.1 v0.80** 
-### *Gestione Tracce Flessibile • Modalità --replace • Dialoghi Cristallini • Processing Ottimizzato*
-
-[![⭐ Star](https://img.shields.io/github/stars/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1)
-[![🍴 Fork](https://img.shields.io/github/forks/Damocle77/Clearvoice_5.1.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/fork)
-[![📥 Download](https://img.shields.io/github/downloads/Damocle77/Clearvoice_5.1/total.svg?style=for-the-badge&logo=github)](https://github.com/Damocle77/Clearvoice_5.1/releases)
-
-**Trasforma il tuo audio 5.1 con gestione tracce flessibile e 4 preset ottimizzati per LG SP7**
-
-</div>
