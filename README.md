@@ -415,7 +415,7 @@ done
 
 ### 🎵 **Gestione Tracce Audio Flessibile**
 - 🆕 **Modalità flessibile:** ClearVoice + originale oppure solo ClearVoice
-- 🆕 **Parametro `--replace`:** Controllo completo output audio (sostituisce `--replace-audio`)
+- 🆕 **Parametro `--replace`:** Controllo completo output audio
 - 🆕 **Metadata dinamici** ottimizzati secondo modalità di elaborazione
 - 🆕 **Feedback migliorato** per indicare modalità attiva durante processing
 - 🆕 **Documentazione aggiornata** con esempi d'uso per entrambe le modalità
