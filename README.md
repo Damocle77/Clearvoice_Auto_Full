@@ -613,5 +613,3 @@ Sentiti libero di usare, modificare e distribuire secondo i termini MIT.
 - **Main:** https://github.com/Damocle77/Clearvoice_5.1
 - **Issues:** https://github.com/Damocle77/Clearvoice_5.1/issues
 - **Releases:** https://github.com/Damocle77/Clearvoice_5.1/releases
-
-```
