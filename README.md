@@ -9,7 +9,7 @@
 [![Quality](https://img.shields.io/badge/quality-Reference%20Grade-gold.svg)](#caratteristiche-professionali)
 [![Language](https://img.shields.io/badge/optimized-Italian%20Voice-red.svg)](#firequalizer-anti-baritono)
 
-> **✨ Sistema di post-produzione audio professionale calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer Anti-Baritono, SoxR Audiophile e Stereotools Enhancement**
+> **✨ Sistema di post-produzione audio calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer, SoxR Audiophile e Stereotools Enhancement**
 
 ---
 
@@ -29,7 +29,7 @@ chmod +x clearvoice087_preset.sh
 
 ---
 
-## 🎆 Novità Rivoluzionarie v0.87
+## 🎆 Novità significative v0.87
 
 ### 🎯 **Ducking LFE Professionale con Sidechaincompress**
 ClearVoice 0.87 introduce un sistema di ducking LFE completamente nuovo che utilizza la voce non processata come sidechain per comprimere intelligentemente il canale subwoofer quando i dialoghi sono presenti.
