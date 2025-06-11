@@ -454,7 +454,6 @@ Quality: Reference studio grade output
 |---------|-----|---------------|-----|---------|----------|-----------------|
 | **Workstation Pro** | AMD 7950X | 16c/32t | 32GB DDR5 | NVMe Gen4 | 3.8x | ~8 minuti |
 | **Gaming High-End** | Intel 13900K | 24c/32t | 32GB DDR5 | NVMe Gen4 | 4.1x | ~7 minuti |
-| **Mac Studio** | M2 Ultra | 24c | 64GB | SSD | 2.9x | ~12 minuti |
 | **Gaming Mid-Range** | AMD 5800X | 8c/16t | 16GB DDR4 | NVMe Gen3 | 2.1x | ~18 minuti |
 | **Office Business** | Intel i5-12400 | 6c/12t | 16GB DDR4 | SATA SSD | 1.4x | ~35 minuti |
 | **Budget Build** | AMD 3600 | 6c/12t | 16GB DDR4 | SATA SSD | 1.1x | ~45 minuti |
@@ -506,21 +505,6 @@ Tracks Layout:
 └── Chapter Markers: Preserved if present
 ```
 
-### **Metadata Professional Standards**
-```bash
-ClearVoice Track:
-- Title: "ClearVoice DTS Film" / "ClearVoice E-AC3 Serie"
-- Language: ita (ISO 639-2 standard)
-- Disposition: default (auto-selected by players)
-- Codec-specific flags: dialnorm, room_type, mixing_level
-
-Original Tracks:
-- Preserved metadata originali
-- Language tags mantenuti  
-- Disposition flags corretti per compatibility
-- Codec parameters unchanged
-```
-
 ### **Quality Assurance Tests**
 
 **Frequency Response Analysis:**
@@ -539,70 +523,6 @@ Original Tracks:
 
 ---
 
-## 🔍 Troubleshooting e Supporto Avanzato
-
-### **Problemi Comuni e Soluzioni**
-
-**1. FFmpeg "Filter not found" errors:**
-```bash
-# Test supporto filtri richiesti
-ffmpeg -filters | grep -E "(soxr|stereotools|firequalizer|sidechaincompress)"
-
-# Ubuntu: install complete FFmpeg
-sudo apt install ffmpeg-full
-
-# macOS: rebuild with all options  
-brew uninstall ffmpeg && brew install ffmpeg --with-all-options
-
-# Compile da source se necessario (ultima risorsa)
-```
-
-**2. "Permission denied" su file di output:**
-```bash
-# Check permessi directory
-ls -la output_directory/
-chmod 755 output_directory/
-
-# Check spazio disponibile
-df -h output_directory/
-
-# Verifica ownership
-sudo chown $USER:$USER output_directory/
-```
-
-**3. Performance degradation:**
-```bash
-# Monitor utilizzo risorse durante processing
-htop / top
-iotop (per I/O disk)
-
-# Ottimizzazione system:
-echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
-echo 'vm.vfs_cache_pressure=50' | sudo tee -a /etc/sysctl.conf
-
-# Per SSD: enable TRIM
-sudo systemctl enable fstrim.timer
-```
-
-**4. Audio sync issues:**
-```bash
-# Se sync problems dopo processing:
-ffmpeg -i input.mkv -af "asetpts=PTS-STARTPTS" -c:v copy output.mkv
-
-# Check original file integrity:
-ffprobe -v quiet -show_streams -select_streams a input.mkv
-```
-
-### **Debug Mode Avanzato**
-```bash
-# Enable verbose logging per debugging
-export CLEARVOICE_DEBUG=1
-./clearvoice087_preset.sh --film eac3 640k problematic_file.mkv
-
-# Output dettagliato in log file per analisi
-grep -E "(ERROR|WARN|DEBUG)" output_file_clearvoice0.log
-```
-
 ### **Support Channels**
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Damocle77/Clearvoice_5.1/issues)
 - 💬 **Community**: [Discussions](https://github.com/Damocle77/Clearvoice_5.1/discussions)  
@@ -618,57 +538,8 @@ grep -E "(ERROR|WARN|DEBUG)" output_file_clearvoice0.log
 # Setup development environment
 git clone https://github.com/Damocle77/Clearvoice_5.1.git
 cd Clearvoice_5.1
-git checkout -b feature/your-improvement
 
-# Test changes thoroughly:
-./test_suite.sh    # Run automated tests
-./manual_tests.sh  # Interactive quality testing
-
-# Commit con conventional format:
-git commit -m "feat: add new preset for podcasts"
-git commit -m "fix: resolve audio sync in MP4 files"  
-git commit -m "docs: update README with troubleshooting"
 ```
-
-### **Areas di Contribuzione Benvenute**
-- 🎵 **New Audio Presets**: Preset specializzati (podcast, music, sport)
-- 🌍 **Language Support**: Calibrazioni per altre lingue oltre l'italiano
-- 🔧 **Filter Improvements**: Ottimizzazioni algoritmi audio processing  
-- 📱 **Platform Support**: Compatibilità Android/iOS native
-- 🧪 **Testing**: Automated test suite e quality assurance
-- 📖 **Documentation**: Tutorial, guide, esempi video
-
-### **Code Review Process**
-1. Fork repository e crea feature branch
-2. Implement modifiche con test coverage
-3. Update documentation se necessario
-4. Submit Pull Request con description dettagliata
-5. Address review feedback
-6. Merge dopo approval da maintainers
-
----
-
-## 📊 Roadmap e Sviluppi Futuri
-
-### **v0.9 - Advanced Features (Q2 2025)**
-- 🎯 **AI Voice Detection**: Machine learning per identificazione automatica dialoghi
-- 🎚️ **Real-time Preview**: Anteprima live delle modifiche prima del processing
-- 🎛️ **GUI Interface**: Interfaccia grafica cross-platform con PyQt/Electron
-- 🌐 **Cloud Processing**: Integration con cloud services per batch processing
-
-### **v1.0 - Production Release (Q3 2025)**
-- 🏆 **Professional Certification**: Validation da studi di post-produzione
-- 📱 **Mobile Apps**: Native iOS/Android con processing cloud-hybrid
-- 🔌 **Plugin Ecosystem**: Support per plugin third-party e custom filters
-- 🎬 **Industry Integration**: Compatibility con software professionali (Avid, Pro Tools)
-
-### **Long-term Vision (2026+)**
-- 🤖 **AI-Powered Mastering**: Automatic preset selection basato su content analysis  
-- 🎭 **Multi-language Support**: Calibrazioni specifiche per 20+ lingue
-- 🏠 **Smart Home Integration**: Alexa/Google Assistant voice commands
-- 🎯 **Real-time Processing**: Live audio enhancement per streaming e gaming
-
----
 
 ## 📄 Licenza e Copyright
 
@@ -677,19 +548,6 @@ git commit -m "docs: update README with troubleshooting"
 MIT License
 
 Copyright (c) 2025 Sandro "D@mocle77" Sabbioni
-
-
-### **Third-party Libraries Acknowledgments**
-- **FFmpeg**: LGPLv2.1+ license (https://ffmpeg.org/legal.html)
-- **SoxR**: LGPLv2.1+ license (https://sourceforge.net/projects/soxr/)
-- **Bash**: GPLv3+ license (https://www.gnu.org/software/bash/)
-
-### **Usage in Commercial Projects**
-ClearVoice può essere utilizzato liberamente in progetti commerciali sotto licenza MIT. Si richiede:
-- ✅ Inclusione copyright notice nei derivative works
-- ✅ Acknowledgment in credits quando appropriato  
-- ✅ No warranty claims against original developers
-
 ---
 
 ## 🌟 Riconoscimenti e Credits
@@ -717,41 +575,11 @@ ClearVoice può essere utilizzato liberamente in progetti commerciali sotto lice
 4. Dolby Technical Papers: "Professional audio metadata standards"
 5. DTS Technical Documentation: "High-resolution audio encoding guidelines"
 ```
-
----
-
-## 📞 Links, Supporto e Community
-
-### **Official Channels**
-* 🏠 **Main Repository**: [Clearvoice_5.1](https://github.com/Damocle77/Clearvoice_5.1)
-* 📦 **Latest Releases**: [Download Page](https://github.com/Damocle77/Clearvoice_5.1/releases)
-* 🐛 **Bug Reports**: [Issues Tracker](https://github.com/Damocle77/Clearvoice_5.1/issues)
-* 💬 **Community Discussions**: [GitHub Discussions](https://github.com/Damocle77/Clearvoice_5.1/discussions)
-* 📚 **Complete Documentation**: [Wiki Pages](https://github.com/Damocle77/Clearvoice_5.1/wiki)
-
-### **Social Media e Community**
-* 🐦 **Twitter**: [@ClearVoice51](https://twitter.com/clearvoice51) - News e aggiornamenti
-* 📺 **YouTube**: Tutorial video e demonstrazioni
-* 💬 **Discord Server**: Real-time community support e discussioni tecniche
-* 📱 **Reddit**: [r/ClearVoice](https://reddit.com/r/clearvoice) - User experiences e tips
-
-### **Professional Support**
-* 📧 **Technical Support**: `support@clearvoice51.com`
-* 🏢 **Commercial Licensing**: `business@clearvoice51.com`  
-* 🎓 **Educational Institutions**: `education@clearvoice51.com`
-* 🎬 **Professional Studios**: `professional@clearvoice51.com`
-
-### **Documentation Resources**
-* 📖 **Quick Start Guide**: [Getting Started](https://github.com/Damocle77/Clearvoice_5.1/wiki/Quick-Start)
-* 🔧 **Technical Reference**: [API Documentation](https://github.com/Damocle77/Clearvoice_5.1/wiki/Technical-Reference)
-* 🎥 **Video Tutorials**: [YouTube Playlist](https://youtube.com/playlist?list=clearvoice51tutorials)
-* 📊 **Performance Guide**: [Optimization Tips](https://github.com/Damocle77/Clearvoice_5.1/wiki/Performance)
-
 ---
 
 ## 🎉 Conclusione
 
-**ClearVoice 5.1 v0.87** rappresenta l'evoluzione definitiva nell'ottimizzazione audio domestica, combinando:
+**ClearVoice 5.1 v0.87** rappresenta l'evoluzione dell'ottimizzazione audio domestica, combinando:
 
 ✨ **Tecnologie all'avanguardia** (Ducking LFE, Firequalizer, SoxR)  
 🎯 **Calibrazione specifica** per la lingua italiana  
