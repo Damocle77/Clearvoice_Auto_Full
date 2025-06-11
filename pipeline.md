@@ -252,8 +252,11 @@ build_audio_filter() {
   # Split 5.1 con processing parallelo ottimizzato
   local ADV="[0:a:$BEST_STREAM_INDEX]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];"
   
-  # Centro voce con EQ firequalizer anti-baritono italiano + compressore 2-stage + ducking prep
-  ADV+="[FC]highpass=f=$HP_FREQ:poles=2,lowpass=f=$LP_FREQ:poles=2,"
+  # Split centro voce PRIMA del processing per ducking pulito
+  ADV+="[FC]asplit=2[fc_duck][fc_process];"
+  
+  # Processing voce con EQ firequalizer anti-baritono + compressore
+  ADV+="[fc_process]highpass=f=$HP_FREQ:poles=2,lowpass=f=$LP_FREQ:poles=2,"
   ADV+="volume=${voice_vol_adj}dB,"
   
   # Firequalizer calibrato per voci italiane (anti-baritono, boost presenza)
@@ -269,53 +272,55 @@ build_audio_filter() {
       ;;
   esac
   
-  # Compressore 2-stage dolce per naturalezza vocale + copia per ducking
+  # De-esser dopo firequalizer per riduzione sibilanti naturale
+  ADV+="deesser=i=0.1:m=0.5:f=0.5:s=o,"
+
+  # Compressore 2-stage dolce per naturalezza vocale
   ADV+="acompressor=threshold=0.6:ratio=2.2:attack=15:release=220:makeup=1.3,"
-  ADV+="alimiter=level_in=1:level_out=0.85:limit=0.90:attack=8:release=80[vc];"
+  ADV+="alimiter=level_in=1:level_out=0.85:limit=0.90:attack=8:release=80[voice_final];"
   
-  # SPLIT VOCE per ducking senza feedback - copia dedicata per sidechain
-  ADV+="[vc]asplit=2[voice_final][voice_duck];"
+  # Frontali L/R con stereo enhancement per imaging migliorato
+  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mwid=0.3[fl];"
+  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mwid=0.3[fr];"
   
-  # Frontali L/R con SoxR audiophile 28-bit precision
-  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,"
-  ADV+="aresample=resampler=soxr:precision=28:cutoff=0.95:dither_method=triangular,"
-  ADV+="volume=${front_vol_adj}[fl];"
-  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,"
-  ADV+="aresample=resampler=soxr:precision=28:cutoff=0.95:dither_method=triangular,"
-  ADV+="volume=${front_vol_adj}[fr];"
-  
-  # LFE con DUCKING SOFT AVANZATO - usa copia separata della voce
+  # LFE con pre-processing per ducking
   ADV+="[LFE]highpass=f=25:poles=2,lowpass=f=110:poles=2,volume=${lfe_vol_adj}[lfe_pre];"
   
-  # Sidechaincompress calibrato per codec - usa voice_duck invece di vc
+  # Parametri ducking ottimizzati - DTS più marcato per gestire dinamica superiore
   local ducking_params=""
   case "${CODEC,,}" in
     dts)
-      # DTS: ducking più marcato per compensare la dinamica superiore
-      ducking_params="threshold=0.18:ratio=2.5:attack=6:release=350:makeup=0.8"
+      ducking_params="threshold=0.15:ratio=3.2:attack=5:release=280:makeup=0.7"
       ;;
     eac3)
-      # E-AC3: ducking standard più dolce
-      ducking_params="threshold=0.25:ratio=1.8:attack=8:release=400:makeup=1"
+      ducking_params="threshold=0.28:ratio=2.0:attack=12:release=450:makeup=1.1"
       ;;
   esac
   
-  ADV+="[voice_duck][lfe_pre]sidechaincompress=${ducking_params}[lfe_ducked];"
+  # Applicazione ducking LFE con voce non processata per sidechain naturale
+  ADV+="[fc_duck][lfe_pre]sidechaincompress=${ducking_params}[lfe_ducked];"
   
-  # Surround L/R con processing dedicato e SoxR
-  ADV+="[BL]highpass=f=40:poles=2,lowpass=f=18000:poles=2,"
-  ADV+="aresample=resampler=soxr:precision=24:cutoff=0.92:dither_method=triangular,"
-  ADV+="volume=${surround_vol_adj}[bl];"
-  ADV+="[BR]highpass=f=40:poles=2,lowpass=f=18000:poles=2,"
-  ADV+="aresample=resampler=soxr:precision=24:cutoff=0.92:dither_method=triangular,"
-  ADV+="volume=${surround_vol_adj}[br];"
+  # Surround L/R con processing dedicato per ambiente naturale
+  ADV+="[BL]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj}[bl];"
+  ADV+="[BR]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj}[br];"
   
-  # Join finale con noise shaping globale - usa voice_final invece di vc
-  ADV+="[fl][fr][voice_final][lfe_ducked][bl][br]join=inputs=6:channel_layout=5.1[jn];"
-  ADV+="[jn]aresample=48000:resampler=soxr:precision=28:cutoff=0.95:dither_method=triangular[out]"
+  # Join finale 5.1 con ordine corretto dei canali
+  ADV+="[fl][fr][voice_final][lfe_ducked][bl][br]join=inputs=6:channel_layout=5.1[mixed];"
+  
+  # SoxR finale ottimizzato per codec - UNA SOLA APPLICAZIONE
+  case "${CODEC,,}" in
+    dts)
+      # Per DTS: qualità massima con oversampling per reference quality
+      ADV+="[mixed]aresample=48000:resampler=soxr:precision=33:cutoff=0.99:dither_method=triangular:cheby=1[out]"
+      ;;
+    eac3)
+      # Per E-AC3: bilanciato qualità/performance per compatibilità
+      ADV+="[mixed]aresample=48000:resampler=soxr:precision=28:cutoff=0.95:dither_method=triangular:filter_size=32[out]"
+      ;;
+  esac
   
   ADV_FILTER="$ADV"
-  log_message "INFO" "✅ Filtro costruito: ducking LFE ${CODEC^^} + firequalizer anti-baritono + SoxR 28-bit"
+  log_message "INFO" "✅ Filtro costruito: ducking LFE ${CODEC^^} + firequalizer anti-baritono + de-esser + SoxR ${CODEC^^}-optimized"
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -393,7 +398,7 @@ process_file() {
     *) codec_label="$CODEC";;
   esac
   
-  # Build FFmpeg command OTTIMIZZATO - mantiene TUTTE le tracce audio originali + aggiunge ClearVoice
+  # Build FFmpeg command COMPLETO - mantiene TUTTE le tracce audio originali + aggiunge ClearVoice
   local cmd=(
     ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero
     -threads "$thread_count" -filter_threads "$FILTER_THREADS" -thread_queue_size "$THREAD_QUEUE_SIZE"
@@ -407,16 +412,23 @@ process_file() {
     "$temp_output"
   )
   
-  # Esecuzione con monitoring
-  if "${cmd[@]}"; then
+  # Esecuzione con monitoring e gestione errori completa
+  log_message "INFO" "⚙️ Avvio FFmpeg per: $(basename "$input_file")"
+  
+  if "${cmd[@]}" 2>&1 | tee -a "$LOG_FILE"; then
     # Sposta file solo se processing completato con successo
-    mv "$temp_output" "$output_file"
-    log_message "INFO" "✅ COMPLETATO: $(basename "$output_file") [ClearVoice + Tutte le tracce originali]"
-    return 0
+    if [[ -f "$temp_output" ]]; then
+      mv "$temp_output" "$output_file"
+      log_message "INFO" "✅ COMPLETATO: $(basename "$output_file") [ClearVoice + Tutte le tracce originali]"
+      return 0
+    else
+      log_message "ERROR" "File temp non generato: $temp_output"
+      return 1
+    fi
   else
     local ffmpeg_exit_code=$?
     rm -f "$temp_output"
-    log_message "ERROR" "FFmpeg fallito con exit code: $ffmpeg_exit_code"
+    log_message "ERROR" "FFmpeg fallito con exit code: $ffmpeg_exit_code per: $(basename "$input_file")"
     RETRY_FAILED+=("$input_file")
     return 1
   fi
