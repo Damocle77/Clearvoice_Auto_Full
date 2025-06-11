@@ -9,7 +9,7 @@
 [![Quality](https://img.shields.io/badge/quality-Reference%20Grade-gold.svg)](#caratteristiche-professionali)
 [![Language](https://img.shields.io/badge/optimized-Italian%20Voice-red.svg)](#firequalizer-anti-baritono)
 
-> **✨ Sistema di post-produzione audio professionale calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer Anti-Baritono, SoxR Audiophile e Stereotools Enhancement**
+> **✨ Sistema di post-produzione audio calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer, SoxR Audiophile e Stereotools Enhancement**
 
 ---
 
