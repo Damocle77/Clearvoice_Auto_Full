@@ -16,7 +16,7 @@
 # --- VERSIONING E VARIABILI GLOBALI ---------------------------------------------------------
 VERSION="0.87"
 SCRIPT_NAME="ClearVoice"
-LOG_FILE="clearvoice_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE=""
 VALIDATED_FILES_GLOBAL=()
 RETRY_FAILED=()
 START_SCRIPT_TIME=$(date +%s)
@@ -473,7 +473,28 @@ main() {
   # Setup gestione interruzioni
   setup_signal_handling
   
+  # Parse arguments e ottieni lista file
+  local files=()
+  readarray -t files < <(parse_arguments "$@")
+  
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo "ERROR: Nessun file video specificato"
+    echo ""
+    show_help
+  fi
+  
+  # Configurazione preset e codec
+  configure_preset
+  configure_codec
+  
+  # 🆕 GENERA LOG FILE CON PATTERN UGUALE AL FILE OUTPUT
+  local first_file_name=$(basename "${files[0]}")
+  first_file_name="${first_file_name%.*}"  # Rimuove estensione
+  LOG_FILE="${first_file_name}_${PRESET}_clearvoice0.log"
+  
+  # Ora inizia il logging
   log_message "INFO" "=== CLEARVOICE v$VERSION SYSTEM STARTUP ==="
+  log_message "INFO" "📋 Log session: $LOG_FILE"
   
   # Check help prima di tutto
   for arg in "$@"; do

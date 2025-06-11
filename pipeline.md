@@ -16,7 +16,7 @@
 # --- VERSIONING E VARIABILI GLOBALI ---------------------------------------------------------
 VERSION="0.87"
 SCRIPT_NAME="ClearVoice"
-LOG_FILE="clearvoice_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE=""
 VALIDATED_FILES_GLOBAL=()
 RETRY_FAILED=()
 START_SCRIPT_TIME=$(date +%s)
@@ -280,8 +280,8 @@ build_audio_filter() {
   ADV+="alimiter=level_in=1:level_out=0.85:limit=0.90:attack=8:release=80[voice_final];"
   
   # Frontali L/R con stereo enhancement per imaging migliorato
-  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mwid=0.3[fl];"
-  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mwid=0.3[fr];"
+  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mode=lr>ms[fl];"
+  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mode=lr>ms[fr];"
   
   # LFE con pre-processing per ducking
   ADV+="[LFE]highpass=f=25:poles=2,lowpass=f=110:poles=2,volume=${lfe_vol_adj}[lfe_pre];"
@@ -473,7 +473,28 @@ main() {
   # Setup gestione interruzioni
   setup_signal_handling
   
+  # Parse arguments e ottieni lista file
+  local files=()
+  readarray -t files < <(parse_arguments "$@")
+  
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo "ERROR: Nessun file video specificato"
+    echo ""
+    show_help
+  fi
+  
+  # Configurazione preset e codec
+  configure_preset
+  configure_codec
+  
+  # 🆕 GENERA LOG FILE CON PATTERN UGUALE AL FILE OUTPUT
+  local first_file_name=$(basename "${files[0]}")
+  first_file_name="${first_file_name%.*}"  # Rimuove estensione
+  LOG_FILE="${first_file_name}_${PRESET}_clearvoice0.log"
+  
+  # Ora inizia il logging
   log_message "INFO" "=== CLEARVOICE v$VERSION SYSTEM STARTUP ==="
+  log_message "INFO" "📋 Log session: $LOG_FILE"
   
   # Check help prima di tutto
   for arg in "$@"; do
