@@ -280,8 +280,8 @@ build_audio_filter() {
   ADV+="alimiter=level_in=1:level_out=0.85:limit=0.90:attack=8:release=80[voice_final];"
   
   # Frontali L/R con stereo enhancement per imaging migliorato
-  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mwid=0.3[fl];"
-  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mwid=0.3[fr];"
+  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mode=lr>ms[fl];"
+  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},stereotools=mlev=0.1:mode=lr>ms[fr];"
   
   # LFE con pre-processing per ducking
   ADV+="[LFE]highpass=f=25:poles=2,lowpass=f=110:poles=2,volume=${lfe_vol_adj}[lfe_pre];"
