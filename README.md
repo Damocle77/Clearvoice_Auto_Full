@@ -101,7 +101,7 @@ chmod +x clearvoice086_preset.sh
 
 ## 📋 Requisiti Tecnici
 
-* **FFmpeg 6.0+** con supporto SoxR
+* **FFmpeg 7.0+** con supporto SoxR
 * **Bash 4.0+**
 * **CPU multi-core raccomandata**
 * **RAM minima 4GB, raccomandati 8GB+**
