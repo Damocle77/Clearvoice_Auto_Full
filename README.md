@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.86-blue.svg)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#installazione)
-[![FFmpeg](https://img.shields.io/badge/ffmpeg-6.0%2B-orange.svg)](#requisiti-tecnici)
+[![FFmpeg](https://img.shields.io/badge/ffmpeg-7.0%2B-orange.svg)](#requisiti-tecnici)
 
 > **✨ Calibrato su sistema LG Meridian SP7 5.1.2 ma compatibile su soundbar/AVR analoghe**
 
