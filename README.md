@@ -29,7 +29,7 @@ chmod +x clearvoice087_preset.sh
 
 ---
 
-## 🎆 Novità Rivoluzionarie v0.87
+## 🎆 Novità principali v0.87
 
 ### 🎯 **Ducking LFE Professionale con Sidechaincompress**
 ClearVoice 0.87 introduce un sistema di ducking LFE completamente nuovo che utilizza la voce non processata come sidechain per comprimere intelligentemente il canale subwoofer quando i dialoghi sono presenti.
