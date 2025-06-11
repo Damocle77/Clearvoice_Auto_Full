@@ -1,6 +1,6 @@
 # ClearVoice 5.1 🎧
 
-**Sistema professionale di ottimizzazione audio 5.1 con chiarezza dialoghi superiore, ducking LFE avanzato e processing SoxR audiophile**
+**Sistema avanzato di ottimizzazione audio 5.1 con chiarezza dialoghi superiore, ducking LFE avanzato e SoxR audiophile**
 
 [![Version](https://img.shields.io/badge/version-0.87-blue.svg)](https://github.com/Damocle77/Clearvoice_5.1/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
