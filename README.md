@@ -45,7 +45,7 @@ ClearVoice 0.87 introduce un sistema di ducking LFE completamente nuovo che util
 | **DTS** | 0.15 | 3.2:1 | 5ms | 280ms | 0.7dB | Alta dinamica, film reference |
 | **E-AC3** | 0.28 | 2.0:1 | 12ms | 450ms | 1.1dB | Compatibilità universale |
 
-### 🎚️ **Firequalizer Anti-Baritono per Voci Italiane**
+### 🎚️ **Firequalizer specifico per Voci Italiane**
 Sistema EQ parametrico calibrato scientificamente per le caratteristiche fonetiche della lingua italiana, con curve specifiche per diversi tipi di contenuto.
 
 **Tecnologia implementata:**
