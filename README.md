@@ -9,7 +9,7 @@
 [![Quality](https://img.shields.io/badge/quality-Reference%20Grade-gold.svg)](#caratteristiche-professionali)
 [![Language](https://img.shields.io/badge/optimized-Italian%20Voice-red.svg)](#firequalizer-anti-baritono)
 
-> **✨ Sistema di post-produzione audio calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer, SoxR Audiophile e Stereotools Enhancement**
+> **✨ Sistema di post-produzione audio professionale calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer Anti-Baritono, SoxR Audiophile e Stereotools Enhancement**
 
 ---
 
@@ -29,7 +29,7 @@ chmod +x clearvoice087_preset.sh
 
 ---
 
-## 🎆 Novità principali v0.87
+## 🎆 Novità Rivoluzionarie v0.87
 
 ### 🎯 **Ducking LFE Professionale con Sidechaincompress**
 ClearVoice 0.87 introduce un sistema di ducking LFE completamente nuovo che utilizza la voce non processata come sidechain per comprimere intelligentemente il canale subwoofer quando i dialoghi sono presenti.
@@ -45,7 +45,7 @@ ClearVoice 0.87 introduce un sistema di ducking LFE completamente nuovo che util
 | **DTS** | 0.15 | 3.2:1 | 5ms | 280ms | 0.7dB | Alta dinamica, film reference |
 | **E-AC3** | 0.28 | 2.0:1 | 12ms | 450ms | 1.1dB | Compatibilità universale |
 
-### 🎚️ **Firequalizer specifico per Voci Italiane**
+### 🎚️ **Firequalizer Anti-Baritono per Voci Italiane**
 Sistema EQ parametrico calibrato scientificamente per le caratteristiche fonetiche della lingua italiana, con curve specifiche per diversi tipi di contenuto.
 
 **Tecnologia implementata:**
@@ -203,6 +203,32 @@ Qualità: ⭐⭐⭐⭐⭐ Reference Studio Grade
 
 ## 🛠️ Installazione e Configurazione Sistema
 
+### **⚠️ Prerequisiti Essenziali**
+
+**🔧 FFmpeg Obbligatorio:**
+ClearVoice richiede **FFmpeg 6.0+** con supporto completo per filtri audio avanzati. Verificare prima dell'uso:
+
+```bash
+# Test presenza FFmpeg
+ffmpeg -version
+
+# Verificare supporto filtri richiesti
+ffmpeg -filters | grep -E "(soxr|stereotools|firequalizer|sidechaincompress)"
+```
+
+**🖥️ Windows - Git Bash Richiesto:**
+Su Windows è **obbligatorio** utilizzare **Git Bash** o un terminale Unix-compatibile (WSL2, MSYS2). Il Command Prompt nativo non supporta la sintassi Bash.
+
+```bash
+# Download Git for Windows (include Git Bash)
+https://git-scm.com/download/win
+
+# Alternative per Windows:
+# - WSL2 (raccomandato per performance)
+# - MSYS2 (http://www.msys2.org/)
+# - Cygwin (legacy support)
+```
+
 ### **Requisiti Hardware Minimi**
 ```
 CPU: Quad-core 2.5GHz+ (Intel i5-8400 / AMD Ryzen 5 2600 equivalenti)
@@ -226,12 +252,35 @@ Bash 4.0+ con supporto:
 Sistema Operativo:
 - Linux (Ubuntu 20.04+, CentOS 8+, Arch Linux)
 - macOS (10.15+ con Homebrew)
-- Windows (WSL2 con Ubuntu, MSYS2, Cygwin)
+- Windows (Git Bash, WSL2, MSYS2, Cygwin)
 ```
 
-### **Installazione Dettagliata**
+### **Installazione Dettagliata per Sistema**
 
-**Ubuntu/Debian:**
+**🪟 Windows (Git Bash - Metodo Raccomandato):**
+```bash
+# 1. Installa Git for Windows (include Git Bash)
+# Download da: https://git-scm.com/download/win
+# Durante installazione: seleziona "Use Git and optional Unix tools from Command Prompt"
+
+# 2. Installa FFmpeg
+# Download da: https://github.com/BtbN/FFmpeg-Builds/releases
+# Estrai in C:\ffmpeg e aggiungi C:\ffmpeg\bin al PATH
+
+# 3. Verifica installazione in Git Bash
+ffmpeg -version
+ffmpeg -filters | grep soxr
+
+# 4. Clone ClearVoice repository
+git clone https://github.com/Damocle77/Clearvoice_5.1.git
+cd Clearvoice_5.1
+chmod +x clearvoice087_preset.sh
+
+# 5. Test veloce
+./clearvoice087_preset.sh --help
+```
+
+**🐧 Ubuntu/Debian:**
 ```bash
 # Update repository e install dependencies
 sudo apt update && sudo apt upgrade -y
@@ -250,7 +299,7 @@ chmod +x clearvoice087_preset.sh
 ./clearvoice087_preset.sh --help
 ```
 
-**CentOS/RHEL/Fedora:**
+**🔴 CentOS/RHEL/Fedora:**
 ```bash
 # Install FFmpeg da RPM Fusion
 sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
@@ -259,13 +308,13 @@ sudo dnf install ffmpeg ffmpeg-devel git -y
 # Resto identico a Ubuntu
 ```
 
-**macOS (Homebrew):**
+**🍎 macOS (Homebrew):**
 ```bash
 # Install Homebrew se non presente
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install FFmpeg con SoxR
-brew install ffmpeg --with-soxr
+brew install ffmpeg
 brew install git
 
 # Clone e setup
@@ -274,16 +323,30 @@ cd Clearvoice_5.1
 chmod +x clearvoice087_preset.sh
 ```
 
-**Windows (WSL2):**
+**🪟 Windows (WSL2 - Alternative Avanzata):**
 ```bash
 # Install WSL2 con Ubuntu 22.04
 wsl --install -d Ubuntu-22.04
 
 # All'interno di WSL, segui le istruzioni Ubuntu
 # Accesso file Windows: /mnt/c/Users/YourName/Videos/
+
+# Vantaggio: Performance native Linux su Windows
 ```
 
----
+### **🔧 Verifica Installazione Completa**
+```bash
+# Test completo di tutte le funzionalità
+./clearvoice087_preset.sh --help
+
+# Dovrebbe mostrare:
+# ✅ Help screen completo
+# ✅ Nessun errore "command not found"
+# ✅ Supporto per tutti i preset e codec
+
+# Test con file di esempio
+./clearvoice087_preset.sh --film eac3 640k sample_video.mkv
+```
 
 ## 📖 Esempi Pratici Dettagliati
 
