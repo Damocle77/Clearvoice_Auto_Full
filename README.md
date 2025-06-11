@@ -32,7 +32,7 @@ chmod +x clearvoice086_preset.sh
 * **SoxR audiophile resampling** a 28-bit con noise shaping triangolare per un audio cristallino
 * **Gestione robusta tracce audio** con metadati professionali
 * **Validazione input avanzata** con analisi dettagliata dei formati audio
-* **Backup automatico metadati** e recovery robusto con cleanup sicuro
+* **Logging verboso** e recovery robusto con cleanup sicuro
 * **Output dinamico** con validazione bitrate codec-specifici
 
 ---
