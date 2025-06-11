@@ -30,7 +30,7 @@ chmod +x clearvoice086_preset.sh
 * **Adaptive multiband dynamic expander** sulle frequenze critiche per voce più chiara e dinamiche precise
 * **Ducking avanzato su LFE** con sidechaincompress calibrato per mantenere chiarezza vocale senza sacrificare la profondità dei bassi
 * **SoxR audiophile resampling** a 28-bit con noise shaping triangolare per un audio cristallino
-* **Gestione robusta tracce audio**: ClearVoice primaria + originale secondaria con metadati professionali
+* **Gestione robusta tracce audio** con metadati professionali
 * **Validazione input avanzata** con analisi dettagliata dei formati audio
 * **Backup automatico metadati** e recovery robusto con cleanup sicuro
 * **Output dinamico** con validazione bitrate codec-specifici
