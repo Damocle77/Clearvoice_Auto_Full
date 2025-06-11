@@ -401,7 +401,7 @@ highpass=f=120:poles=2             # Rimozione rumble sub-voice
 lowpass=f=8800:poles=2             # Anti-aliasing e harshness control
 volume=8.2dB                       # Boost calibrato per intelligibilità
 firequalizer=gain_entry='...'      # EQ parametrico multi-point
-deesser=i=0.1:m=0.5:f=0.5:s=o     # Riduzione sibilanti naturale
+deesser=i=0.1:m=0.5:f=0.5:s=o      # Riduzione sibilanti naturale
 ```
 
 **3. Dinamica e Compressione:**
@@ -517,7 +517,6 @@ Tracks Layout:
 - ✅ VLC Media Player (all platforms)
 - ✅ Plex Media Server + clients
 - ✅ Kodi/XBMC (all skins)
-- ✅ Samsung/LG/Sony Smart TV
 - ✅ NVIDIA Shield
 - ✅ Smartphone/tablet players
 
@@ -537,7 +536,6 @@ Tracks Layout:
 ```bash
 # Setup development environment
 git clone https://github.com/Damocle77/Clearvoice_5.1.git
-cd Clearvoice_5.1
 
 ```
 
@@ -584,11 +582,7 @@ Copyright (c) 2025 Sandro "D@mocle77" Sabbioni
 ✨ **Tecnologie all'avanguardia** (Ducking LFE, Firequalizer, SoxR)  
 🎯 **Calibrazione specifica** per la lingua italiana  
 🏆 **Qualità professionale** accessibile a tutti  
-🔧 **Facilità d'uso** con potenza enterprise  
-🌍 **Community attiva** e supporto continuo  
-
-Che tu sia un **enthusiast home theater**, un **professionista dell'audio**, o semplicemente qualcuno che vuole **sentire meglio i dialoghi** nei propri film preferiti, ClearVoice offre la soluzione definitiva per trasformare la tua esperienza di ascolto.
-
+🔧 **Facilità d'uso** 
 ---
 
 **⭐ Se ClearVoice ti è utile, supporta il progetto lasciando una stella su GitHub! ⭐**
