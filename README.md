@@ -24,7 +24,6 @@ Questa versione introduce una serie di migliorie strutturate per ottenere un’e
 ### 🔊 Controllo Vocale Intelligente
 - Il canale **Center (FC)** riceve elaborazione prioritaria: equalizzazione mirata, compressione leggera, e nessun delay.
 - I canali **Frontali (FL/FR)** vengono abbassati (es. da 0.86 → 0.78) per dare più spazio percettivo al parlato.
-- (Opz.) Possibilità di introdurre sidechain compress su FL/FR in presenza di parlato.
 
 ### 🔇 LFE (Subwoofer) Addomesticato
 - Compressione dinamica soft + ducking legato al parlato (via sidechaincompress)
