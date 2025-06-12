@@ -84,7 +84,8 @@ Per eseguire ClearVoice:
 
 ## 🧰 File contenuti
 
-- `clearvoice088_preset.sh` – Preset principale aggiornato
+- `clearvoice087_preset.sh` – Preset precedente
+- `clearvoice088_preset.sh` – Preset attuale aggiornato
 - `README.md` – Questo documento
 
 ---
