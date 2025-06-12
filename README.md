@@ -1,590 +1,126 @@
-# ClearVoice 5.1 🎧
+# 🎧 ClearVoice Preset Suite – Versione 0.88
 
-**Sistema avanzato di ottimizzazione audio 5.1 con chiarezza dialoghi superiore, ducking LFE avanzato e SoxR audiophile**
+Una collezione di preset audio avanzati e script bash costruiti attorno a `ffmpeg`, per **migliorare la chiarezza del parlato**, controllare le dinamiche e ottimizzare l’esperienza multicanale su soundbar 5.1/5.1.2 e home theater moderni.
 
-[![Version](https://img.shields.io/badge/version-0.87-blue.svg)](https://github.com/Damocle77/Clearvoice_5.1/releases)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%2011%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#installazione)
-[![FFmpeg](https://img.shields.io/badge/ffmpeg-6.0%2B-orange.svg)](#requisiti-tecnici)
-[![Quality](https://img.shields.io/badge/quality-Reference%20Grade-gold.svg)](#caratteristiche-professionali)
-[![Language](https://img.shields.io/badge/optimized-Italian%20Voice-red.svg)](#firequalizer-anti-baritono)
-
-> **✨ Sistema di post-produzione audio calibrato specificamente per voci italiane con tecnologie all'avanguardia: Ducking LFE, Firequalizer, SoxR Audiophile e Stereotools Enhancement**
+Testato e ottimizzato per soundbar **LG Meridian SP7** e AVR simili.
 
 ---
 
-## 🚀 Quick Start
+## 🎯 Obiettivo
 
-```bash
-# Download e installazione rapida
-git clone https://github.com/Damocle77/Clearvoice_5.1.git
-cd Clearvoice_5.1
-chmod +x clearvoice087_preset.sh
+ClearVoice nasce per risolvere i seguenti problemi comuni nel consumo di contenuti audio multicanale:
 
-# Test immediato con preset film e codec E-AC3
-./clearvoice087_preset.sh --film eac3 640k *.mkv
-
-# Risultato: film_name_film_clearvoice0.mkv + film_name_film_clearvoice0.log
-```
+- Voce poco intellegibile, specialmente a basso volume
+- Subwoofer eccessivo o invadente in mix DTS
+- Surround caotico o poco definito
+- Mix sbilanciato per ascolti in ambienti domestici
 
 ---
 
-## 🎆 Novità significative v0.87
+## 🆕 Novità v0.88
 
-### 🎯 **Ducking LFE Professionale con Sidechaincompress**
-ClearVoice 0.87 introduce un sistema di ducking LFE completamente nuovo che utilizza la voce non processata come sidechain per comprimere intelligentemente il canale subwoofer quando i dialoghi sono presenti.
+Questa versione introduce una serie di migliorie strutturate per ottenere un’esperienza d’ascolto bilanciata, focalizzata e non affaticante.
 
-**Caratteristiche tecniche:**
-* **Voce sidechain pulita**: Split del canale centrale PRIMA del processing per timing perfetto
-* **Parametri codec-specifici**: DTS e E-AC3 hanno curve di compressione ottimizzate diverse
-* **Preservazione dinamica**: I bassi vengono attenuati solo durante i dialoghi, mantenendo l'impatto nelle scene d'azione
-* **Recovery intelligente**: Release timing calibrato per transizioni naturali
+### 🔊 Controllo Vocale Intelligente
+- Il canale **Center (FC)** riceve elaborazione prioritaria: equalizzazione mirata, compressione leggera, e nessun delay.
+- I canali **Frontali (FL/FR)** vengono abbassati (es. da 0.86 → 0.78) per dare più spazio percettivo al parlato.
+- (Opz.) Possibilità di introdurre sidechain compress su FL/FR in presenza di parlato.
 
-| Codec | Threshold | Ratio | Attack | Release | Makeup | Uso Ideale |
-|-------|-----------|-------|---------|---------|---------|------------|
-| **DTS** | 0.15 | 3.2:1 | 5ms | 280ms | 0.7dB | Alta dinamica, film reference |
-| **E-AC3** | 0.28 | 2.0:1 | 12ms | 450ms | 1.1dB | Compatibilità universale |
+### 🔇 LFE (Subwoofer) Addomesticato
+- Compressione dinamica soft + ducking legato al parlato (via sidechaincompress)
+- Aggiunta di `alimiter` post-compressore per evitare picchi distruttivi nei mix DTS
+- Volume LFE ridotto su tracce DTS per compensare mixaggi aggressivi
 
-### 🎚️ **Firequalizer specifico per Voci Italiane**
-Sistema EQ parametrico calibrato scientificamente per le caratteristiche fonetiche della lingua italiana, con curve specifiche per diversi tipi di contenuto.
+### 🧠 Soundstage e Ritardi Temporali (Haas Effect)
+- Introduzione di ritardi minimi tra i canali:
+  - `FR = 1.5 ms`
+  - `BL = 2.0 ms`
+  - `BR = 3.0 ms`
+- Questi micro-delay amplificano la percezione spaziale senza introdurre eco
 
-**Tecnologia implementata:**
-* **Boost presenza intelligente**: Enfasi 1200-2200Hz per consonanti italiane (C, T, P, S)
-* **Controllo baritono**: Attenuazione selettiva 280-650Hz per ridurre "muffle effect"
-* **Riduzione sibilanti**: Gentle roll-off 5-8kHz per naturalezza senza harsh
-* **Preset differenziati**: Curve ottimizzate per film, serie TV, cartoni e materiale problematico
-
-```
-Film/Serie: Bilanciato cinematografico
-entry(280,1.8);entry(650,2.2);entry(1200,2.8);entry(2200,2.1);entry(3500,0.8);entry(5000,-0.3);entry(8000,-0.8)
-
-TV: Cleanup aggressivo per materiale problematico  
-entry(300,2.5);entry(800,3.2);entry(1400,3.0);entry(2500,2.3);entry(4000,0.5);entry(6000,-0.5)
-
-Cartoni: Preservazione musicale con chiarezza vocale
-entry(250,1.5);entry(600,2.0);entry(1100,2.5);entry(2000,1.8);entry(3200,0.6);entry(5500,-0.2)
-```
-
-### 🎵 **SoxR Audiophile Grade Resampling**
-Implementazione del miglior resampler disponibile con configurazioni ottimizzate per ogni codec.
-
-**Specifiche tecniche:**
-* **DTS Reference**: 33-bit precision, cutoff 0.99, oversampling Chebyshev per qualità studio
-* **E-AC3 Balanced**: 28-bit precision, filter_size 32, bilanciato qualità/performance
-* **Noise shaping triangolare**: Minimizza artifacts di quantizzazione
-* **Dither method**: Algoritmi specifici per ogni bitrate target
-
-### 🔧 **Audio Processing Chain Ottimizzata**
-Catena di elaborazione completamente riprogettata per massima qualità e naturalezza.
-
-**Sequenza di processing:**
-1. **Channel Split 5.1** → Elaborazione parallela ottimizzata
-2. **Voice Split** → fc_duck (sidechain) + fc_process (elaborazione)
-3. **HP/LP Filters** → Pulizia frequenze non vocali (120-180Hz / 6900-8800Hz)
-4. **Volume Adjustment** → Boost voce preset-specifico (7.5-8.4dB)
-5. **Firequalizer EQ** → Curve anti-baritono calibrate
-6. **De-esser** → Riduzione sibilanti post-EQ (i=0.1:m=0.5:f=0.5)
-7. **2-Stage Compressor** → Naturalezza + controllo dinamico
-8. **Limiter** → Protezione overload con attack/release ottimizzati
-9. **Stereotools Enhancement** → Imaging spaziale sui frontali L/R
-10. **LFE Ducking** → Sidechaincompress con parametri codec-specifici
-11. **SoxR Resampling** → Reference quality finale
+### 🔬 Pulizia Fase e Compatibilità
+- Rimosso il filtro `stereotools` (causava incoerenze di fase con soundbar DSP)
+- Nessuna elaborazione invasiva sul canale `FC` (dialoghi sempre ben ancorati)
+- Funziona con contenuti **EAC3**, **AC3**, **DTS**
 
 ---
 
-## 🎧 Caratteristiche Professionali Avanzate
+## 🧪 Esempio di Utilizzo
 
-### **Gestione Audio Multi-Track Intelligente**
-* **ClearVoice primaria**: Nuova traccia ottimizzata come default con metadati professionali
-* **Originale preservato**: Tutte le tracce audio originali mantenute come backup
-* **Language tags**: Metadati ITU-standard per compatibilità player
-* **Disposition management**: Flag corretti per player automatici
+```bash
+bash clearvoice088_preset.sh --preset film --codec dts
+```
 
-### **Recovery e Robustezza Sistema**
-* **Cleanup automatico**: Rimozione file temporanei con pattern matching sicuro
-* **Signal handling**: Gestione interruzioni SIGINT/SIGTERM con stato consistente
-* **Error recovery**: Retry logic e fallback per operazioni critiche
-* **Progress tracking**: ETA intelligente con statistiche real-time
+Opzioni:
 
-### **Performance e Scalabilità**
-* **Threading adattivo**: Auto-detection CPU cores con bilanciamento carico
-* **Memory optimization**: Gestione buffer dinamica per file grandi
-* **Filter parallelization**: Processing simultaneo canali 5.1
-* **Queue management**: Thread queue sizing ottimizzato per stabilità
+- `--preset` → `film`, `tv`, `music`
+- `--codec` → `eac3`, `ac3`, `dts`
 
 ---
 
-## 🎛️ Preset Intelligenti Calibrati
+## 🛠️ Presets disponibili
 
-### **Analisi Tecnica Preset**
-
-| Preset | Voice Boost | Front Level | LFE Level | Surround | HP Filter | LP Filter | Caratteristiche |
-|--------|-------------|-------------|-----------|-----------|-----------|-----------|-----------------|
-| **Film** | +8.2dB | 0.86 | 0.23 | +4.6dB | 120Hz | 8800Hz | Bilanciamento cinematografico naturale |
-| **Serie** | +8.4dB | 0.85 | 0.23 | +4.5dB | 150Hz | 8800Hz | Dialoghi prominenti per binge-watching |
-| **TV** | +7.5dB | 1.00 | 0.23 | +4.0dB | 180Hz | 7000Hz | Cleanup materiale problematico/compresso |
-| **Cartoni** | +8.1dB | 1.00 | 0.23 | +4.6dB | 130Hz | 6900Hz | Preservazione effetti con chiarezza vocale |
-
-### **Applicazioni Consigliate**
-
-**🎬 Preset Film:**
-- Film cinematografici 4K/1080p
-- Remux e rip di alta qualità  
-- Contenuto con mix audio professionale
-- Viewing home theater
-
-**📺 Preset Serie:**
-- Serie TV episodiche
-- Contenuto streaming Netflix/Prime
-- Maratone viewing prolungate
-- Audio mix TV standard
-
-**📻 Preset TV:**
-- Materiale altamente compresso
-- Rip di bassa qualità con artifacts
-- Documentari con audio problematico
-- Recovery di contenuto degradato
-
-**🎭 Preset Cartoni:**
-- Animazioni Disney/Pixar/DreamWorks
-- Musical e contenuto con colonne sonore complesse
-- Film family con mix dinamico esteso
-- Preservazione effetti spettacolari
+| Preset | Voce | LFE | Surround | Note |
+|--------|------|-----|----------|------|
+| `film` | 🎙️ Alta | 🎚️ Controllato | 🎧 Medio | Bilanciato per contenuti cinematografici |
+| `tv`   | 📢 Molto alta | 🔇 Morbido | 🔈 Leggero | Ideale per flussi compressi e parlato TV |
+| `music` | 🎵 Neutro | 🎵 Neutro | 🎵 Ampio | Audio stereo o 5.1 musicale |
+| `game` | 🕹️ Definito | 💥 Intenso | 🎮 Ampio | Mix reattivo per effetti e immersione |
 
 ---
 
-## 🎵 Codec e Configurazioni Reference Quality
+## 📦 Requisiti
 
-### **E-AC3 (Dolby Digital Plus)**
-```bash
-Encoder: eac3
-Bitrate Options: 640k (raccomandato) | 768k (qualità superiore)
-Flags Specifiche: -dialnorm -31 -room_type 1 -mixing_level 108
-SoxR Config: precision=28:cutoff=0.95:dither_method=triangular:filter_size=32
-Compatibilità: Universale (TV, streaming, player domestici)
-Qualità: ⭐⭐⭐⭐⭐ Professional Grade
-```
+Per eseguire ClearVoice:
 
-**Vantaggi E-AC3:**
-- ✅ Supporto universale su tutti i device
-- ✅ Efficienza bitrate ottimale  
-- ✅ Metadati Dolby completi
-- ✅ Room correction integrato
-- ✅ Loudness normalization automatica
-
-### **DTS (Digital Theater Systems)**
-```bash
-Encoder: dts
-Bitrate Options: 756k (audiophile) | 1536k (reference studio)
-Flags Specifiche: -ar 48000 -strict -2 -compression_level 1 -cutoff 0.95
-SoxR Config: precision=33:cutoff=0.99:dither_method=triangular:cheby=1
-Compatibilità: Limitata (sistemi audiophile, player high-end)
-Qualità: ⭐⭐⭐⭐⭐ Reference Studio Grade
-```
-
-**Vantaggi DTS:**
-- ✅ Qualità audio superiore per sistemi high-end
-- ✅ Maggiore headroom dinamico
-- ✅ Precision bit-perfect a 33-bit
-- ✅ Oversampling Chebyshev per anti-aliasing perfetto
-- ✅ Preferred choice per home theater dedicati
-
-### **Confronto Qualitativo**
-
-| Aspetto | E-AC3 640k | E-AC3 768k | DTS 756k | DTS 1536k |
-|---------|------------|------------|----------|-----------|
-| **Chiarezza Voce** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Dinamica** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **File Size** | Minimo | Piccolo | Medio | Grande |
-| **Compatibilità** | 100% | 95% | 70% | 60% |
-| **Processing Time** | Veloce | Veloce | Medio | Lento |
+- Linux o macOS (o WSL/GitBash su Windows)
+- `ffmpeg` compilato con i seguenti filtri:
+  - `firequalizer`
+  - `dynaudnorm`
+  - `sidechaincompress`
+  - `alimiter`
+- Uscita audio 5.1 o superiore (fisica o virtuale)
 
 ---
 
-## 🛠️ Installazione e Configurazione Sistema
+## 🧰 File contenuti
 
-### **⚠️ Prerequisiti Essenziali**
-
-**🔧 FFmpeg Obbligatorio:**
-ClearVoice richiede **FFmpeg 6.0+** con supporto completo per filtri audio avanzati. Verificare prima dell'uso:
-
-```bash
-# Test presenza FFmpeg
-ffmpeg -version
-
-# Verificare supporto filtri richiesti
-ffmpeg -filters | grep -E "(soxr|stereotools|firequalizer|sidechaincompress)"
-```
-
-**🖥️ Windows - Git Bash Richiesto:**
-Su Windows è **obbligatorio** utilizzare **Git Bash** o un terminale Unix-compatibile (WSL2, MSYS2). Il Command Prompt nativo non supporta la sintassi Bash.
-
-```bash
-# Download Git for Windows (include Git Bash)
-https://git-scm.com/download/win
-
-# Alternative per Windows:
-# - WSL2 (raccomandato per performance)
-# - MSYS2 (http://www.msys2.org/)
-# - Cygwin (legacy support)
-```
-
-### **Requisiti Hardware Minimi**
-```
-CPU: Quad-core 2.5GHz+ (Intel i5-8400 / AMD Ryzen 5 2600 equivalenti)
-RAM: 8GB (16GB raccomandati per file 4K)
-Storage: SSD per processing, ~2x spazio file sorgente disponibile
-GPU: Hardware acceleration supportata (Intel QSV/NVIDIA NVENC/AMD VCE)
-```
-
-### **Requisiti Software**
-```bash
-FFmpeg 6.0+ con librerie complete:
-- libsoxr (SoxR resampling)
-- libavfilter (stereotools, firequalizer, sidechaincompress)
-- codec support (libfdk-aac, libmp3lame)
-
-Bash 4.0+ con supporto:
-- Array associativi
-- Process substitution  
-- Arithmetic expansion
-
-Sistema Operativo:
-- Linux (Ubuntu 20.04+, CentOS 8+, Arch Linux)
-- macOS (10.15+ con Homebrew)
-- Windows (Git Bash, WSL2, MSYS2, Cygwin)
-```
-
-### **Installazione Dettagliata per Sistema**
-
-**🪟 Windows (Git Bash - Metodo Raccomandato):**
-```bash
-# 1. Installa Git for Windows (include Git Bash)
-# Download da: https://git-scm.com/download/win
-# Durante installazione: seleziona "Use Git and optional Unix tools from Command Prompt"
-
-# 2. Installa FFmpeg
-# Download da: https://github.com/BtbN/FFmpeg-Builds/releases
-# Estrai in C:\ffmpeg e aggiungi C:\ffmpeg\bin al PATH
-
-# 3. Verifica installazione in Git Bash
-ffmpeg -version
-ffmpeg -filters | grep soxr
-
-# 4. Clone ClearVoice repository
-git clone https://github.com/Damocle77/Clearvoice_5.1.git
-cd Clearvoice_5.1
-chmod +x clearvoice087_preset.sh
-
-# 5. Test veloce
-./clearvoice087_preset.sh --help
-```
-
-**🐧 Ubuntu/Debian:**
-```bash
-# Update repository e install dependencies
-sudo apt update && sudo apt upgrade -y
-sudo apt install ffmpeg curl git build-essential -y
-
-# Verifica installazione FFmpeg con SoxR
-ffmpeg -version | grep soxr
-ffmpeg -filters | grep -E "(stereotools|firequalizer|sidechaincompress)"
-
-# Clone ClearVoice repository
-git clone https://github.com/Damocle77/Clearvoice_5.1.git
-cd Clearvoice_5.1
-chmod +x clearvoice087_preset.sh
-
-# Test veloce
-./clearvoice087_preset.sh --help
-```
-
-**🔴 CentOS/RHEL/Fedora:**
-```bash
-# Install FFmpeg da RPM Fusion
-sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-sudo dnf install ffmpeg ffmpeg-devel git -y
-
-# Resto identico a Ubuntu
-```
-
-**🍎 macOS (Homebrew):**
-```bash
-# Install Homebrew se non presente
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install FFmpeg con SoxR
-brew install ffmpeg
-brew install git
-
-# Clone e setup
-git clone https://github.com/Damocle77/Clearvoice_5.1.git
-cd Clearvoice_5.1
-chmod +x clearvoice087_preset.sh
-```
-
-**🪟 Windows (WSL2 - Alternative Avanzata):**
-```bash
-# Install WSL2 con Ubuntu 22.04
-wsl --install -d Ubuntu-22.04
-
-# All'interno di WSL, segui le istruzioni Ubuntu
-# Accesso file Windows: /mnt/c/Users/YourName/Videos/
-
-# Vantaggio: Performance native Linux su Windows
-```
-
-### **🔧 Verifica Installazione Completa**
-```bash
-# Test completo di tutte le funzionalità
-./clearvoice087_preset.sh --help
-
-# Dovrebbe mostrare:
-# ✅ Help screen completo
-# ✅ Nessun errore "command not found"
-# ✅ Supporto per tutti i preset e codec
-
-# Test con file di esempio
-./clearvoice087_preset.sh --film eac3 640k sample_video.mkv
-```
-
-## 🔧 Architettura e Tecnologie Avanzate
-
-### **Audio Processing Pipeline Dettagliata**
-
-```mermaid
-graph TD
-    A[Input 5.1 Audio] --> B[Channel Split]
-    B --> C[FL/FR Processing]
-    B --> D[FC Voice Processing]
-    B --> E[LFE Processing]
-    B --> F[BL/BR Processing]
-    
-    D --> G[Voice Split]
-    G --> H[fc_duck - Sidechain]
-    G --> I[fc_process - Enhancement]
-    
-    I --> J[HP/LP Filters]
-    J --> K[Volume Boost]
-    K --> L[Firequalizer EQ]
-    L --> M[De-esser]
-    M --> N[2-Stage Compressor]
-    N --> O[Limiter]
-    
-    C --> P[Stereotools Enhancement]
-    E --> Q[LFE Pre-processing]
-    H --> R[Sidechain Compress]
-    Q --> R
-    
-    O --> S[Final Join 5.1]
-    P --> S
-    R --> S
-    F --> S
-    
-    S --> T[SoxR Resampling]
-    T --> U[Codec Encoding]
-    U --> V[Output File]
-```
-
-### **Filtri FFmpeg Avanzati Utilizzati**
-
-**1. Channel Management:**
-```bash
-channelsplit=channel_layout=5.1    # Split preciso 5.1 con label corretti
-asplit=2                           # Duplicazione voce per sidechain  
-join=inputs=6:channel_layout=5.1   # Ricomposizione finale ordinata
-```
-
-**2. Processing Voce:**
-```bash
-highpass=f=120:poles=2             # Rimozione rumble sub-voice
-lowpass=f=8800:poles=2             # Anti-aliasing e harshness control
-volume=8.2dB                       # Boost calibrato per intelligibilità
-firequalizer=gain_entry='...'      # EQ parametrico multi-point
-deesser=i=0.1:m=0.5:f=0.5:s=o      # Riduzione sibilanti naturale
-```
-
-**3. Dinamica e Compressione:**
-```bash
-acompressor=threshold=0.6:ratio=2.2:attack=15:release=220:makeup=1.3
-alimiter=level_in=1:level_out=0.85:limit=0.90:attack=8:release=80
-sidechaincompress=threshold=0.15:ratio=3.2:attack=5:release=280:makeup=0.7
-```
-
-**4. Spazialità e Resampling:**
-```bash
-stereotools=mlev=0.1:mode=lr>ms    # Enhancement imaging frontali
-aresample=48000:resampler=soxr:precision=33:cutoff=0.99:dither_method=triangular:cheby=1
-```
-
-### **Ottimizzazioni Performance Implementate**
-
-**Threading Strategy:**
-```bash
-Auto-detection: nproc cores disponibili
-Filter threads: 4 (ottimale per audio processing)
-Thread queue: 512 (buffer stability per file grandi)
-Hardware acceleration: auto (Intel QSV/NVIDIA NVENC quando disponibile)
-```
-
-**Memory Management:**
-```bash
-Streaming processing: No file temporanei intermedii
-Buffer sizing: Dinamico basato su sample rate e channels
-Cleanup pattern: Rimozione sicura file _temp.* con pattern matching
-Error recovery: Rollback state su interruzioni
-```
+- `clearvoice088_preset.sh` – Preset principale aggiornato
+- `README.md` – Questo documento
 
 ---
 
-## 📊 Performance e Benchmark Dettagliati
+## 🤖 Filosofia Nerd
 
-### **Test Conditions Standardizzati**
-```
-Source: Film 4K BluRay Remux (25GB), DTS-HD MA 7.1 → 5.1 downmix
-Preset: --film
-Codec: dts 1536k  
-Processing: Single-threaded equivalency per comparison
-Quality: Reference studio grade output
-```
+ClearVoice è scritto per nerd dell’audio e appassionati di home theater che vogliono:
 
-### **Performance Results per Hardware**
+- Massima comprensione vocale anche a basso volume
+- Esperienza immersiva senza artifici invasivi
+- Controllo totale sui comportamenti dinamici dei mix moderni
 
-| Sistema | CPU | Cores/Threads | RAM | Storage | Velocità | Tempo File 25GB |
-|---------|-----|---------------|-----|---------|----------|-----------------|
-| **Workstation Pro** | AMD 7950X | 16c/32t | 32GB DDR5 | NVMe Gen4 | 3.8x | ~8 minuti |
-| **Gaming High-End** | Intel 13900K | 24c/32t | 32GB DDR5 | NVMe Gen4 | 4.1x | ~7 minuti |
-| **Gaming Mid-Range** | AMD 5800X | 8c/16t | 16GB DDR4 | NVMe Gen3 | 2.1x | ~18 minuti |
-| **Office Business** | Intel i5-12400 | 6c/12t | 16GB DDR4 | SATA SSD | 1.4x | ~35 minuti |
-| **Budget Build** | AMD 3600 | 6c/12t | 16GB DDR4 | SATA SSD | 1.1x | ~45 minuti |
+Le regolazioni sono modulabili e commentate all'interno dello script, con possibilità di:
 
-### **Scaling Performance Analysis**
-
-**CPU Utilization:**
-- Single file: 70-85% all cores (optimal threading)
-- Batch processing: 95%+ sustained (queue management)
-- Memory footprint: 2-4GB peak per processo
-
-**Storage Impact:**
-- NVMe Gen4: No bottleneck, CPU-limited
-- NVMe Gen3: Minimal impact (<5% slowdown)  
-- SATA SSD: 10-15% performance penalty
-- HDD: Non raccomandato (50%+ degradation)
-
-**Quality vs Speed Tradeoffs:**
-```bash
-# Ultra-fast (emergencies):
-./clearvoice087_preset.sh --tv eac3 640k file.mkv
-Speed: 4-6x realtime, Quality: Good
-
-# Balanced (recommended):  
-./clearvoice087_preset.sh --film eac3 768k file.mkv
-Speed: 2-3x realtime, Quality: Excellent
-
-# Reference (archival):
-./clearvoice087_preset.sh --film dts 1536k file.mkv  
-Speed: 1-2x realtime, Quality: Studio Reference
-```
+- Adattare gain, compressione e ritardo per ciascun canale
+- Includere/excludere filtri dinamici come `dynaudnorm`
+- Ottimizzare singolarmente preset per codec e contenuto
 
 ---
 
-## 🎯 Output e Risultati Garantiti
+## 📡 Futuri possibili sviluppi
 
-### **File Output Structure**
-```
-Input:  Movie.2023.BluRay.1080p.mkv
-Output: Movie.2023.BluRay.1080p_film_clearvoice0.mkv
-Log:    Movie.2023.BluRay.1080p_film_clearvoice0.log
-
-Tracks Layout:
-├── Video Stream (copy, no re-encoding)
-├── Audio Track 1: ClearVoice DTS/E-AC3 [DEFAULT] [ITA]
-├── Audio Track 2: Original Audio [ENG]  
-├── Audio Track 3+: Additional languages preserved
-├── Subtitle Tracks: All preserved with language tags
-└── Chapter Markers: Preserved if present
-```
-
-### **Quality Assurance Tests**
-
-**Frequency Response Analysis:**
-- Voice intelligibility boost: +6dB range 1-3kHz
-- Background noise reduction: -12dB below 100Hz
-- Harsh frequency control: -3dB above 7kHz
-- Dynamic range preservation: >20dB peak-to-average maintained
-
-**Compatibility Testing:**
-- ✅ VLC Media Player (all platforms)
-- ✅ Plex Media Server + clients
-- ✅ Kodi/XBMC (all skins)
-- ✅ NVIDIA Shield
-- ✅ Smartphone/tablet players
+- GUI semplificata per controllo rapido dei preset
+- Profilazione automatica codec/input
+- Auto-levelling basato su analisi RMS real-time
 
 ---
 
-### **Support Channels**
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Damocle77/Clearvoice_5.1/issues)
-- 💬 **Community**: [Discussions](https://github.com/Damocle77/Clearvoice_5.1/discussions)  
-- 📖 **Documentation**: [Wiki](https://github.com/Damocle77/Clearvoice_5.1/wiki)
-- 📧 **Contact**: `clearvoice.support@gmail.com`
+## 👨‍💻 Autore
+
+Scritto con passione e "orecchio" da **Sandro (D@mocle77) Sabbioni**,  
+ingegnere informatico, nerd del suono, cultore dell’intelligibilità vocale.
 
 ---
 
-## 🤝 Contribuire al Progetto
+## 📜 Licenza
 
-### **Development Guidelines**
-```bash
-# Setup development environment
-git clone https://github.com/Damocle77/Clearvoice_5.1.git
-
-```
-
-## 📄 Licenza e Copyright
-
-### **MIT License**
-```
-MIT License
-
-Copyright (c) 2025 Sandro "D@mocle77" Sabbioni
----
-
-## 🌟 Riconoscimenti e Credits
-
-### **Technical Advisory Board**
-- **Audio Engineering Society (AES)** - References per dialog intelligibility standards
-- **FFmpeg Development Team** - Continuous improvement e feature support
-- **SoxR Project** - High-quality resampling algorithms development
-
-### **Community Contributors**
-- **Beta Testing Team**: 50+ volontari per quality assurance su diversi setup hardware
-- **Translation Team**: Contributors per supporto multi-language
-- **Documentation Team**: Technical writers per guide e tutorial
-
-### **Special Thanks**
-- **Italian Voice Artists Community** per feedback su calibrazione EQ
-- **Home Theater Enthusiasts Groups** per testing compatibilità player
-- **Open Source Audio Community** per inspiration e technical guidance
-
-### **Research References**
-```
-1. ITU-R BS.1534-3: "Method for subjective assessment of intermediate quality level"
-2. EBU R 128: "Loudness normalisation and permitted maximum level of audio signals"  
-3. AES Convention Papers: "Dialog intelligibility in surround sound reproduction"
-4. Dolby Technical Papers: "Professional audio metadata standards"
-5. DTS Technical Documentation: "High-resolution audio encoding guidelines"
-```
----
-
-## 🎉 Conclusione
-
-**ClearVoice 5.1 v0.87** rappresenta l'evoluzione dell'ottimizzazione audio domestica, combinando:
-
-✨ **Tecnologie all'avanguardia** (Ducking LFE, Firequalizer, SoxR)  
-🎯 **Calibrazione specifica** per la lingua italiana  
-🏆 **Qualità professionale** accessibile a tutti  
-🔧 **Facilità d'uso** 
----
-
-**⭐ Se ClearVoice ti è utile, supporta il progetto lasciando una stella su GitHub! ⭐**
-
----
+MIT License — Usa, modifica, migliora e condividi liberamente.
