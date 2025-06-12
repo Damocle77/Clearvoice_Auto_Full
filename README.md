@@ -32,9 +32,9 @@ Questa versione introduce una serie di migliorie strutturate per ottenere un’e
 
 ### 🧠 Soundstage e Ritardi Temporali (Haas Effect)
 - Introduzione di ritardi minimi tra i canali:
-  - `FR = 1.5 ms`
-  - `BL = 2.0 ms`
-  - `BR = 3.0 ms`
+  - `FR = 0.4 ms`
+  - `BL = 0.8 ms`
+  - `BR = 1.2 ms`
 - Questi micro-delay amplificano la percezione spaziale senza introdurre eco
 
 ### 🔬 Pulizia Fase e Compatibilità
