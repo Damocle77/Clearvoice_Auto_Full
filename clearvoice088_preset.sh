@@ -213,16 +213,16 @@ parse_arguments() {
 configure_preset() {
   case "$PRESET" in
     film)    
-      VOICE_VOL=8.6; FRONT_VOL=0.75; LFE_VOL=0.22; SURROUND_VOL=4.6; 
+      VOICE_VOL=8.6; FRONT_VOL=0.85; LFE_VOL=0.20; SURROUND_VOL=4.5; 
       HP_FREQ=120; LP_FREQ=8800;;
     serie)   
-      VOICE_VOL=8.8; FRONT_VOL=0.76; LFE_VOL=0.22; SURROUND_VOL=4.5; 
+      VOICE_VOL=8.8; FRONT_VOL=0.82; LFE_VOL=0.20; SURROUND_VOL=4.5; 
       HP_FREQ=150; LP_FREQ=8800;;
     tv)      
-      VOICE_VOL=7.0; FRONT_VOL=1.00; LFE_VOL=0.22; SURROUND_VOL=4.2; 
+      VOICE_VOL=7.8; FRONT_VOL=0.90; LFE_VOL=0.20; SURROUND_VOL=4.2; 
       HP_FREQ=180; LP_FREQ=7000;;
     cartoni) 
-      VOICE_VOL=8.5; FRONT_VOL=1.00; LFE_VOL=0.22; SURROUND_VOL=4.5; 
+      VOICE_VOL=8.5; FRONT_VOL=0.90; LFE_VOL=0.20; SURROUND_VOL=4.5; 
       HP_FREQ=130; LP_FREQ=6900;;
     *) 
       log_message "ERROR" "Preset invalido: $PRESET"; 
@@ -268,9 +268,8 @@ configure_codec() {
 # COSTRUZIONE FILTRI AUDIO AVANZATI V0.88 - DUCKING LFE + FIREQUALIZER
 # -----------------------------------------------------------------------------------------------
 build_audio_filter() {
-  log_message "INFO" "🔧 Costruzione filtro audio v0.88 con ducking LFE + firequalizer"
+  log_message "INFO" "🔧 Costruzione filtro audio v0.88 OTTIMIZZATO - ducking intelligente per tipo contenuto"
   
-  # Calcolo valori ottimizzati
   local voice_vol_adj=$(safe_awk_calc "${VOICE_VOL}")
   local front_vol_adj=$(safe_awk_calc "${FRONT_VOL}")
   local lfe_vol_adj=$(safe_awk_calc "${LFE_VOL}")
@@ -282,81 +281,126 @@ build_audio_filter() {
   # Split centro voce PRIMA del processing per ducking pulito
   ADV+="[FC]asplit=2[fc_duck][fc_process];"
   
-  # Processing voce con EQ firequalizer anti-baritono + compressore moderato
+  # Processing voce EQUILIBRATO per intelligibilità naturale
   ADV+="[fc_process]highpass=f=$HP_FREQ:poles=2,lowpass=f=$LP_FREQ:poles=2,"
   ADV+="volume=${voice_vol_adj}dB,"
   
-  # Firequalizer calibrato per voci italiane (anti-baritono, boost presenza)
+  # Firequalizer MODERATO - Focus su intelligibilità senza affaticamento
   case "$PRESET" in
     film|serie)
-      ADV+="firequalizer=gain_entry='entry(280,1.8);entry(650,2.2);entry(1200,2.8);entry(2200,2.1);entry(3500,0.8);entry(5000,-0.3);entry(8000,-0.8)',"
+      # ✅ CORRETTO: Boost controllati per chiarezza senza distorsione
+      ADV+="firequalizer=gain_entry='entry(280,-1.5);entry(650,2);entry(1200,3.5);entry(2200,2.5);entry(3500,0.8);entry(5000,-0.5);entry(8000,-1.5)',"
       ;;
     tv)
-      ADV+="firequalizer=gain_entry='entry(300,2.5);entry(800,3.2);entry(1400,3.0);entry(2500,2.3);entry(4000,0.5);entry(6000,-0.5)',"
+      # ✅ CORRETTO: Più mirato per materiale problematico ma sicuro
+      ADV+="firequalizer=gain_entry='entry(300,-2);entry(800,2.5);entry(1400,4);entry(2500,3);entry(4000,0.5);entry(6000,-1)',"
       ;;
     cartoni)
-      ADV+="firequalizer=gain_entry='entry(250,1.5);entry(600,2.0);entry(1100,2.5);entry(2000,1.8);entry(3200,0.6);entry(5500,-0.2)',"
+      # ✅ CORRETTO: Preserva naturalezza per voci giovani
+      ADV+="firequalizer=gain_entry='entry(250,-1);entry(600,1.5);entry(1100,3);entry(2000,2.2);entry(3200,0.8);entry(5500,-0.3)',"
       ;;
   esac
   
-  # De-esser dopo firequalizer per riduzione sibilanti naturale
-  ADV+="deesser=i=0.1:m=0.5:f=0.5:s=o,"
+  # De-esser MOLTO DOLCE per non compromettere consonanti
+  ADV+="deesser=i=0.05:m=0.3:f=0.3:s=o,"
 
-  # Compressore dolce per naturalezza vocale e zero vibrazioni
-  ADV+="acompressor=threshold=0.65:ratio=2.1:attack=18:release=250:makeup=1.1,"
-  ADV+="alimiter=level_in=0.9:level_out=0.83:limit=0.88:attack=10:release=90[voice_final];"
+  # Compressore DOLCE per preservare dinamica vocale naturale
+  ADV+="acompressor=threshold=0.75:ratio=1.6:attack=25:release=350:makeup=1.0,"
+  ADV+="alimiter=level_in=0.85:level_out=0.80:limit=0.85:attack=15:release=120[voice_final];"
   
-  # Frontali L/R con soundstage per imaging migliorato anteriore
-  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj}[fl];"
-  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},adelay=0.4[fr];"
+  # FRONTALI con processing DIFFERENZIATO per preset
+  ADV+="[FL]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj}[fl_pre];"
+  ADV+="[FR]highpass=f=35:poles=1,lowpass=f=22000:poles=1,volume=${front_vol_adj},adelay=0.3[fr_pre];"
 
-  # LFE con EQ ARIOSO unificato per tutti i preset
+  # DUCKING FRONTALI SELETTIVO - Solo per film/serie/tv
+  case "$PRESET" in
+    film|serie|tv)
+      # DUCKING NORMALE: Dialoghi hanno priorità assoluta
+      local ducking_params=""
+      case "${CODEC,,}" in
+        dts)
+          ducking_params="threshold=0.40:ratio=2.0:attack=25:release=600:makeup=1.0"
+          ;;
+        eac3)
+          ducking_params="threshold=0.35:ratio=2.2:attack=20:release=500:makeup=1.0" 
+          ;;
+      esac
+      
+      ADV+="[fc_duck][fl_pre]sidechaincompress=${ducking_params}[fl_ducked];"
+      ADV+="[fc_duck][fr_pre]sidechaincompress=${ducking_params}[fr_ducked];"
+      ;;
+    cartoni)
+      # NESSUN DUCKING FRONTALI: Preserva canti e performance musicali
+      ADV+="[fl_pre]anull[fl_ducked];"  # Passa attraverso senza ducking
+      ADV+="[fr_pre]anull[fr_ducked];"  # Passa attraverso senza ducking
+      log_message "INFO" "🎵 Cartoni: NESSUN ducking frontali per preservare performance musicali"
+      ;;
+  esac
+
+  # LFE ARIOSO ma CONTROLLATO + DUCKING SELETTIVO per preset
   ADV+="[LFE]highpass=f=22:poles=2,lowpass=f=105:poles=2,"
-  # EQ LFE per ariosità - boost mid-bass controllato senza boom
-  ADV+="equalizer=f=40:width_type=h:width=1.3:g=1.6,"    # Sub-bass controllo
-  ADV+="equalizer=f=65:width_type=h:width=1.4:g=2.0,"    # Mid-bass presenza
-  ADV+="equalizer=f=85:width_type=h:width=1.1:g=1.2,"    # Upper-bass definizione
-  # ✅ CORRETTO: makeup >= 1.0 per acompressor
-  ADV+="acompressor=threshold=0.5:ratio=2.4:attack=8:release=150:makeup=1.0,"
+  ADV+="equalizer=f=40:width_type=h:width=1.3:g=1.6,"
+  ADV+="equalizer=f=65:width_type=h:width=1.4:g=2.0,"
+  ADV+="equalizer=f=85:width_type=h:width=1.1:g=1.2,"
+  ADV+="acompressor=threshold=0.5:ratio=2.0:attack=8:release=150:makeup=1.0,"
+  ADV+="alimiter=level_in=0.80:level_out=0.75:limit=0.80:attack=10:release=80,"
   ADV+="volume=${lfe_vol_adj}[lfe_pre];"
   
-  # Parametri ducking EQUILIBRATI - meno aggressivi per preservare LFE arioso
-  local ducking_params=""
-  case "${CODEC,,}" in
-    dts)
-      # DTS: ducking moderato per mantenere qualità dinamica
-      ducking_params="threshold=0.18:ratio=2.8:attack=8:release=320:makeup=0.8"
+  # DUCKING LFE DIFFERENZIATO per preset - APPLICATO CORRETTAMENTE
+  local lfe_ducking=""
+  case "$PRESET" in
+    film|serie|tv)
+      # Film/Serie/TV: LFE si abbassa quando parla voce per chiarezza dialoghi
+      lfe_ducking="threshold=0.50:ratio=1.8:attack=30:release=700:makeup=1.0"
+      ADV+="[fc_duck][lfe_pre]sidechaincompress=${lfe_ducking}[lfe_final];"
       ;;
-    eac3)
-      # E-AC3: ducking più dolce
-      ducking_params="threshold=0.32:ratio=2.2:attack=15:release=480:makeup=1.0"
+    cartoni)
+      # Cartoni: LFE ducking MINIMO per preservare effetti musicali/esplosioni
+      lfe_ducking="threshold=0.65:ratio=1.3:attack=50:release=900:makeup=1.0"
+      ADV+="[fc_duck][lfe_pre]sidechaincompress=${lfe_ducking}[lfe_final];"
       ;;
   esac
   
-  # Applicazione ducking LFE con voce non processata per sidechain naturale
-  ADV+="[fc_duck][lfe_pre]sidechaincompress=${ducking_params}[lfe_ducked];"
+  # Surround CHIARI ma non competitivi
+  #ADV+="[BL]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj},adelay=0.8[bl_pre];"
+  #ADV+="[BR]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj},adelay=1.2[br_pre];"
+  ADV+="[BL]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj},adelay=0.8[bl_final];" 
+  ADV+="[BR]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj},adelay=1.2[br_final];"
   
-  # Surround L/R con soundstage per imaging migliorato posteriore
-  ADV+="[BL]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj},adelay=0.8[bl];"
-  ADV+="[BR]highpass=f=40:poles=2,lowpass=f=18000:poles=2,volume=${surround_vol_adj},adelay=1.2[br];"
+  # Ducking surround DIFFERENZIATO per preset - RIMOSSO
+  # local surround_ducking=""
+  # case "$PRESET" in
+  #   film|serie|tv)
+  #     # Ducking normale per dialoghi prominenti
+  #     surround_ducking="threshold=0.55:ratio=1.5:attack=35:release=800:makeup=1.0"
+  #     ;;
+  #   cartoni)
+  #     # Ducking ridotto per preservare atmosfere musicali
+  #     surround_ducking="threshold=0.65:ratio=1.3:attack=45:release=1000:makeup=1.0"
+  #     ;;
+  # esac
+  
+  # ADV+="[fc_duck][bl_pre]sidechaincompress=${surround_ducking}[bl_ducked];" # RIMOSSO
+  # ADV+="[fc_duck][br_pre]sidechaincompress=${surround_ducking}[br_ducked];" # RIMOSSO
   
   # Join finale 5.1 con ordine corretto dei canali
-  ADV+="[fl][fr][voice_final][lfe_ducked][bl][br]join=inputs=6:channel_layout=5.1[mixed];"
-  
-  # SoxR finale ottimizzato per codec - UNA SOLA APPLICAZIONE
+  #ADV+="[fl_ducked][fr_ducked][voice_final][lfe_final][bl_ducked][br_ducked]join=inputs=6:channel_layout=5.1[mixed];"
+  ADV+="[fl_ducked][fr_ducked][voice_final][lfe_final][bl_final][br_final]join=inputs=6:channel_layout=5.1[mixed];" 
+
+  # SoxR finale ottimizzato per codec
   case "${CODEC,,}" in
     dts)
-      # Per DTS: qualità massima con oversampling per reference quality
-      ADV+="[mixed]aresample=48000:resampler=soxr:precision=33:cutoff=0.99:dither_method=triangular:cheby=1[out]"
+      # DTS: Qualità alta ma conservativa per preservare dinamica
+      ADV+="[mixed]aresample=48000:resampler=soxr:precision=28:cutoff=0.96:dither_method=triangular:filter_size=32[out]"
       ;;
     eac3)
-      # Per E-AC3: bilanciato qualità/performance per compatibilità
-      ADV+="[mixed]aresample=48000:resampler=soxr:precision=28:cutoff=0.95:dither_method=triangular:filter_size=32[out]"
+      # E-AC3: Bilanciato per compatibilità
+      ADV+="[mixed]aresample=48000:resampler=soxr:precision=24:cutoff=0.93:dither_method=triangular:filter_size=24[out]"
       ;;
   esac
   
   ADV_FILTER="$ADV"
-  log_message "INFO" "✅ Filtro costruito: ducking LFE ${CODEC^^} + firequalizer anti-baritono + de-esser + SoxR ${CODEC^^}-optimized"
+  log_message "INFO" "✅ Filtro INTELLIGENTE: Ducking selettivo per tipo contenuto!"
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -527,10 +571,10 @@ main() {
     show_help
   fi
   
-  # 🆕 GENERA LOG FILE SUBITO con nome corretto - UNA SOLA VOLTA
+  # 🆕 GENERA LOG FILE SUBITO con nome corretto
   local first_file_name=$(basename "${files[0]}")
   first_file_name="${first_file_name%.*}"  # Rimuove estensione
-  LOG_FILE="${first_file_name}_clearvoice0.log"  # ✅ NOME SEMPLIFICATO
+  LOG_FILE="${first_file_name}_clearvoice0.log"
   
   # Ora inizia TUTTO il logging nel file corretto
   log_message "INFO" "=== CLEARVOICE v$VERSION SYSTEM STARTUP ==="
@@ -590,5 +634,4 @@ main() {
 # ===============================================================================
 #  ENTRY POINT - ESECUZIONE SCRIPT
 # ===============================================================================
-
 main "$@"
