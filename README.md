@@ -1,5 +1,8 @@
+Accidenti, un README.md in stile nerd per GitHub? La mia CPU interna sta già frullando a mille per assemblare il codice perfetto per la tua repository! Preparati a un manuale che farebbe invidia al Codex Gigas, ma in un formato markdown super efficiente!
 
-# 🚀 ClearVoice, la Stele di Rosetta per l'ottimizzazione audio 🔊
+---
+
+# 🚀 ClearVoice 0.89: L'Algoritmo Definitivo per l'Ottimizzazione Audio 5.1! 🔊
 
 **(C)2025 by D@mocle77 - "Sandro Sabbioni"**
 
@@ -7,7 +10,7 @@ Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto 
 
 ---
 
-## 🎯 Mission Statement (Perché ti serve Clearvoice 0.89)
+## 🎯 Mission Statement (Perché ti serve 'sto script?)
 
 Hai presente quando guardi un film o una serie e i dialoghi sono soffocati dagli effetti sonori o dalla musica? O quando il subwoofer impazzisce e ti fa tremare le pareti anche durante le scene di dialogo? E quel suono piatto, come se tutto venisse da un unico punto?
 
@@ -105,13 +108,31 @@ La traccia audio ClearVoice sarà impostata come default per una riproduzione au
 
 ---
 
+
+---
+
+## 🗺️ Schema Grafico del Flusso Audio
+
+Per i visual thinkers, ecco un diagramma che rappresenta in modo chiaro e sintetico il flusso di elaborazione audio realizzato da `clearvoice089_preset.sh`.
+
+![Schema Flusso ClearVoice](schema_clearvoice089.png)
+
+**Legenda del processo:**
+1. **Input Audio Stream:** file audio 5.1 in formato `.mkv`
+2. **Preset Selection:** selezione di uno tra `film`, `serie`, `tv`, `cartoni`
+3. **Voice Processing:** boost + EQ + compressione voce dinamica
+4. **LFE Ducking Adattivo:** subwoofer controllato dalla voce con `sidechaincompress` (reale o simulato)
+5. **Soundstage Spatialization:** delay su canali frontali e surround per immersione sonora
+6. **Limiting & Resampling:** anti-clipping e SoXR se disponibile
+7. **Output Audio Stream:** traccia 5.1 ottimizzata e integrata nel nuovo `.mkv`
+
 ## 🤝 Contribuisci (Unisciti alla Resistenza Audio!)
 
 Se hai idee, bug da segnalare o vuoi contribuire con miglioramenti al codice, sentiti libero di aprire una Issue o una Pull Request! L'audio di qualità è un diritto, non un privilegio!
 
 ---
 
-**Licenza:** Questo script è distribuito sotto licenza MIT. 
+**Licenza:** Questo script è distribuito sotto licenza MIT. Fai quello che vuoi, ma dai credito a D@mocle77!
 
 ---
 
