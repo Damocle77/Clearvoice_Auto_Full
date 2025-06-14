@@ -11,7 +11,7 @@ Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto 
 
 Hai presente quando guardi un film o una serie e i dialoghi sono soffocati dagli effetti sonori o dalla musica? O quando il subwoofer impazzisce e ti fa tremare le pareti anche durante le scene di dialogo? E quel suono piatto, come se tutto venisse da un unico punto?
 
-ClearVoice 0.89 è la tua soluzione definitiva. Abbiamo scritto un algoritmo (in bash, sì, proprio così!) che prende il tuo audio 5.1 e lo passa attraverso un **processo di ottimizzazione multi-stadio** degno di un'ingegneria spaziale audio. Il risultato? Dialoghi cristallini, bassi precisi e un ambiente sonoro che ti avvolge completamente.
+ClearVoice 0.89 è la tua soluzione definitiva. Un algoritmo (in bash e awk, sì, proprio così!) che prende il tuo audio 5.1 e lo passa attraverso un **processo di ottimizzazione multi-stadio**. Il risultato? Dialoghi cristallini, bassi precisi e un ambiente sonoro che ti avvolge completamente.
 
 ---
 
