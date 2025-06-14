@@ -1,4 +1,4 @@
-# 🎧 ClearVoice Preset Suite – Versione 0.88
+# 🎧 ClearVoice Preset Suite – Versione 0.89
 
 Una collezione di preset audio avanzati e script bash costruiti attorno a `ffmpeg`, per **migliorare la chiarezza del parlato**, controllare le dinamiche e ottimizzare l’esperienza multicanale su soundbar 5.1/5.1.2 e home theater moderni.
 
@@ -17,7 +17,7 @@ ClearVoice nasce per risolvere i seguenti problemi comuni nel consumo di contenu
 
 ---
 
-## 🆕 Novità v0.88
+## 🆕 Novità v0.89
 
 Questa versione introduce una serie di migliorie strutturate per ottenere un’esperienza d’ascolto bilanciata, focalizzata e non affaticante.
 
