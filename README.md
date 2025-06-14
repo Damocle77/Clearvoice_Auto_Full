@@ -1,5 +1,5 @@
 
-# 🚀 ClearVoice 0.89 la Stele di Rosetta per l'ottimizzazione Audio 🔊
+# 🚀 ClearVoice 0.89 la Stele di Rosetta per Audio 🔊
 
 **(C)2025 by D@mocle77 - "Sandro Sabbioni"**
 
