@@ -7,7 +7,7 @@ Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto 
 
 ---
 
-## 🎯 Mission Statement (Perché ti serve 'sto script?)
+## 🎯 Mission Statement (Perché ti serve questo script?)
 
 Hai presente quando guardi un film o una serie e i dialoghi sono soffocati dagli effetti sonori o dalla musica? O quando il subwoofer impazzisce e ti fa tremare le pareti anche durante le scene di dialogo? E quel suono piatto, come se tutto venisse da un unico punto?
 
