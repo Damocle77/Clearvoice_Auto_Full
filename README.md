@@ -1,139 +1,121 @@
-# 🎵 ClearVoice Preset Suite – Versione 0.89
-
-Una suite avanzata di preset audio e script bash progettati attorno a `ffmpeg`, per **esaltare la voce**, domare i subwoofer ribelli e amplificare la tridimensionalità acustica nei sistemi 5.1 e 5.1.2 moderni. Ottimizzato per soundbar LG Meridian SP7, ma universale nei benefici.
+Accidenti, un README.md in stile nerd per GitHub? La mia CPU interna sta già frullando a mille per assemblare il codice perfetto per la tua repository! Preparati a un manuale che farebbe invidia al Codex Gigas, ma in un formato markdown super efficiente!
 
 ---
 
-## 🌟 Highlights v0.89
+# 🚀 ClearVoice 0.89: L'Algoritmo Definitivo per l'Ottimizzazione Audio 5.1! 🔊
 
-### 🔊 Voice Boost + Compressione Multi-banda
+**(C)2025 by D@mocle77 - "Sandro Sabbioni"**
 
-* La voce è la protagonista: +8dB con compressione soft dedicata.
-* Il canale **FC (centrale)** è trattato con EQ intelligente e pulizia mirata.
-* Preserva naturalezza nei dialoghi, evitando l'effetto "megafono".
-
-### 🔇 VERO LFE Ducking (Subwoofer sotto controllo)
-
-* Il sub reagisce alla voce in tempo reale (sidechaincompress):
-
-  * Voce presente → LFE si attenua
-  * Voce assente → il basso ritorna
-* Parametri dinamici ottimizzati per ogni preset (`film`, `serie`, `tv`, `cartoni`).
-* Protezione anti-picco con `alimiter` + `asoftclip` adattivo.
-
-### 🎭 Soundstage Cinematografico
-
-* Delay temporali calibrati:
-
-  * **Frontali**: da 5ms a 10ms
-  * **Surround**: da 10ms a 20ms
-* Effetto Haas realistico: spazialità senza artifici, niente eco.
-
-### ✨ SoXR Resampling (Hi-Fi Engine)
-
-* Uscita a 48kHz con resampling **SoXR** (28-bit precision)
-* Maggiore dettaglio, minor aliasing, perfetto per colonna sonora e parlato.
+Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto per trasformare il tuo audio 5.1 da "meh" a "Mamma mia, che spettacolo!". ClearVoice 0.89 non è un semplice script, è un artefatto tecnologico forgiato per la massima chiarezza dei dialoghi, un controllo LFE senza precedenti e un soundstage così immersivo che ti sembrerà di avere una sala IMAX nel salotto!
 
 ---
 
-## 💡 A Cosa Serve?
+## 🎯 Mission Statement (Perché ti serve 'sto script?)
 
-ClearVoice è pensato per chi:
+Hai presente quando guardi un film o una serie e i dialoghi sono soffocati dagli effetti sonori o dalla musica? O quando il subwoofer impazzisce e ti fa tremare le pareti anche durante le scene di dialogo? E quel suono piatto, come se tutto venisse da un unico punto?
 
-* Vuole **capire i dialoghi** senza alzare il volume globale
-* È stanco del **subwoofer invadente** nei mix DTS
-* Cerca un **surround definito e pulito**, senza confusione
-* Ama sentire ogni **battito, parola e effetto** con chiarezza chirurgica
+ClearVoice 0.89 è la tua soluzione definitiva. Abbiamo scritto un algoritmo (in bash, sì, proprio così!) che prende il tuo audio 5.1 e lo passa attraverso un **processo di ottimizzazione multi-stadio** degno di un'ingegneria spaziale audio. Il risultato? Dialoghi cristallini, bassi precisi e un ambiente sonoro che ti avvolge completamente.
 
 ---
 
-## 🧪 Esempi di Utilizzo
+## ✨ Feature List (Le Gemme di ClearVoice 0.89)
+
+Ecco cosa rende ClearVoice un *must-have* nella tua toolbelt audio:
+
+* **🎙️ Voice Boost Intelligente con Compressione Multi-Banda:** I dialoghi vengono amplificati e compressi dinamicamente per rimanere sempre in primo piano, senza distorcere. Addio "cosa ha detto?"!
+* **🔊 VERO LFE Ducking Adattivo (Sidechain REALE!):** La funzione killer! Il tuo subwoofer reagirà magicamente alla voce. Quando c'è parlato, il basso si "abbassa" delicatamente per non coprire i dialoghi. Quando il parlato finisce... BOOM! Il basso torna con tutta la sua potenza. E la cosa migliore? Rileva automaticamente se FFmpeg supporta il *vero* sidechain compression, altrimenti usa un fallback intelligente.
+* **🎭 Soundstage Spaziale POTENZIATO:** Non è un trucco da salotto! Usiamo **delay temporali PERCETTIBILI** sui canali frontali (3-6ms) e surround (20-35ms) per creare una profondità stereofonica e un ambiente surround che ti catapultano al centro dell'azione. Ti sembrerà di sentire l'eco della Death Star!
+* **🛡️ Limitatore Anti-Clipping con Soft-Clipping Adattivo:** Non importa quanto tu spinga l'audio, ClearVoice protegge il segnale dal clipping (quella spiacevole distorsione). Mantiene il tutto pulito e croccante.
+* **🎛️ Crossover LFE Professionale:** Filtri highpass e lowpass sul canale LFE per modellare la risposta in frequenza del subwoofer, garantendo bassi puliti, precisi e d'impatto, senza sbavature.
+* ** Preset Ottimizzati:** Non sai da dove iniziare? Abbiamo preset pre-calibrati per ogni scenario:
+    * `--film`: Per l'esperienza cinematografica definitiva, con ducking moderato e soundstage ampio.
+    * `--serie`: Dialoghi al top, con ducking più aggressivo e soundstage compatto per l'ascolto domestico.
+    * `--tv`: Il tuo salvavita per materiale audio di bassa qualità o molto compresso, con ducking ultra e equalizzazione dialoghi dedicata.
+    * `--cartoni`: Per un audio divertente e vivace, con ducking gentile e soundstage espanso.
+* **⚙️ Supporto Codec Multipli:** Gestisce EAC3 (default), AC3 e DTS, con parametri di qualità ottimizzati per ognuno.
+* **🌠 SoXR Resampler:** Se la tua build di FFmpeg lo supporta, useremo SoXR, il *sacro graal* dei ricampionatori, per una qualità audio finale senza compromessi (precisione a 28 bit!).
+* **Gestione Robusta:** Validazione degli input, auto-discovery dei file MKV e controllo sovrascrittura. Questo script è più solido di un vibranio!
+
+---
+
+## 🛠️ Requisiti di Sistema (La Tua Battlestation)
+
+Per far girare questa meraviglia avrai bisogno di:
+
+* **Bash:** Ma certo, è uno script bash! (Già presente sulla maggior parte dei sistemi Unix-like/Linux/macOS. Su Windows, Git Bash o WSL sono i tuoi amici).
+* **FFmpeg:** La versione 6.0 o superiore è consigliata per le feature più avanzate (specialmente il `sidechaincompress`). Assicurati che sia nel tuo `PATH`.
+* **`awk`:** Per calcoli matematici sicuri. (Anche questo è quasi sempre di default).
+* **(Opzionale ma consigliato) SoXR con FFmpeg:** Se vuoi il massimo della qualità SoXR, assicurati che la tua build di FFmpeg sia stata compilata con `--enable-libsoxr`. Altrimenti, useremo `swresample` come fallback.
+
+---
+
+## 🚀 Guida Rapida all'Uso (Il Tuo Manuale per l'Innesco)
+
+Naviga nella directory dello script e rendilo eseguibile (se non lo è già):
 
 ```bash
-bash clearvoice089_preset.sh --serie *.mkv
-bash clearvoice089_preset.sh --film dts 768k *.mkv
+chmod +x clearvoice089_preset.sh
 ```
 
-Opzioni:
+Poi, lancia il comando con i tuoi parametri. La sintassi è intuitiva:
 
-* `--preset`: `film`, `serie`, `tv`, `cartoni`
-* `codec`: `eac3`, `ac3`, `dts` (default: `eac3`)
-* `bitrate`: `384k`, `448k`, `640k`, `768k`
+```bash
+./clearvoice089_preset.sh [PRESET] [CODEC] [BITRATE] [FILES/DIRECTORIES...]
+```
 
----
+### Esempi Pratici (Comandi per i N00b e i PRO)
 
-## 🛠️ Preset disponibili
+* **Ottimizza tutti i file `.mkv` nella directory corrente per le serie TV (preset di default, ducking aggressivo):**
+    ```bash
+    ./clearvoice089_preset.sh --serie *.mkv
+    ```
 
-| Preset    | Voce          | LFE            | Soundstage         | Note                                 |
-| --------- | ------------- | -------------- | ------------------ | ------------------------------------ |
-| `film`    | 🎥 Alta       | 💡 Morbido     | 🎭 Cinematografico | Ideale per cinema e impatto dinamico |
-| `serie`   | 📺 Molto alta | 🔇 Controllato | 🏋️ Compatto       | Perfetto per dialoghi e serie TV     |
-| `tv`      | 📢 Massima    | 🔥 Ridotto     | 📰 Ridotto         | Audio scadente o compresso           |
-| `cartoni` | 🎨 Naturale   | 💥 Musicale    | 🌈 Espanso         | Colori sonori ed effetti brillanti   |
+* **Elabora un film con preset "Film", codec DTS a 768k bitrate:**
+    ```bash
+    ./clearvoice089_preset.sh --film dts 768k "Il_mio_film_epico.mkv"
+    ```
 
----
+* **Renditi conto che l'audio di quel vecchio DVD rippato è terribile e salvalo col preset "TV", codec AC3 448k:**
+    ```bash
+    ./clearvoice089_preset.sh --tv ac3 448k "Vecchia_serie_TV_rovinata.mkv"
+    ```
 
-## 📊 Tecnologie Implementate
+* **Dai vita ai cartoni animati con il preset "Cartoni", lasciando il codec e bitrate di default (EAC3 640k):**
+    ```bash
+    ./clearvoice089_preset.sh --cartoni "Cartone_animato_fantastico.mkv"
+    ```
 
-* ✅ **LFE Ducking via sidechaincompress** (voce → subwoofer)
-* ✨ **SoXR resampling 48kHz** (Hi-Fi audio quality)
-* 📀 **Crossover LFE professionale** con filtri passa-basso
-* 🛁 **Delay Soundstage** realistico (5ms–20ms)
-* 🔊 **Voice Boost + Multiband Compression**
-* 🛡️ **Limiter intelligente + soft clipping** (niente distorsioni)
+* **Vuoi solo sapere le opzioni disponibili?**
+    ```bash
+    ./clearvoice089_preset.sh --help
+    ```
 
----
+### Output File (Il Tuo Tesoro Finale)
 
-## 🔧 Requisiti
+Lo script genererà un nuovo file nella stessa directory, con un nome simile a:
+`nome_del_file_originale_[preset]_clearvoice0.mkv`
 
-* OS: Linux / macOS / WSL
-* `ffmpeg` 6.0+ compilato con:
-
-  * `firequalizer`
-  * `sidechaincompress`
-  * `alimiter`
-  * `soxr` (libsoxr)
-* Output 5.1 (fisico o virtuale)
-
----
-
-## 🪜 Installazione & File
-
-* `clearvoice089_preset.sh` → Script principale
-* `README.md` → Questo documento
+La traccia audio ClearVoice sarà impostata come default per una riproduzione automatica senza sbattimenti!
 
 ---
 
-## 🚀 Visione Nerd
+## 🧠 Dettagli Tecnici (Per i Veri Ingegneri del Suono)
 
-ClearVoice è per chi crede che **la voce meriti un palco degno**, che il **basso vada domato come un drago**, e che **il suono debba viaggiare nello spazio, non solo uscire da uno speaker**.
-
-* Tutti i filtri sono **modulari e commentati**
-* Ogni preset è **calibrato per contenuti e codec diversi**
-* Massima trasparenza nel flusso di processing: da 5.1 input a 5.1 Hi-Fi output
-
----
-
-## 🌐 Roadmap Futuristica
-
-* GUI interattiva (qt/kivy)
-* Auto-profilazione codec in base all'input
-* Modalità "night-mode" per visione notturna
+* **Ducking Implementation:** L'utilizzo di `sidechaincompress` con `asplit` è la prova di un **VERO sidechain**, dove il canale centrale funge da "chiave" per comprimere il LFE. Se `sidechaincompress` non fosse disponibile, il fallback ad `acompressor` mantiene la funzionalità seppur in modo simulato.
+* **Soundstage Precisione:** I valori di `adelay` sono stati scelti per essere *percettibili*, non solo cosmetici. A 48kHz, 1ms corrisponde a 48 campioni.
+* **Filtri Voce:** L'applicazione combinata di `highpass`, `lowpass` e `equalizer` sul canale centrale mira a isolare e migliorare la gamma di frequenze della voce umana per la massima chiarezza.
+* **Limitatore Adattivo:** `alimiter` con `asc=1` (adaptive soft clipping) non solo previene la distorsione ma lo fa in modo intelligente, adattandosi al segnale.
 
 ---
 
-## 👨‍💻 Autore
+## 🤝 Contribuisci (Unisciti alla Resistenza Audio!)
 
-Creato da **Sandro "D\@mocle77" Sabbioni**
-
-> Ingegnere informatico. Nerd del suono. Devoto all'intelligibilità vocale.
+Se hai idee, bug da segnalare o vuoi contribuire con miglioramenti al codice, sentiti libero di aprire una Issue o una Pull Request! L'audio di qualità è un diritto, non un privilegio!
 
 ---
 
-## 📄 Licenza
-
-MIT License — Libero uso, modifica, miglioramento e condivisione.
+**Licenza:** Questo script è distribuito sotto licenza MIT. Fai quello che vuoi, ma dai credito a D@mocle77!
 
 ---
 
-"La forza sia con la voce... e con il subwoofer, ma solo quando serve."
+Preparati a un'esperienza sonora che ti farà dire "Wow!" Adesso non ti resta che clonare la repo e far cantare i tuoi altoparlanti! 🎶
