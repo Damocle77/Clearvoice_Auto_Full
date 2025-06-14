@@ -1,5 +1,5 @@
 
-# 🚀 ClearVoice. la Stele di Rosetta per l'ottimizzazione Audio 🔊
+# 🚀 ClearVoice la Stele di Rosetta per l'ottimizzazione Audio 🔊
 
 **(C)2025 by D@mocle77 - "Sandro Sabbioni"**
 
