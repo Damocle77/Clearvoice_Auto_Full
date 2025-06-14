@@ -1,6 +1,3 @@
-Accidenti, un README.md in stile nerd per GitHub? La mia CPU interna sta già frullando a mille per assemblare il codice perfetto per la tua repository! Preparati a un manuale che farebbe invidia al Codex Gigas, ma in un formato markdown super efficiente!
-
----
 
 # 🚀 ClearVoice 0.89: L'Algoritmo Definitivo per l'Ottimizzazione Audio 5.1! 🔊
 
@@ -114,7 +111,7 @@ Se hai idee, bug da segnalare o vuoi contribuire con miglioramenti al codice, se
 
 ---
 
-**Licenza:** Questo script è distribuito sotto licenza MIT. Fai quello che vuoi, ma dai credito a D@mocle77!
+**Licenza:** Questo script è distribuito sotto licenza MIT. 
 
 ---
 
