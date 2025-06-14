@@ -1,5 +1,5 @@
 
-# 🚀 ClearVoice 0.89: L'Algoritmo Definitivo per l'Ottimizzazione Audio 5.1! 🔊
+# 🚀 ClearVoice 0.89: La Stele di Rosetta per l'ottimizzazione audio 🔊
 
 **(C)2025 by D@mocle77 - "Sandro Sabbioni"**
 
