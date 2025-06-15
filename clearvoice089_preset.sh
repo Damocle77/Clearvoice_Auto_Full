@@ -7,8 +7,8 @@
 # -----------------------------------------------------------------------------------------------
 # CARATTERISTICHE PRINCIPALI:
 # • Voice boost intelligente con compressione multi-banda
-# • LFE Ducking: Il subwoofer reagisce automaticamente alla voce (sidechain REALE)
-# • Soundstage spaziale: Delay temporali PERCETTIBILI per profondità stereofonica e surround 
+# • LFE Ducking: Il subwoofer reagisce automaticamente alla voce (sidechain REALE o EMULATO)
+# • Soundstage spaziale: Delay temporali PERCETTIBILI per profondità stereofonica e surround
 # • Limitatore anti-clipping con soft-clipping adattivo
 # • Crossover LFE professionale per controllo frequenze
 # • Preset ottimizzati per diversi contenuti (Film, Serie, TV, Cartoni)
@@ -16,915 +16,860 @@
 # • Gestione robusta formati audio con fallback intelligenti
 # • SoXR resampler per qualità audio superiore (richiede build FFmpeg con SoXR)
 # -----------------------------------------------------------------------------------------------
+# ANALISI TECNICA DETTAGLIATA:
+#
+# 1. EQUALIZZAZIONE VOCE ITALIANA (Ottimizzata per tutti i preset)
+#    • FILM: Boost 3000Hz (+1.5dB, Q=1.5), taglio 5000Hz (-1dB)
+#           Ideale per dialoghi in scene d'azione con colonne sonore potenti
+#    • SERIE: Boost 2500Hz (+2dB, Q=1.8), taglio 4500Hz (-1.5dB), boost 1500Hz (+1dB)
+#            Configurazione avanzata per dialoghi complessi e scene con audio variabile
+#    • TV: Boost 1000Hz (+2.5dB) e 3000Hz (+2dB) con larghezze ampie, limite 5500Hz
+#         Ultra-intelligibilità per trasmissioni di bassa qualità e voci registrate male
+#    • CARTONI: Boost 3500Hz (+1dB, Q=2), taglio leggero 6000Hz (-0.5dB)
+#              Ideale per voci animate dal timbro più acuto e vocalizzazione enfatizzata
+#    → Risultato: Dialoghi italiani più chiari e bilanciati adattati al tipo di contenuto
+#
+# 2. SUBWOOFER INTELLIGIBILE
+#    • Crossover LFE 25-110Hz (filtri 2° ordine): Evita invasione banda vocale
+#    • Boost 40Hz (+2.5dB, Q=1.2): Mantiene impatto sui suoni molto bassi
+#    • Boost 70Hz (+1.5dB, Q=1.8): Aggiunge calore senza invadere gamma vocale
+#    • Attenuazione globale LFE (0.22x): Previene mascheramento voci
+#    → Risultato: Bassi potenti ma controllati che non coprono mai i dialoghi
+#
+# 3. SOUNDSTAGING SPAZIALE
+#    • Delay frontale 192 campioni (4ms @48kHz): Crea profondità senza eco
+#    • Delay surround 1200 campioni (25ms @48kHz): Massimizza ampiezza surround
+#    → Risultato: Immagine sonora tridimensionale con localizzazione dialoghi al centro
+#
+# 4. VOICE STRONGER (POTENZIAMENTO VOCE)
+#    • Aumento livello +8.7dB: Significativo ma non eccessivo
+#    • Compressione ratio 3.5:1, threshold 0.15: Calibrata per dialoghi italiani
+#    • Attack 15ms, release 200ms: Ottimizzati per prosodia italiana
+#    • Softclipping con threshold 0.97: Protezione anti-distorsione con intensità preservata
+#    → Risultato: Voci molto più presenti e costanti senza fatica d'ascolto
+#
+# 5. LFE DUCKING INTELLIGENTE
+#    • Threshold -25dB: Si attiva solo su dialoghi chiari
+#    • Ratio 6:1: Riduzione decisa ma non innaturale
+#    • Attack 20ms: Permette l'attacco iniziale dei bassi prima dell'attenuazione
+#    • Release 250ms: Evita "pompaggio" udibile, transizione naturale
+#    • Implementazione sidechain reale (quando supportata) o emulata
+#    → Risultato: Subwoofer che "rispetta" automaticamente i dialoghi quando presenti
+#
+# 6. SOXR RESAMPLING PROFESSIONALE
+#    • Utilizzo del resampler SoXR di qualità superiore (quando disponibile)
+#    • Precision differenziata per preset:
+#      - FILM: 28 bit (massima qualità audiofila)
+#      - SERIE/TV: 20 bit (bilanciamento qualità/prestazioni)
+#      - CARTONI: 15 bit (qualità standard, minore impatto CPU)
+#    • Algoritmo matematicamente superiore al resampler standard SWR di FFmpeg
+#    • Fallback automatico a SWR se SoXR non è disponibile nella build di FFmpeg
+#    • Minimizza artefatti di conversione frequenza e garantisce fedeltà alle alte frequenze
+#    → Risultato: Qualità audio complessiva migliorata con minore distorsione digitale
+#
+# 7. RIDUZIONE RUMORE AVANZATA (PRESET TV)
+#    • Doppio stage di denoise:
+#      - FFT Denoiser: Rimuove rumore di fondo a banda larga
+#      - Non-Local Means Denoiser: Preserva dettagli vocali
+#    • Threshold adattivo: Interviene solo sul rumore, non sui dialoghi
+#    • Applicato solo al preset TV, ideale per materiale di bassa qualità
+#    → Risultato: Dialoghi più puliti con preservazione della naturalezza vocale
+# -----------------------------------------------------------------------------------------------
 
 set -euo pipefail
 
 # -----------------------------------------------------------------------------------------------
 #  CONFIGURAZIONE GLOBALE
 # -----------------------------------------------------------------------------------------------
-FRONT_VOL=1.0         # Volume canali frontali (FL/FR) - NON MODIFICARE
-VERSION="0.89"        # Versione script corrente
+FRONT_VOL=1.0         # Volume canali frontali (FL/FR) - NON MODIFICARE (usato come base)
+VERSION="0.89"       # Versione script corrente
 MIN_FFMPEG_VER="6.0"  # Versione minima ffmpeg richiesta
+DEFAULT_THREADS=4     # Numero di thread di default se nproc non è disponibile o fallisce
+OVERWRITE="false"     # Valore predefinito: non sovrascrivere file esistenti
+
+# Array per gestione dei file e statistiche
+FAILED_FILES=()              # Memorizza i file che hanno generato errori durante l'elaborazione
+PROCESSED_FILES_INFO=()      # Dettagli sui file elaborati con successo (nome, tempo, dimensione)
+VALIDATED_FILES_GLOBAL=()    # File che hanno superato i controlli di compatibilità 5.1
+
+# Contatori per statistiche formato audio
+MONO_COUNT=0
+STEREO_COUNT=0
+SURROUND71_COUNT=0
+OTHER_FORMAT_COUNT=0
+
+# Variabili globali per parametri preset (saranno popolate da set_preset_params)
+PRESET=""                    # Tipo di ottimizzazione: film, serie, tv o cartoni
+CODEC="eac3"                 # Codec audio predefinito (eac3, ac3, dts)
+BR="384k"                    # Bitrate audio predefinito
+INPUTS=()                    # Percorsi input specificati dall'utente (file o directory)
+
+# Parametri audio che saranno configurati in base al preset selezionato
+VOICE_VOL=""                 # Amplificazione canale centrale (dialoghi)
+LFE_VOL=""                   # Volume LFE (subwoofer)
+SURROUND_VOL=""              # Volume canali surround
+HP_FREQ=""                   # Frequenza di taglio filtro passa-alto per dialoghi
+LP_FREQ=""                   # Frequenza di taglio filtro passa-basso per dialoghi
+COMPRESSOR_SETTINGS=""       # Parametri compressione dinamica per voce
+FRONT_FILTER=""              # Filtri canali frontali
+SOFTCLIP_SETTINGS=""         # Configurazione limitatore anti-distorsione
+FRONT_DELAY_SAMPLES=""       # Ritardo canali frontali per effetto soundstage
+SURROUND_DELAY_SAMPLES=""    # Ritardo canali surround per effetto avvolgente
+LFE_HP_FREQ=""               # Frequenza minima LFE (passa-alto subwoofer)
+LFE_LP_FREQ=""               # Frequenza massima LFE (passa-basso subwoofer)
+LFE_CROSS_POLES=""           # Ordine filtri LFE (pendenza)
+SC_ATTACK=""                 # Tempo attacco per ducking LFE
+SC_RELEASE=""                # Tempo rilascio per ducking LFE
+SC_THRESHOLD=""              # Soglia attivazione ducking
+SC_RATIO=""                  # Rapporto di compressione ducking
+SC_MAKEUP=""                 # Compensazione volume post-ducking
+FC_EQ_PARAMS=""              # Equalizzazione canale centrale (dialoghi)
+FLFR_EQ_PARAMS=""            # Equalizzazione canali frontali
+LFE_EQ_PARAMS=""             # Equalizzazione subwoofer
+ENC=""                       # Codifica finale (copia di CODEC)
+EXTRA=""                     # Parametri extra codec-specifici
+TITLE=""                     # Titolo metadata per la traccia audio
+DENOISE_FILTER=""            # Filtro riduzione rumore (solo preset TV)
 
 # Inizializza tempo globale per statistiche finali
-TOTAL_START_TIME=$(date +%s)
-
-# Verifica dipendenze e versioni del sistema
-for cmd in ffmpeg awk; do
-  if ! command -v "$cmd" &> /dev/null; then
-    echo "Errore: Il comando richiesto '$cmd' non è stato trovato. Assicurati che sia installato e nel PATH." >&2
-    exit 1
-  fi
-done
-
-# Verifica nproc per Windows (opzionale, fallback a 4 thread)
-if ! command -v nproc &> /dev/null; then
-    echo "ℹ️  nproc non disponibile, usando 4 thread di default"
-fi
+TOTAL_START_TIME=$(date +%s) # Memorizza timestamp iniziale per calcolare durata totale dell'elaborazione
 
 # -----------------------------------------------------------------------------------------------
-#  FUNZIONI UTILITY SICURE E ROBUSTE
+#  FUNZIONI HELPER
 # -----------------------------------------------------------------------------------------------
 
-# Funzione per calcoli matematici sicuri con awk - previene errori script
+# Funzione per chiedere conferma all'utente (sì/no)
+ask_yes_no() {
+    local prompt="$1"
+    local response
+    
+    # Continua a chiedere finché non si ottiene una risposta valida
+    while true; do
+        echo -n "$prompt [s/n]: " >&2
+        read -r response
+        case "$response" in
+            [Ss]* ) return 0;; # Restituisce 0 (true) per "sì"
+            [Nn]* ) return 1;; # Restituisce 1 (false) per "no"
+            * ) echo "   Per favore, rispondi con 's' o 'n'." >&2;;
+        esac
+    done
+}
+
+# Verifica versione ffmpeg
+check_ffmpeg_version() {
+    if ! command -v ffmpeg &> /dev/null; then
+        echo "❌ FFmpeg non trovato! Installa FFmpeg per utilizzare questo script." >&2
+        exit 1
+    fi
+    
+    local current_version
+    current_version=$(ffmpeg -version | head -n1 | awk -F'[ -]' '{print $3}')
+    
+    if awk -v v1="$current_version" -v v2="$MIN_FFMPEG_VER" 'BEGIN {
+        n1 = split(v1, a, ".");
+        n2 = split(v2, b, ".");
+        for (i = 1; i <= (n1 > n2 ? n1 : n2); i++) {
+            a[i] = a[i] ? a[i] : 0;
+            b[i] = b[i] ? b[i] : 0;
+            if (a[i] < b[i]) exit 1;
+            if (a[i] > b[i]) exit 0;
+        }
+        exit 0;
+    }'; then
+        echo "✅ FFmpeg versione $current_version compatibile." >&2
+    else
+        echo "❌ FFmpeg versione $current_version non compatibile. Richiesta almeno $MIN_FFMPEG_VER." >&2
+        exit 1
+    fi
+}
+
+# Calcolo sicuro con awk (con gestione errori)
 safe_awk_calc() {
     local expr="$1"
     local result
-    result=$(awk "BEGIN {print $expr}" 2>/dev/null)
     
-    # Verifica che il risultato sia un numero valido (intero o decimale)
-    if [[ "$result" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-        echo "$result"
-    else
-        echo "1.0"  # Fallback sicuro per evitare crash dello script
+    if ! result=$(awk "BEGIN { printf \"%.6f\", $expr }" 2>/dev/null); then
+        echo "1.0" # Default fallback in caso di errore
+        return 1
     fi
-}
-
-# Funzione per validare parametri numerici con fallback robusto
-validate_numeric() {
-    local value="$1"
-    local default="$2"
     
-    if [[ "$value" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-        echo "$value"
-    else
-        echo "$default"  # Usa valore di default se validazione fallisce
+    # Gestione NaN e infinito
+    if [[ "$result" == "nan" || "$result" == "inf" || "$result" == "-inf" ]]; then
+        echo "1.0" # Default fallback
+        return 1
     fi
-}
-
-# Verifica supporto sidechaincompress di FFmpeg
-check_sidechain_support() {
-    # Test con generatori audio corretti (funziona con la tua build)
-    if ffmpeg -hide_banner -f lavfi -i "sine=frequency=1000:duration=0.1" -f lavfi -i "sine=frequency=500:duration=0.1" \
-       -filter_complex "[0:a][1:a]sidechaincompress=threshold=0.5:ratio=2" -f null - 2>/dev/null; then
-        echo "REALE"
-    else
-        echo "SIMULATO"
-    fi
-}
-
-# CORRETTO: LFE Ducking adattivo con fallback automatico
-build_lfe_ducking_filter() {
-    local ducking_type=$(check_sidechain_support)
     
-    if [[ "$ducking_type" == "REALE" ]]; then
-        # Parametri sidechaincompress ottimizzati e compatibili
-        case "$PRESET" in
-            film)
-                echo "sidechaincompress=threshold=0.3:ratio=3:attack=10:release=200:makeup=1.2"
-                ;;
-            serie)
-                echo "sidechaincompress=threshold=0.25:ratio=4:attack=8:release=150:makeup=1.5"
-                ;;
-            tv)
-                echo "sidechaincompress=threshold=0.2:ratio=5:attack=5:release=100:makeup=1.8"
-                ;;
-            cartoni)
-                echo "sidechaincompress=threshold=0.35:ratio=2.5:attack=15:release=300:makeup=1.0"
-                ;;
-            *)
-                echo "sidechaincompress=threshold=0.3:ratio=3:attack=10:release=200:makeup=1.2"
-                ;;
-        esac
-    else
-        # Fallback per sicurezza (anche se non dovrebbe servire nel tuo caso)
-        case "$PRESET" in
-            film)   echo "acompressor=threshold=0.3:ratio=3:attack=10:release=200:makeup=0.8" ;;
-            serie)  echo "acompressor=threshold=0.25:ratio=4:attack=8:release=150:makeup=0.65" ;;
-            tv)     echo "acompressor=threshold=0.2:ratio=5:attack=5:release=100:makeup=0.5" ;;
-            cartoni) echo "acompressor=threshold=0.35:ratio=2.5:attack=15:release=300:makeup=0.85" ;;
-            *) echo "acompressor=threshold=0.3:ratio=3:attack=10:release=200:makeup=0.8" ;;
-        esac
-    fi
+    echo "$result"
+    return 0
 }
 
-# Parametri Soundstage POTENZIATI per profondità spaziale REALMENTE percettibile
-set_soundstage_params() {
-    case "$PRESET" in
-        film)
-            FRONT_DELAY_SAMPLES="240"    # 5.0 millisecondi - chiaramente percettibile
-            SURROUND_DELAY_SAMPLES="1440" # 30.0 millisecondi - effetto cinematografico
-            ;;
-        serie)
-            FRONT_DELAY_SAMPLES="192"    # 4.0 millisecondi - percettibile
-            SURROUND_DELAY_SAMPLES="1200" # 25.0 millisecondi - molto percettibile
-            ;;
-        tv)
-            FRONT_DELAY_SAMPLES="144"    # 3.0 millisecondi - percettibile per TV
-            SURROUND_DELAY_SAMPLES="960"  # 20.0 millisecondi - percettibile
-            ;;
-        cartoni)
-            FRONT_DELAY_SAMPLES="288"    # 6.0 millisecondi - molto percettibile
-            SURROUND_DELAY_SAMPLES="1680" # 35.0 millisecondi - effetto espanso
+# Parsing argomenti da linea di comando
+parse_arguments() {
+    # Controllo argomenti minimi
+    if [[ $# -lt 3 ]]; then
+        echo "❌ Errore: Argomenti insufficienti!" >&2
+        echo "Uso: $0 --preset codec bitrate [--overwrite] file1.mkv [file2.mkv ...]" >&2
+        echo "Preset supportati: film, serie, tv, cartoni" >&2
+        echo "Codec supportati: eac3 (default), ac3, dts" >&2
+        echo "Bitrate suggeriti: 384k (eac3), 640k (ac3), 756k/1536k (dts)" >&2
+        echo "Esempio: $0 --serie eac3 384k movie.mkv" >&2
+        exit 1
+    fi
+
+    # Parsing del preset (obbligatorio)
+    case "$1" in
+        --film|--serie|--tv|--cartoni)
+            PRESET="${1#--}" # Rimuove il prefisso --
+            shift
             ;;
         *)
-            FRONT_DELAY_SAMPLES="192"    # 4.0 millisecondi - default
-            SURROUND_DELAY_SAMPLES="1200" # 25.0 millisecondi - default
+            echo "❌ Preset '$1' non valido! Usa uno tra: --film, --serie, --tv, --cartoni" >&2
+            exit 1
             ;;
     esac
+
+    # Parsing codec e bitrate (obbligatori)
+    CODEC="$1"
+    shift
+    BR="$1"
+    shift
+
+    # Parsing argomenti rimanenti
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --overwrite)
+                OVERWRITE="true"
+                shift
+                ;;
+            -*)
+                echo "❌ Opzione '$1' non riconosciuta" >&2
+                exit 1
+                ;;
+            *)
+                INPUTS+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    # Validazione inputs
+    if [[ ${#INPUTS[@]} -eq 0 ]]; then
+        echo "❌ Nessun file/directory specificato!" >&2
+        exit 1
+    fi
+
+    # Validazione codec
+    case "${CODEC,,}" in
+        eac3|ac3|dts) ;; # Validi, non fare nulla
+        *)
+            echo "❌ Codec '$CODEC' non supportato! Usa uno tra: eac3, ac3, dts" >&2
+            exit 1
+            ;;
+    esac
+
+    # Validazione bitrate (solo formato, non valore specifico)
+    if ! [[ "$BR" =~ ^[0-9]+[km]$ ]]; then
+        echo "❌ Formato bitrate '$BR' non valido! Usa formato: 384k, 640k, ecc." >&2
+        exit 1
+    fi
 }
 
-# Voice EQ completo per tutti i preset
-build_voice_eq() {
-    local preset="$1"
-    case "$preset" in
-        film)   echo "equalizer=f=2000:width_type=h:width=0.8:g=4.0,equalizer=f=4000:width_type=h:width=0.6:g=2.5" ;;
-        serie)  echo "equalizer=f=2200:width_type=h:width=0.7:g=4.5,equalizer=f=3800:width_type=h:width=0.5:g=3.0" ;;
-        tv)     echo "equalizer=f=2500:width_type=h:width=0.5:g=5.0,equalizer=f=4500:width_type=h:width=0.4:g=3.5" ;;
-        cartoni) echo "equalizer=f=1800:width_type=h:width=0.9:g=3.5,equalizer=f=3500:width_type=h:width=0.7:g=2.0" ;;
-        *) echo "" ;;
-    esac
-}
+# Impostazione parametri dinamici basati sul preset selezionato
+set_preset_params() {
+    local preset_choice="$1"
+    echo "ℹ️  Configurazione preset: $preset_choice" >&2
 
-# CORRETTO: LFE EQ con crossover professionale (max 2 poles per FFmpeg)
-build_lfe_eq() {
-    local preset="$1"
-    case "$preset" in
-        film)   echo "highpass=f=25:poles=2,lowpass=f=120:poles=2" ;;
-        serie)  echo "highpass=f=30:poles=2,lowpass=f=110:poles=2" ;;
-        tv)     echo "highpass=f=35:poles=2,lowpass=f=100:poles=2" ;;
-        cartoni) echo "highpass=f=20:poles=2,lowpass=f=130:poles=2" ;;
-        *) echo "highpass=f=25:poles=2,lowpass=f=120:poles=2" ;;
+    case "$preset_choice" in
+        film) # Ottimizzato per contenuti cinematografici
+            VOICE_VOL="8.6" LFE_VOL="0.24" SURROUND_VOL="4.5"
+            HP_FREQ="115" LP_FREQ="7900"
+            COMPRESSOR_SETTINGS="acompressor=threshold=0.12:ratio=4:attack=20:release=250:makeup=2"
+            FRONT_FILTER="highpass=f=22:poles=2,lowpass=f=20000:poles=1" # Anti-rumble + pulizia
+            SOFTCLIP_SETTINGS="asoftclip=type=atan:threshold=0.95:output=1.0"
+            FRONT_DELAY_SAMPLES="240" SURROUND_DELAY_SAMPLES="720" # 5ms / 15ms @48kHz
+            LFE_HP_FREQ="20" LFE_LP_FREQ="120" LFE_CROSS_POLES="2"
+            SC_ATTACK="50" SC_RELEASE="500" SC_THRESHOLD="-28dB" SC_RATIO="5" SC_MAKEUP="2dB"
+            FC_EQ_PARAMS="equalizer=f=3000:width_type=q:w=1.5:g=1.5,equalizer=f=5000:width_type=q:w=2:g=-1"
+            FLFR_EQ_PARAMS="" # Nessun EQ specifico per FL/FR nel preset film
+            LFE_EQ_PARAMS="equalizer=f=35:width_type=q:w=1:g=2,equalizer=f=60:width_type=q:w=2:g=1"
+            DENOISE_FILTER="" # Nessun denoise nel preset film
+            ;;
+        serie) # Bilanciato per serie TV, dialoghi difficili
+            VOICE_VOL="8.7" LFE_VOL="0.22" SURROUND_VOL="4.5"
+            HP_FREQ="130" LP_FREQ="7800"
+            COMPRESSOR_SETTINGS="acompressor=threshold=0.15:ratio=3.5:attack=15:release=200:makeup=1.8"
+            FRONT_FILTER="highpass=f=28:poles=2,lowpass=f=18000:poles=1" # Focus dialoghi
+            SOFTCLIP_SETTINGS="asoftclip=type=atan:threshold=0.97:output=1.0"
+            FRONT_DELAY_SAMPLES="192" SURROUND_DELAY_SAMPLES="1200" # 4ms / 25ms @48kHz
+            LFE_HP_FREQ="25" LFE_LP_FREQ="110" LFE_CROSS_POLES="2"
+            SC_ATTACK="20" SC_RELEASE="250" SC_THRESHOLD="-25dB" SC_RATIO="6" SC_MAKEUP="1.5dB"
+            FC_EQ_PARAMS="equalizer=f=2500:width_type=q:w=1.8:g=2,equalizer=f=4500:width_type=q:w=2.2:g=-1.5,equalizer=f=1500:width_type=h:w=200:g=1"
+            FLFR_EQ_PARAMS="equalizer=f=300:width_type=q:w=2:g=-1" # Leggera attenuazione medie-basse
+            LFE_EQ_PARAMS="equalizer=f=40:width_type=q:w=1.2:g=2.5,equalizer=f=70:width_type=q:w=1.8:g=1.5"
+            DENOISE_FILTER="" # Nessun denoise nel preset serie
+            ;;
+        tv) # Ultra-conservativo per materiale di bassa qualità
+            VOICE_VOL="7.6" LFE_VOL="0.22" SURROUND_VOL="3.9"
+            HP_FREQ="450" LP_FREQ="5000" # Tagli aggressivi per intelligibilità
+            COMPRESSOR_SETTINGS="acompressor=threshold=0.20:ratio=3:attack=10:release=150:makeup=1.5"
+            FRONT_FILTER="highpass=f=100:poles=1,lowpass=f=8000:poles=1" # Enfasi voce
+            SOFTCLIP_SETTINGS="asoftclip=type=tanh:threshold=0.9:output=0.95"
+            FRONT_DELAY_SAMPLES="144" SURROUND_DELAY_SAMPLES="480" # 3ms / 10ms @48kHz
+            LFE_HP_FREQ="30" LFE_LP_FREQ="100" LFE_CROSS_POLES="1"
+            SC_ATTACK="10" SC_RELEASE="200" SC_THRESHOLD="-20dB" SC_RATIO="8" SC_MAKEUP="1dB"
+            FC_EQ_PARAMS="equalizer=f=1000:width_type=h:w=400:g=2.5,equalizer=f=3000:width_type=h:w=1000:g=2,lowpass=f=5500"
+            FLFR_EQ_PARAMS="equalizer=f=1500:width_type=h:w=500:g=1.5" # EQ enfasi voce
+            LFE_EQ_PARAMS="equalizer=f=50:width_type=q:w=1.5:g=2"
+            # Denoise per preset TV (per materiale di bassa qualità)
+            DENOISE_FILTER="afftdn=nr=20:nf=-42:tn=1,anlmdn=s=0.0001:p=0.002:r=0.005"
+            ;;
+        cartoni) # Leggero per animazione, preservazione musicale
+            VOICE_VOL="8.5" LFE_VOL="0.22" SURROUND_VOL="4.5"
+            HP_FREQ="100" LP_FREQ="8500"
+            COMPRESSOR_SETTINGS="acompressor=threshold=0.10:ratio=2.5:attack=25:release=300:makeup=1.2"
+            FRONT_FILTER="highpass=f=20:poles=2,lowpass=f=21000:poles=1" # Massima fedeltà
+            SOFTCLIP_SETTINGS="asoftclip=type=sin:threshold=0.98:output=1.0"
+            FRONT_DELAY_SAMPLES="336" SURROUND_DELAY_SAMPLES="1680" # 7ms / 35ms @48kHz
+            LFE_HP_FREQ="18" LFE_LP_FREQ="130" LFE_CROSS_POLES="2"
+            SC_ATTACK="60" SC_RELEASE="600" SC_THRESHOLD="-30dB" SC_RATIO="4" SC_MAKEUP="2.5dB"
+            FC_EQ_PARAMS="equalizer=f=3500:width_type=q:w=2:g=1,equalizer=f=6000:width_type=q:w=2.5:g=-0.5"
+            FLFR_EQ_PARAMS="" # Nessun EQ specifico per FL/FR nel preset cartoni
+            LFE_EQ_PARAMS="equalizer=f=30:width_type=q:w=1:g=1.5,equalizer=f=80:width_type=q:w=1.5:g=1"
+            DENOISE_FILTER="" # Nessun denoise nel preset cartoni
+            ;;
+        *) echo "❌ Preset '$preset_choice' non valido!" >&2; exit 1;;
     esac
+
+    # Impostazioni globali codec e titolo
+    ENC="$CODEC"
+    EXTRA=""
+    if [[ "${CODEC,,}" == "dts" ]]; then
+        EXTRA="-strict -2 -ar 48000 -channel_layout 5.1(side) -compression_level 2"
+    fi
+    TITLE="ClearVoice $VERSION - $preset_choice ($CODEC $BR)"
 }
 
 # SoxR resampler (richiede FFmpeg compilato con SoxR)
 apply_soxr_resampling() {
-    if ffmpeg -hide_banner -f lavfi -i "testsrc2=size=32x32:duration=0.1" -af "aresample=resampler=soxr" -f null - 2>/dev/null; then
-        echo "aresample=48000:resampler=soxr:precision=28:cheby=1:dither_method=triangular"
+    local soxr_params=""
+    if ffmpeg -filters 2>&1 | grep -q soxr; then
+        case "$PRESET" in # Usa PRESET globale
+            film)    soxr_params=":precision=28";; # Massima qualità
+            serie|tv)soxr_params=":precision=20";;  # Bilanciato
+            cartoni) soxr_params=":precision=15";;  # Standard
+        esac
+        echo "aresample=resampler=soxr${soxr_params}"
     else
-        echo "aresample=48000:resampler=swresample:dither_method=triangular"
+        echo "aresample=resampler=swr" # Fallback a swresample standard
+    fi
+}
+
+# Controllo supporto sidechain (per ducking LFE)
+check_sidechain_support() {
+    if ffmpeg -filters 2>&1 | grep -q sidechaincompress; then
+        echo "REALE" # Supporto sidechaincompress nativo
+    else
+        echo "EMULATO" # Fallback a sidechain emulato
     fi
 }
 
 # -----------------------------------------------------------------------------------------------
-#  VALIDAZIONE INPUT AVANZATA CON ANALISI DETTAGLIATA
+#  ELABORAZIONE AUDIO
 # -----------------------------------------------------------------------------------------------
 
-# Array globale per raccogliere i file validati durante l'analisi
-VALIDATED_FILES_GLOBAL=()
-
-# Analisi dettagliata tracce audio con suggerimenti specifici di conversione
-check_audio_streams() {
-    local file="$1"
+# Funzione principale di elaborazione audio per singolo file
+process() {
+    local input_file="$1"
+    local filename out log_file input_dir
     
-    # Estrazione metadati audio con ffprobe
-    local channels
-    channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
-    local layout
-    layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$file" 2>/dev/null)
-    local codec
-    codec=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 "$file" 2>/dev/null)
+    if [[ ! -f "$input_file" ]]; then
+        echo "❌ File input non trovato: $input_file" >&2
+        return 1 
+    fi
+    if [[ ! -r "$input_file" ]]; then
+        echo "❌ File input non leggibile: $input_file" >&2
+        return 1 
+    fi
     
-    # Controllo validità metadati estratti
-    if [[ -z "$channels" ]]; then
-        echo "❌ Impossibile analizzare traccia audio"
-        echo "💡 Verifica con: ffprobe -show_streams \"$file\""
+    # Ottieni la directory e il nome del file
+    input_dir=$(dirname "$input_file")
+    filename=$(basename "$input_file")
+    out="${filename%.*}_${PRESET}_clearvoice${VERSION}.mkv"
+    log_file="${input_dir}/${filename%.*}_${PRESET}_clearvoice${VERSION}.log"  # Log con nome corrispondente all'output
+    
+    echo "🔄 Preparazione elaborazione per: $filename" >&2
+    echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2
+    echo "   Output previsto: $out" >&2
+    echo "   Log file: $log_file" >&2
+    
+    # Test esplicito di scrittura del file di log
+    if ! touch "$log_file" 2>/dev/null; then
+        echo "⚠️ Impossibile creare il file di log: $log_file" >&2
+        echo "   Continuazione senza logging..." >&2
+    else
+        # Inizializza il file di log
+        {
+            echo "===== CLEARVOICE $VERSION - LOG DI ELABORAZIONE ====="
+            echo "File originale: $input_file"
+            echo "Preset: $PRESET | Codec: $ENC ($BR)"
+            echo "File output: $out"
+            echo "Data e ora: $(date)"
+            echo "----------------------------------------"
+        } > "$log_file"
+        
+        echo "   📝 File di log creato: $log_file" >&2
+    fi
+    
+    # Controllo esistenza file output con richiesta di conferma
+    if [[ -f "$out" ]]; then
+        if [[ "$OVERWRITE" == "true" ]]; then
+            echo "⚠️ File output già esistente: $out (sovrascrittura automatica)" >&2
+            if [[ -w "$log_file" ]]; then
+                echo "NOTA: File output già esistente - sovrascrittura automatica attivata" >> "$log_file"
+            fi
+        else
+            echo "⚠️ File output già esistente: $out" >&2
+            if ask_yes_no "   Vuoi sovrascrivere il file esistente?"; then
+                echo "   ✅ Sovrascrittura confermata." >&2
+                if [[ -w "$log_file" ]]; then
+                    echo "NOTA: File output già esistente - sovrascrittura confermata dall'utente" >> "$log_file"
+                fi
+            else
+                echo "   ❌ Sovrascrittura rifiutata. Elaborazione annullata." >&2
+                if [[ -w "$log_file" ]]; then
+                    echo "NOTA: File output già esistente - sovrascrittura rifiutata dall'utente" >> "$log_file"
+                    echo "ELABORAZIONE ANNULLATA" >> "$log_file"
+                fi
+                FAILED_FILES+=("$(basename "$input_file") (Sovrascrittura rifiutata)")
+                return 1
+            fi
+        fi
+    fi
+    
+    # Costruzione filtergraph
+    local LOCAL_FILTER_GRAPH
+    if ! LOCAL_FILTER_GRAPH=$(build_audio_filter "$input_file"); then
+        if [[ -w "$log_file" ]]; then
+            echo "ERRORE: Impossibile costruire l'audio filter." >> "$log_file"
+        fi
         return 1
     fi
     
-    echo "🔍 Audio rilevato: $codec | $channels canali | Layout: ${layout:-unknown}"
+    if [[ -w "$log_file" ]]; then
+        echo "Filtergraph FFmpeg:" >> "$log_file"
+        echo "$LOCAL_FILTER_GRAPH" >> "$log_file"
+        echo "----------------------------------------" >> "$log_file"
+        echo "Inizio elaborazione FFmpeg: $(date)" >> "$log_file"
+    fi
     
-    # Verifica compatibilità 5.1 - accetta anche layout "unknown" per robustezza
-    if [[ "$channels" == "6" && ("$layout" == "5.1" || "$layout" == "5.1(side)" || "$layout" == "unknown") ]]; then
-        echo "✅ Audio 5.1 compatibile con ClearVoice + VERO LFE Ducking + Soundstage POTENZIATO"
-        # Aggiunge il file all'array globale dei validati
+    # Registra l'inizio dell'elaborazione
+    local file_start_time=$(date +%s)
+    
+    # Esecuzione del comando FFmpeg
+    echo "🎬 Avvio elaborazione FFmpeg..." >&2
+    
+    # Determina numero di threads
+    local threads_count=0
+    if command -v nproc &> /dev/null; then
+        threads_count=$(nproc)
+    elif command -v sysctl &> /dev/null && [[ "$OSTYPE" == "darwin"* ]]; then
+        threads_count=$(sysctl -n hw.ncpu)
+    else
+        threads_count=$DEFAULT_THREADS
+    fi
+    
+    # Costruzione comando FFmpeg
+    ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero \
+      -threads "$threads_count" -filter_threads "$threads_count" -thread_queue_size 512 \
+      -i "$input_file" \
+      -filter_complex "$LOCAL_FILTER_GRAPH" \
+      -map "[out]" -map 0:a -c:a:0 "$ENC" -b:a:0 "$BR" \
+      -metadata:s:a:0 title="Italiano 5.1 ClearVoice $PRESET ($ENC $BR)" \
+      -metadata:s:a:0 language=ita -disposition:a:0 default \
+      -map 0:v -c:v copy -map 0:s? -c:s copy \
+      -movflags +faststart "$out" 2> >(tee -a "$log_file" >&2)
+    
+    # Cattura codice di uscita
+    local FFMPEG_RESULT_CODE=$?
+    
+    # Dopo l'esecuzione di FFmpeg, verifica sempre se il log è scrivibile
+    if [ $FFMPEG_RESULT_CODE -eq 0 ]; then
+        local file_elapsed_time_secs=$(($(date +%s) - file_start_time))
+        local output_size_bytes_val
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+             output_size_bytes_val=$(powershell -Command "(Get-Item \"$out\").Length" 2>/dev/null || echo "0")
+        else
+             output_size_bytes_val=$(stat -c%s "$out" 2>/dev/null || echo "0")
+        fi
+        
+        if [[ -w "$log_file" ]]; then
+            echo "✅ SUCCESSO: Elaborazione completata" >> "$log_file"
+            echo "Tempo impiegato: $file_elapsed_time_secs secondi" >> "$log_file"
+            echo "Dimensione file output: $output_size_bytes_val bytes" >> "$log_file"
+            echo "===== FINE ELABORAZIONE =====" >> "$log_file"
+        fi
+        
+        echo "✅ Elaborazione completata con successo per $filename!" >&2
+        echo "   File generato: $out ($output_size_bytes_val bytes)" >&2
+        echo "   Tempo impiegato: $file_elapsed_time_secs secondi" >&2
+        
+        if [[ -f "$log_file" ]]; then
+            echo "   Log salvato in: $log_file" >&2
+        fi
+        
+        PROCESSED_FILES_INFO+=("$(basename "$input_file") -> $(basename "$out") | ${file_elapsed_time_secs}s | $output_size_bytes_val bytes")
+        return 0
+    else
+        if [[ -w "$log_file" ]]; then
+            echo "❌ ERRORE: FFmpeg ha fallito con codice $FFMPEG_RESULT_CODE" >> "$log_file"
+            echo "Possibili cause: spazio disco, codec non supportati, file danneggiato, permessi" >> "$log_file"
+            echo "===== ELABORAZIONE FALLITA =====" >> "$log_file"
+        fi
+        
+        echo "❌ Errore FFmpeg durante l'elaborazione di $filename (Codice: $FFMPEG_RESULT_CODE)" >&2
+        
+        if [[ -f "$log_file" ]]; then
+            echo "   Log dettagli errore in: $log_file" >&2
+        fi
+        
+        echo "   💡 Verifica: spazio disco, codec supportati, integrità file input, permessi." >&2
+        
+        if [[ -f "$out" ]]; then
+            rm -f "$out"
+            if [[ -w "$log_file" ]]; then
+                echo "🗑️ File di output parziale rimosso: $out" >> "$log_file"
+            fi
+            echo "   🗑️ File di output parziale rimosso: $out" >&2
+        fi
+        
+        FAILED_FILES+=("$(basename "$input_file") (FFmpeg error $FFMPEG_RESULT_CODE)")
+        return 1
+    fi
+}
+
+# Costruisce il complesso filtergraph audio per l'elaborazione avanzata
+build_audio_filter() {
+    local file="$1"
+    local ducking_type_actual
+    ducking_type_actual=$(check_sidechain_support)
+
+    # Adattamenti volume e filtri per DTS (più "caldo" di default)
+    local voice_vol_adj="$VOICE_VOL" front_vol_adj="$FRONT_VOL" 
+    local lfe_vol_adj="$LFE_VOL" surround_vol_adj="$SURROUND_VOL"
+    local current_hp_freq="$HP_FREQ" current_lp_freq="$LP_FREQ"
+
+    if [[ "${CODEC,,}" == "dts" ]]; then
+        echo "ℹ️  Adattamento parametri per codec DTS" >&2
+        case "$PRESET" in # Usa PRESET globale
+            film)
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.3") front_vol_adj="0.80"                                   
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9") surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.85")
+                current_hp_freq="120"; current_lp_freq="7700"
+                ;;
+            serie)
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.1") front_vol_adj="0.80"                                     
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9") surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.88") 
+                current_hp_freq="135"; current_lp_freq="8000"
+                ;;
+            tv)
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.3") front_vol_adj="0.75"                                 
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.85") surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.88")
+                current_hp_freq="420"; current_lp_freq="5200"
+                ;;
+            cartoni)
+                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.2") front_vol_adj="0.85"                                
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9") surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.9")
+                current_hp_freq="90"; current_lp_freq="8700"
+                ;;
+        esac
+    fi
+
+    # Visualizza info sul tipo di ducking effettivo
+    echo "🎯 Filtro applicato: Voice + LFE Ducking $ducking_type_actual + Soundstage POTENZIATO" >&2
+    echo "🔊 Voice: +${voice_vol_adj}dB | LFE Vol: ${lfe_vol_adj}x (Ducking: $ducking_type_actual) | Front Vol: ${front_vol_adj}x" >&2
+    echo "🎭 Soundstage: Front $FRONT_DELAY_SAMPLES campioni, Surround $SURROUND_DELAY_SAMPLES campioni" >&2
+    echo "🎞️ Codec: $ENC ($BR) | Preset: $PRESET" >&2
+
+    # Costruzione ducking filter LFE
+    local lfe_ducking_filter_str
+    if [[ "$ducking_type_actual" == "REALE" ]]; then
+        lfe_ducking_filter_str="sidechaincompress=threshold=${SC_THRESHOLD}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}"
+    else # Fallback a ducking emulato (non sidechain)
+        lfe_ducking_filter_str="acompressor=threshold=0.4:ratio=3:attack=200:release=1000:makeup=1" # Parametri più cauti
+    fi
+
+    # Costruzione filtergraph completo
+    local filter_graph
+    filter_graph="[0:a]aformat=channel_layouts=5.1[audio5dot1];"
+    filter_graph+="[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE_orig][BL][BR];"
+
+    # Per il canale centrale (FC) - Dialoghi
+    if [[ -n "$DENOISE_FILTER" ]]; then
+        filter_graph+="[FC]$DENOISE_FILTER," # Applica denoise se configurato (preset TV)
+    fi
+    filter_graph+="[FC]highpass=f=${current_hp_freq},lowpass=f=${current_lp_freq},${FC_EQ_PARAMS},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}[fc_compressed];"
+
+    # Split per ducking
+    if [[ "$ducking_type_actual" == "REALE" ]]; then
+        filter_graph+="[fc_compressed]asplit=2[voice_final][voice_for_sidechain];" # Split per sidechain
+    else
+        filter_graph+="[fc_compressed]acopy[voice_final];" # No split se ducking emulato
+    fi
+    
+    # Soft clipping per voice
+    filter_graph+="[voice_final]${SOFTCLIP_SETTINGS}[center_out];"
+
+    # Per i canali frontali (FL/FR)
+    if [[ -n "$FLFR_EQ_PARAMS" ]]; then
+        filter_graph+="[FL]${FRONT_FILTER},${FLFR_EQ_PARAMS},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[fl_out];"
+        filter_graph+="[FR]${FRONT_FILTER},${FLFR_EQ_PARAMS},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[fr_out];"
+    else
+        filter_graph+="[FL]${FRONT_FILTER},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[fl_out];"
+        filter_graph+="[FR]${FRONT_FILTER},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[fr_out];"
+    fi
+
+    # Per il canale LFE (subwoofer)
+    filter_graph+="[LFE_orig]highpass=f=${LFE_HP_FREQ}:poles=${LFE_CROSS_POLES},lowpass=f=${LFE_LP_FREQ}:poles=${LFE_CROSS_POLES},${LFE_EQ_PARAMS}[lfe_eq_processed];"
+
+    # Applica ducking LFE
+    if [[ "$ducking_type_actual" == "REALE" ]]; then
+        filter_graph+="[lfe_eq_processed][voice_for_sidechain]${lfe_ducking_filter_str}[lfe_out];"
+    else
+        filter_graph+="[lfe_eq_processed]${lfe_ducking_filter_str}[lfe_out];"
+    fi
+
+    # Per i canali surround (BL/BR)
+    filter_graph+="[BL]highpass=f=35:poles=1,lowpass=f=18500:poles=1,volume=${surround_vol_adj},adelay=${SURROUND_DELAY_SAMPLES}[bl_out];"
+    filter_graph+="[BR]highpass=f=35:poles=1,lowpass=f=18500:poles=1,volume=${surround_vol_adj},adelay=${SURROUND_DELAY_SAMPLES}[br_out];"
+
+    # Ricombina tutti i canali
+    filter_graph+="[fl_out][fr_out][center_out][lfe_out][bl_out][br_out]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];"
+
+    # Fase finale: resampling e formattazione
+    local soxr_filter
+    soxr_filter=$(apply_soxr_resampling)
+    filter_graph+="[joined]${soxr_filter},aformat=sample_fmts=s32:channel_layouts=5.1[out]"
+
+    echo "$filter_graph"
+}
+
+# Verifica se un file ha audio 5.1 e lo aggiunge alla lista validata se compatibile
+validate_file() {
+    local file="$1"
+    local format channels layout
+    
+    if [[ ! -f "$file" ]]; then
+        return 1 # File non trovato
+    fi
+    
+    # Ottieni il layout dei canali audio
+    local probe_result
+    if ! probe_result=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels,channel_layout -of csv=p=0 "$file" 2>/dev/null); then
+        echo "   ⚠️ Impossibile leggere informazioni audio: $file" >&2
+        return 1
+    fi
+    
+    # Estrai canali e layout
+    IFS=',' read -r channels layout <<< "$probe_result"
+    channels=$(echo "$channels" | tr -d ' ')
+    layout=$(echo "$layout" | tr -d ' ')
+    
+    echo "   🔎 Controllo: $(basename "$file")" >&2
+    
+    # Validazione formato audio 5.1
+    if [[ "$channels" == "6" ]]; then
+        # Ottieni codec audio
+        local codec
+        codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$file" 2>/dev/null)
+        
+        echo "      ✅ Audio 5.1 compatibile ($codec, layout: $layout). Aggiunto alla coda." >&2
         VALIDATED_FILES_GLOBAL+=("$file")
         return 0
     else
-        echo "❌ Audio non compatibile con ClearVoice (richiede 5.1 surround)"
-        
-        # Suggerimenti specifici per formato rilevato con comandi pratici
-        case "$channels" in
-            1)
-                echo "   🎙️ MONO rilevato"
-                echo "   💡 Conversione: ffmpeg -i \"$file\" -af \"pan=5.1|FL=FC|FR=FC|FC=FC|LFE=0|BL=0|BR=0\" -c:v copy output_51.mkv"
-                ;;
-            2)
-                echo "   🔄 STEREO rilevato"
-                echo "   💡 Upmix a 5.1: ffmpeg -i \"$file\" -af \"surround\" -c:v copy output_51.mkv"
-                ;;
-            8)
-                echo "   🎭 7.1 SURROUND rilevato"
-                echo "   💡 Downmix a 5.1: ffmpeg -i \"$file\" -af \"pan=5.1|FL=0.5*FL+0.707*FLC|FR=0.5*FR+0.707*FRC|FC=FC|LFE=LFE|BL=BL|BR=BR\" -c:v copy output_51.mkv"
-                ;;
-            *)
-                echo "   ❓ Configurazione non standard ($channels canali)"
-                echo "   💡 Analisi completa: ffprobe -show_streams \"$file\""
-                ;;
-        esac
+        # Aggiorna contatori per statistiche
+        if [[ "$channels" == "1" ]]; then
+            echo "      ⚠️ Formato audio mono (1 canale) rilevato. Non compatibile." >&2
+            ((MONO_COUNT++))
+        elif [[ "$channels" == "2" ]]; then
+            echo "      ⚠️ Formato audio stereo (2 canali) rilevato. Non compatibile." >&2
+            ((STEREO_COUNT++))
+        elif [[ "$channels" == "8" && "$layout" == *"7.1"* ]]; then
+            echo "      ⚠️ Formato audio 7.1 (8 canali) rilevato. Non compatibile." >&2
+            ((SURROUND71_COUNT++))
+        else
+            echo "      ⚠️ Formato audio non supportato: $channels canali, layout: $layout" >&2
+            ((OTHER_FORMAT_COUNT++))
+        fi
         return 1
     fi
 }
 
-# Validazione preliminare con conteggio dettagliato per formato e statistiche
+# Verifica se un percorso è valido e lo elabora appropriatamente
 validate_inputs() {
-    local valid_count=0 total_count=0
-    local mono_count=0 stereo_count=0 surround71_count=0 other_count=0
+    local total_candidates=0
+    local validated_count=0
     
-    # Reset array globale per nuova analisi
-    VALIDATED_FILES_GLOBAL=()
-    
-    echo "🔍 Validazione input ClearVoice + VERO LFE Ducking + Soundstage POTENZIATO..."
-    
-    # Raccogli tutti i file con verifica esistenza robusta
-    local all_files=()
-    for path in "${INPUTS[@]}"; do
-        if [[ -d "$path" ]]; then
-            # Gestione directory con nullglob per sicurezza
-            shopt -s nullglob
-            local dir_files=("$path"/*.mkv)
-            if [[ ${#dir_files[@]} -gt 0 ]]; then
-                all_files+=("${dir_files[@]}")
+    for input in "${INPUTS[@]}"; do
+        if [[ -f "$input" ]]; then
+            # Singolo file
+            ((total_candidates++))
+            validate_file "$input" && ((validated_count++))
+        elif [[ -d "$input" ]]; then
+            # Directory: verifica solo file .mkv
+            local files=()
+            mapfile -t files < <(find "$input" -maxdepth 1 -type f -name "*.mkv" -o -name "*.mp4" -o -name "*.m4v" | sort)
+            
+            if [[ ${#files[@]} -eq 0 ]]; then
+                echo "   ⚠️ Nessun file video trovato in: $input" >&2
+            else
+                for file in "${files[@]}"; do
+                    ((total_candidates++))
+                    validate_file "$file" && ((validated_count++))
+                done
             fi
-            shopt -u nullglob
-        elif [[ -f "$path" ]]; then
-            all_files+=("$path")
         else
-            echo "⚠️  Path non valido ignorato: $path"
+            echo "   ⚠️ Percorso non valido (non file né directory): $input" >&2
         fi
     done
     
-    # Controllo presenza file da elaborare
-    if [[ ${#all_files[@]} -eq 0 ]]; then
-        echo "❌ Nessun file .mkv trovato!"
-        echo "💡 Comandi utili: ls *.mkv | find . -name \"*.mkv\""
+    # Report di validazione
+    echo "🔍 Validazione di $total_candidates file potenziali..." >&2
+    
+    # Controlla se ci sono file validati
+    if [[ $validated_count -eq 0 ]]; then
+        echo "📊 Risultati validazione: 0/$total_candidates file compatibili." >&2
+        
+        # Suggerimenti per conversione in base al formato trovato
+        if [[ $MONO_COUNT -gt 0 || $STEREO_COUNT -gt 0 || $SURROUND71_COUNT -gt 0 ]]; then
+            echo "" >&2
+            echo "💡 SUGGERIMENTI PER CONVERSIONE IN 5.1:" >&2
+            
+            if [[ $MONO_COUNT -gt 0 ]]; then
+                echo "   🎙️ Per convertire audio MONO in 5.1:" >&2
+                echo "   ffmpeg -i \"file.mkv\" -af \"pan=5.1|FL=FC|FR=FC|FC=FC|LFE=0|BL=0|BR=0\" -c:v copy output_51.mkv" >&2
+            fi
+            
+            if [[ $STEREO_COUNT -gt 0 ]]; then
+                echo "   🔄 Per convertire audio STEREO in 5.1:" >&2
+                echo "   ffmpeg -i \"file.mkv\" -af \"surround\" -c:v copy output_51.mkv" >&2
+            fi
+            
+            if [[ $SURROUND71_COUNT -gt 0 ]]; then
+                echo "   🎭 Per convertire audio 7.1 in 5.1:" >&2
+                echo "   ffmpeg -i \"file.mkv\" -af \"pan=5.1|FL=0.5*FL+0.707*FLC|FR=0.5*FR+0.707*FRC|FC=FC|LFE=LFE|BL=BL|BR=BR\" -c:v copy output_51.mkv" >&2
+            fi
+            
+            echo "" >&2
+        fi
+        
         return 1
     fi
     
-    echo "📁 Analisi dettagliata di ${#all_files[@]} file..."
-    
-    # Analisi completa di ogni file con statistiche formati
-    for file in "${all_files[@]}"; do
-        ((total_count++))
-        echo "━━━ $(basename "$file") ━━━"
-        
-        # Controllo leggibilità file
-        if [[ ! -r "$file" ]]; then
-            echo "❌ File non leggibile"
-            continue
-        fi
-        
-        # Analisi dettagliata con conteggio formati per statistiche finali
-        local channels
-        channels=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
-        
-        # Conteggio statistico formati audio trovati
-        case "$channels" in
-            1) ((mono_count++));;
-            2) ((stereo_count++));;
-            6) ;;  # Gestito da check_audio_streams
-            8) ((surround71_count++));;
-            *) ((other_count++));;
-        esac
-        
-        # Verifica compatibilità e aggiunta a lista validati
-        if check_audio_streams "$file"; then
-            ((valid_count++))
-        fi
-        echo ""
-    done
-    
-    # Riepilogo con statistiche complete formati trovati
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "📊 Risultati analisi: $valid_count/$total_count file compatibili"
-    
-    # Controllo presenza file validi per procedere
-    if [[ $valid_count -eq 0 ]]; then
-        echo "❌ Nessun file 5.1 valido per ClearVoice + VERO LFE Ducking + Soundstage POTENZIATO!"
-        return 1
-    fi
-    
-    echo "✅ Procedo con $valid_count file 5.1 compatibili con VERO LFE Ducking + Soundstage POTENZIATO attivi"
+    echo "📊 Risultati validazione: $validated_count/$total_candidates file compatibili." >&2
     return 0
 }
 
-# -----------------------------------------------------------------------------------------------
-#  ANALISI CLI CON PARSING ROBUSTO
-# -----------------------------------------------------------------------------------------------
-
-# Variabili globali per configurazione utente
-PRESET="serie"  # preset di default ottimizzato per serie TV
-CODEC=""        # codec da impostare via CLI o default
-BR=""           # bitrate da impostare via CLI o default
-INPUTS=()       # array file input da elaborare
-
-# Parsing argomenti command line con gestione robusta
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --film) PRESET="film"; shift;;
-    --serie) PRESET="serie"; shift;;
-    --tv) PRESET="tv"; shift;;
-    --cartoni) PRESET="cartoni"; shift;;
-    -h|--help)
-      # Help completo con esempi pratici e spiegazioni dettagliate
-      cat << 'EOF'
-CLEARVOICE 0.89 - Ottimizzazione Audio 5.1 + VERO LFE Ducking + SoxR + Soundstage POTENZIATO
-
-USO: ./clearvoice089_preset.sh [PRESET] [CODEC] [BITRATE] [FILES...]
-
-PRESET DISPONIBILI:
-  --film     Cinema/Action + LFE Ducking moderato + Soundstage cinematografico
-             • Voice: 8.5dB | LFE: Ducking REALE | Soundstage: 5ms/30ms
-             • Ottimizzato per impatto cinematografico e dinamica
-
-  --serie    Serie TV/Dialoghi + LFE Ducking aggressivo + Soundstage compatto  
-             • Voice: 8.6dB | LFE: Ducking REALE | Soundstage: 4ms/25ms
-             • Massima intelligibilità per ascolto domestico
-
-  --tv       Materiale problematico + LFE Ducking ultra + Soundstage ridotto
-             • Voice: 7.6dB | LFE: Ducking REALE | Soundstage: 3ms/20ms
-             • Per audio scadente o molto compresso
-
-  --cartoni  Animazione + LFE Ducking gentile + Soundstage espanso
-             • Voice: 8.5dB | LFE: Ducking REALE | Soundstage: 6ms/35ms
-             • Preserva musicalità e effetti sonori
-
-CODEC SUPPORTATI: 
-  eac3 (default) | ac3 | dts  
-
-BITRATE DISPONIBILI: 
-  640k (default) | 448k | 768k | 1024k
-
-NOVITÀ VERSIONE 0.89 CORRETTA:
-  ✓ VERO LFE Ducking: Sidechaincompress REALE o fallback automatico sicuro
-  ✓ Soundstage POTENZIATO: Delay 3-6ms front, 20-35ms surround (PERCETTIBILI)
-  ✓ Rilevamento automatico supporto FFmpeg per tecnologie avanzate
-  ✓ Voice boost intelligente + controllo dinamico LFE per chiarezza costante
-  ✓ SoXR resampling: Qualità audio superiore (precision 28-bit)
-  ✓ Parametri ottimizzati specifici per ogni preset (attack/release diversi)
-  ✓ Crossover LFE professionale con filtraggio multi-polo
-  ✓ Limitatore anti-clipping con soft-clipping adattivo
-
-ESEMPI PRATICI:
-  ./clearvoice089_preset.sh --serie *.mkv            # Serie TV + Ducking aggressivo
-  ./clearvoice089_preset.sh --film dts 768k *.mkv    # Film DTS + Ducking moderato
-  ./clearvoice089_preset.sh --cartoni ac3 448k *.mkv # Cartoni AC3 + Ducking gentile
-  ./clearvoice089_preset.sh --tv eac3 640k video.mkv # Video problematico + Ducking ultra
-
-OUTPUT: filename_[preset]_clearvoice0.mkv
-
-TECNOLOGIE IMPLEMENTATE:
-  ✓ Sidechain compression REALE con fallback automatico sicuro
-  ✓ Delay temporali REALMENTE percettibili per soundstage 3D professionale
-  ✓ Compressore multi-banda per naturalezza voce
-  ✓ Limitatore intelligente anti-clipping
-  ✓ Crossover LFE con filtraggio professionale
-  ✓ SoXR resampler per qualità superiore (se supportato)
-  ✓ EQ adattivo per materiale problematico (preset TV)
-
-NOTE TECNICHE:
-  • Ducking: Auto-rilevamento sidechaincompress, fallback a acompressor sicuro
-  • SoXR: Richiede FFmpeg compilato con --enable-libsoxr
-  • Soundstage: Delay POTENZIATI 3-35ms per percezione spaziale realistica
-  • Compatibilità: Funziona con qualsiasi build FFmpeg (fallback automatici)
-EOF
-      exit 0;;
-    -*) echo "Opzione sconosciuta: $1"; exit 1;;
-    *) INPUTS+=("$1"); shift;;
-  esac
-done
-
-# Gestione input automatica con parsing migliorato e validazione
-if [[ ${#INPUTS[@]} -ge 1 && ! -f "${INPUTS[0]}" && ! "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-    # Primo argomento non è un file né un bitrate, deve essere un codec
-    if [[ "${INPUTS[0]}" =~ ^(eac3|ac3|dts)$ ]]; then
-        CODEC="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
-    fi
-fi
-
-# Estrazione bitrate se presente negli argomenti
-if [[ ${#INPUTS[@]} -ge 1 && "${INPUTS[0]}" =~ ^[0-9]+[kK]$ ]]; then
-    BR="${INPUTS[0]}"; INPUTS=("${INPUTS[@]:1}")
-fi
-
-# Auto-discovery file .mkv nella directory corrente se nessun input specificato
-if [[ ${#INPUTS[@]} -eq 0 ]]; then
-    shopt -s nullglob
-    INPUTS=(*.mkv)
-    shopt -u nullglob
-fi
-
-# Controllo presenza file da elaborare
-[[ ${#INPUTS[@]} -eq 0 ]] && { echo "❌ Nessun file specificato!"; exit 1; }
-
-# -----------------------------------------------------------------------------------------------
-#  FUNZIONI QUALITÀ AVANZATE CON VALIDAZIONE
-# -----------------------------------------------------------------------------------------------
-
-# CORRETTO: Costruisce limitatore intelligente anti-clipping specifico per preset
-build_limiter_settings() {
-    case "$PRESET" in
-        film)
-            echo "alimiter=level_in=1.0:level_out=0.95:limit=0.98:attack=5:release=50:asc=1"
-            ;;
-        serie)
-            echo "alimiter=level_in=1.0:level_out=0.93:limit=0.96:attack=3:release=30:asc=1"
-            ;;
-        tv)
-            echo "alimiter=level_in=1.0:level_out=0.92:limit=0.95:attack=2:release=20:asc=1"
-            ;;
-        cartoni)
-            echo "alimiter=level_in=1.0:level_out=0.96:limit=0.99:attack=8:release=80:asc=1"
-            ;;
-    esac
-}
-
-# Costruisce filtri pulizia Front L/R specifici per preset e contenuto
-build_front_filters() {
-    case "$PRESET" in
-        film)
-            echo "highpass=f=22:poles=1,lowpass=f=20000:poles=1"
-            ;;
-        serie)
-            echo "highpass=f=28:poles=1,lowpass=f=17500:poles=1"
-            ;;
-        tv)
-            echo "highpass=f=100:poles=1,lowpass=f=8000:poles=1"
-            ;;
-        cartoni)
-            echo "highpass=f=18:poles=1,lowpass=f=24000:poles=1"
-            ;;
-    esac
-}
-
-# -----------------------------------------------------------------------------------------------
-#  IMPOSTAZIONI PRESET CON VALIDAZIONE ROBUSTA + SOUNDSTAGE POTENZIATO
-# -----------------------------------------------------------------------------------------------
-
-# Dichiarazione variabili globali prima dell'uso per evitare errori bash
-VOICE_VOL=""                # Volume boost voce calcolato per preset
-LFE_VOL=""                  # Volume LFE base prima del ducking
-SURROUND_VOL=""             # Volume canali surround per spazialità
-VOICE_COMP=""               # Parametri compressione voce (threshold:ratio:attack:release)
-HP_FREQ=""                  # Frequenza highpass filtro voce
-LP_FREQ=""                  # Frequenza lowpass filtro voce
-COMPRESSOR_SETTINGS=""      # Stringa completa settings compressore
-SOFTCLIP_SETTINGS=""        # Stringa completa settings limitatore
-FRONT_FILTER=""             # Stringa completa filtri canali frontali
-FRONT_DELAY_SAMPLES=""      # Delay samples canali frontali per soundstage
-SURROUND_DELAY_SAMPLES=""   # Delay samples canali surround per soundstage
-
-# Configurazione parametri preset con calcoli ottimizzati per ogni scenario
-set_preset_params() {
-    case "$PRESET" in
-        film)
-            VOICE_VOL=8.5; LFE_VOL=0.22; SURROUND_VOL=4.6
-            VOICE_COMP="0.35:1.30:40:390"
-            HP_FREQ=115; LP_FREQ=7900
-            ;;
-        serie)
-            VOICE_VOL=8.6; LFE_VOL=0.22; SURROUND_VOL=4.5
-            VOICE_COMP="0.40:1.15:60:380"
-            HP_FREQ=130; LP_FREQ=7800
-            ;;
-        tv)
-            VOICE_VOL=7.6; LFE_VOL=0.22; SURROUND_VOL=3.8
-            VOICE_COMP="0.42:1.28:20:320"
-            HP_FREQ=180; LP_FREQ=6000
-            ;;  
-        cartoni)
-            VOICE_VOL=8.5; LFE_VOL=0.22; SURROUND_VOL=4.6
-            VOICE_COMP="0.40:1.15:50:330"
-            HP_FREQ=110; LP_FREQ=6900
-            ;;
-        *) echo "❌ Preset sconosciuto: $PRESET"; exit 1;;
-    esac
-    
-    # CORRETTO: Costruisce settings compressore dalla stringa parametri
-    IFS=':' read -r threshold ratio attack release <<< "$VOICE_COMP"
-    COMPRESSOR_SETTINGS="acompressor=threshold=${threshold}:ratio=${ratio}:attack=${attack}:release=${release}:makeup=2:knee=2"
-    
-    # Chiama impostazione parametri soundstage POTENZIATO
-    set_soundstage_params
-    
-    # Costruisce settings limitatore e front filter
-    SOFTCLIP_SETTINGS=$(build_limiter_settings)
-    FRONT_FILTER=$(build_front_filters)
-    
-    echo "✅ Preset $PRESET configurato: Voice +${VOICE_VOL}dB, LFE ${LFE_VOL}x, Surround ${SURROUND_VOL}x"
-    echo "   🎭 Soundstage POTENZIATO: Front ${FRONT_DELAY_SAMPLES} samples, Surround ${SURROUND_DELAY_SAMPLES} samples"
-}
-
-# Esegui configurazione preset
-set_preset_params
-
-# -----------------------------------------------------------------------------------------------
-#  SELEZIONE CODEC CON PARAMETRI QUALITÀ OTTIMIZZATI
-# -----------------------------------------------------------------------------------------------  
-
-# Dichiarazione variabili globali codec
-ENC=""      # Encoder FFmpeg selezionato
-TITLE=""    # Titolo metadata traccia elaborata
-EXTRA=""    # Parametri extra specifici codec
-
-# Configurazione codec con ottimizzazioni qualità specifiche
-CODEC="${CODEC:-eac3}"
-case "${CODEC,,}" in
-    eac3)
-        ENC="eac3"; TITLE="EAC3 ClearVoice ${PRESET}"
-        BR="${BR:-640k}"
-        EXTRA="-channel_layout 5.1 -ac 6"
-        ;;
-    ac3)
-        ENC="ac3"; TITLE="AC3 ClearVoice ${PRESET}"
-        BR="${BR:-640k}"
-        EXTRA="-channel_layout 5.1 -ac 6"
-        ;;
-    dts)
-        ENC="dts"; TITLE="DTS ClearVoice ${PRESET}"  
-        BR="${BR:-768k}"
-        EXTRA="-strict -2 -ar 48000 -ac 6"  
-        ;;
-    *) echo "❌ Codec non supportato: $CODEC"; exit 1;;
-esac
-
-# -----------------------------------------------------------------------------------------------
-#  COSTRUZIONE FILTRI AUDIO CON VERO LFE DUCKING + SOUNDSTAGE POTENZIATO
-# -----------------------------------------------------------------------------------------------
-
-# Dichiarazione variabile globale filtro completo
-ADV_FILTER=""
-
-# CORRETTO: Costruzione filtro audio completo con VERO LFE DUCKING ADATTIVO
-build_audio_filter() {
-    local voice_vol_adj front_vol_adj lfe_vol_adj surround_vol_adj
-    local hp_freq=${HP_FREQ} lp_freq=${LP_FREQ}
-    
-    # Verifica supporto ducking
-    local ducking_type=$(check_sidechain_support)
-    
-    # Calcoli volumi per codec DTS
-    if [[ "${CODEC,,}" == "dts" ]]; then
-        case "$PRESET" in
-            film)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.5")
-                front_vol_adj="0.76"                                   
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.8")
-                hp_freq=135; lp_freq=7700
-                ;;
-            serie)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.3")
-                front_vol_adj="0.76"                                     
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.8") 
-                hp_freq=135; lp_freq=8000
-                ;;
-            tv)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.2")
-                front_vol_adj="0.67"                                     
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.7") 
-                hp_freq=340; lp_freq=6000
-                ;;                
-            cartoni)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.4")
-                front_vol_adj="0.85"                                     
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.85") 
-                hp_freq=125; lp_freq=6800
-                ;;
-        esac
-    else
-        # EAC3/AC3 calcoli volumi
-        case "$PRESET" in
-            film)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.2")
-                front_vol_adj="0.76"
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=${SURROUND_VOL}
-                ;;
-            serie)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.1")
-                front_vol_adj="0.76"
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.92")
-                ;;
-            tv)
-                voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.2")
-                front_vol_adj="0.67"
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.7")
-                ;;                
-            cartoni)
-                voice_vol_adj=$VOICE_VOL
-                front_vol_adj="0.85"
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.23")
-                surround_vol_adj=${SURROUND_VOL}
-                ;;               
-        esac
-    fi
-    
-    # Voice EQ integration
-    local voice_eq=$(build_voice_eq "$PRESET")
-    local voice_eq_filter=""
-    if [[ -n "$voice_eq" ]]; then
-        voice_eq_filter=",$voice_eq"
-    fi
-    
-    # LFE ducking filter adattivo
-   local lfe_ducking_filter=$(build_lfe_ducking_filter "$ducking_type")
-    
-    # SoxR settings
-    local soxr_settings=$(apply_soxr_resampling)
-    
-    # CORRETTO: Filtro con ducking adattivo basato su supporto FFmpeg
-    if [[ "${CODEC,,}" == "dts" ]]; then
-        # Catena filtri DTS corretta con DUCKING ADATTIVO
-        ADV_FILTER="[0:a]aformat=channel_layouts=5.1[audio5dot1];"
-        ADV_FILTER+="[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];"
-        
-        # Voice processing completo con EQ
-        ADV_FILTER+="[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq}${voice_eq_filter},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}[fc_processed];"
-        
-        # Voice split per sidechain ducking se supportato
-        if [[ "$ducking_type" == "REALE" ]]; then
-            ADV_FILTER+="[fc_processed]asplit=2[voice_final][voice_sidechain];"
-        else
-            ADV_FILTER+="[fc_processed]acopy[voice_final];"
-        fi
-        
-        # Front processing con soundstage POTENZIATO
-        ADV_FILTER+="[FL]${FRONT_FILTER},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[left];"
-        ADV_FILTER+="[FR]${FRONT_FILTER},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[right];"
-        
-        # LFE base processing
-        local lfe_eq=$(build_lfe_eq "$PRESET")
-        ADV_FILTER+="[LFE]${lfe_eq},volume=${lfe_vol_adj}[lfe_base];"
-        
-        # DUCKING ADATTIVO: REALE o SIMULATO basato su supporto FFmpeg
-        if [[ "$ducking_type" == "REALE" ]]; then
-            # VERO DUCKING: LFE reagisce alla voce in tempo reale (sidechaincompress)
-            ADV_FILTER+="[lfe_base][voice_sidechain]${lfe_ducking_filter}[lfe_ducked];"
-        else
-            # DUCKING SIMULATO: Compressione LFE semplice ma funzionante
-            ADV_FILTER+="[lfe_base]${lfe_ducking_filter}[lfe_ducked];"
-        fi
-        
-        # Voice finale con limitatore
-        ADV_FILTER+="[voice_final]${SOFTCLIP_SETTINGS}[center];"
-        
-        # Surround processing con soundstage POTENZIATO
-        ADV_FILTER+="[BL]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj},adelay=${SURROUND_DELAY_SAMPLES}[surroundL];"
-        ADV_FILTER+="[BR]highpass=f=30:poles=1,lowpass=f=19000:poles=1,volume=${surround_vol_adj},adelay=${SURROUND_DELAY_SAMPLES}[surroundR];"
-        
-        # Join finale con tutti i canali
-        ADV_FILTER+="[left][right][center][lfe_ducked][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];"
-        ADV_FILTER+="[joined]${soxr_settings},aformat=sample_fmts=s32:channel_layouts=5.1[out]"
-    else
-        # EAC3/AC3 con stessa struttura corretta e DUCKING ADATTIVO
-        ADV_FILTER="[0:a]aformat=channel_layouts=5.1[audio5dot1];"
-        ADV_FILTER+="[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][BL][BR];"
-        
-        # Voice processing
-        ADV_FILTER+="[FC]highpass=f=${hp_freq},lowpass=f=${lp_freq}${voice_eq_filter},volume=${voice_vol_adj},${COMPRESSOR_SETTINGS}[fc_processed];"
-        
-        # Voice split per sidechain ducking se supportato
-        if [[ "$ducking_type" == "REALE" ]]; then
-            ADV_FILTER+="[fc_processed]asplit=2[voice_final][voice_sidechain];"
-        else
-            ADV_FILTER+="[fc_processed]acopy[voice_final];"
-        fi
-        
-        # Front processing con soundstage POTENZIATO
-        ADV_FILTER+="[FL]${FRONT_FILTER},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[left];"
-        ADV_FILTER+="[FR]${FRONT_FILTER},volume=${front_vol_adj},adelay=${FRONT_DELAY_SAMPLES}[right];"
-        
-        # LFE base processing
-        local lfe_eq=$(build_lfe_eq "$PRESET")
-        ADV_FILTER+="[LFE]${lfe_eq},volume=${lfe_vol_adj}[lfe_base];"
-        
-        # DUCKING ADATTIVO: REALE o SIMULATO
-        if [[ "$ducking_type" == "REALE" ]]; then
-            # VERO DUCKING: LFE reagisce alla voce in tempo reale (sidechaincompress)
-            ADV_FILTER+="[lfe_base][voice_sidechain]${lfe_ducking_filter}[lfe_ducked];"
-        else
-            # DUCKING SIMULATO: Compressione LFE semplice ma funzionante
-            ADV_FILTER+="[lfe_base]${lfe_ducking_filter}[lfe_ducked];"
-        fi
-        
-        # Voice finale
-        ADV_FILTER+="[voice_final]${SOFTCLIP_SETTINGS}[center];"
-        
-        # Surround processing con soundstage POTENZIATO
-        ADV_FILTER+="[BL]highpass=f=35:poles=1,lowpass=f=18000:poles=1,volume=${surround_vol_adj},adelay=${SURROUND_DELAY_SAMPLES}[surroundL];"
-        ADV_FILTER+="[BR]highpass=f=35:poles=1,lowpass=f=18000:poles=1,volume=${surround_vol_adj},adelay=${SURROUND_DELAY_SAMPLES}[surroundR];"
-        
-        # Join finale
-        ADV_FILTER+="[left][right][center][lfe_ducked][surroundL][surroundR]join=inputs=6:channel_layout=5.1:map=0.0-FL|1.0-FR|2.0-FC|3.0-LFE|4.0-BL|5.0-BR[joined];"
-        ADV_FILTER+="[joined]${soxr_settings},aformat=sample_fmts=s32:channel_layouts=5.1[out]"
-    fi
-    
-    echo "🎯 Filtro CORRETTO: Voice + LFE Ducking ${ducking_type} + Soundstage POTENZIATO"
-    echo "   🔊 Voice: +${voice_vol_adj}dB | LFE: ${lfe_vol_adj}x (ducking ${ducking_type}) | Front: ${front_vol_adj}x"
-    echo "   🎭 Soundstage POTENZIATO: Front ${FRONT_DELAY_SAMPLES}, Surround ${SURROUND_DELAY_SAMPLES} samples"
-}
-
-# Esegui costruzione filtro
-build_audio_filter
-
-# -----------------------------------------------------------------------------------------------
-#  PROCESSING CON GESTIONE ERRORI AVANZATA
-# -----------------------------------------------------------------------------------------------
-
-# Funzione processing singolo file con gestione completa errori
-process() {
-    local input_file="$1"
-    local out="${input_file%.*}_${PRESET}_clearvoice0.mkv"
-    
-    # Controllo esistenza file input
-    if [[ ! -f "$input_file" ]]; then
-        echo "❌ File non trovato: $input_file"
-        return 1
-    fi
-    
-    # Controllo layout audio per gestione robusta formato "unknown"
-    local channel_layout
-    channel_layout=$(ffprobe -v quiet -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$input_file" 2>/dev/null)
-    
-    # Fix automatico per layout audio "unknown" - usa aformat invece di channelmap
-    local LOCAL_FILTER="$ADV_FILTER"
-    if [[ "$channel_layout" == "unknown" ]]; then
-        echo "   🔧 Layout 'unknown' rilevato - applicato fix automatico"
-    fi
-    
-    echo "🎬 Processing: $(basename "$input_file") [Preset: $PRESET + LFE Ducking ADATTIVO + Soundstage POTENZIATO]"
-    
-    # Controllo sovrascrittura file esistente
-    if [[ -e "$out" ]]; then
-        read -p "⚠️  Output già presente. Sovrascrivere? (y/n): " choice
-        [[ ! "$choice" =~ ^[Yy]$ ]] && return 0
-    fi
-
-    # Timer processing per statistiche
-    local START_TIME=$(date +%s)
-    
-    # Rilevamento thread count ottimale
-    local thread_count
-    thread_count=$(nproc 2>/dev/null || echo "4")
-    
-    echo "   ⚙️  Configurazione: $thread_count thread | Codec: $ENC ($BR)"
-    echo "   🎛️  Filtro: Voice ${VOICE_VOL}dB + LFE Ducking ADATTIVO + Soundstage POTENZIATO"
-    
-    # Processing FFmpeg con threading ottimizzato e gestione errori completa
-    if ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero \
-        -threads "$thread_count" -filter_threads "$thread_count" -thread_queue_size 512 \
-        -i "$input_file" -filter_complex "$LOCAL_FILTER" \
-        -map 0:v -map "[out]" -map 0:a? -map 0:s? \
-        -metadata:s:a:0 title="$TITLE" -metadata:s:a:0 language=ita -disposition:a:0 default \
-        -c:v copy -c:a:0 "$ENC" $EXTRA -b:a:0 "$BR" -c:a:1 copy -c:s copy \
-        -movflags +faststart "$out"; then
-        
-        # Calcolo tempo processing e statistiche finali
-        local END_TIME=$(date +%s)
-        local PROCESSING_TIME=$((END_TIME - START_TIME))
-        
-        # Controllo dimensione file output per validazione (Windows compatible)
-        local file_size size_mb
-        if command -v stat &> /dev/null; then
-            # Linux/Unix
-            file_size=$(stat -c%s "$out" 2>/dev/null || echo "0")
-        elif command -v powershell &> /dev/null; then
-            # Windows fallback
-            file_size=$(powershell -command "(Get-Item '$out').Length" 2>/dev/null || echo "0")
-        else
-            echo "   ⚠️  Impossibile calcolare dimensione file"
-            file_size="0"
-        fi
-        size_mb=$((file_size / 1024 / 1024))
-        
-        echo "✅ Completato in ${PROCESSING_TIME}s: $(basename "$out") (${size_mb}MB)"
-        echo "   🔊 LFE Ducking ADATTIVO + Soundstage POTENZIATO attivi | Traccia default impostata"
-        return 0
-    else
-        echo "❌ Errore durante elaborazione di $input_file"
-        echo "   💡 Verifica: spazio disco, codec supportati, integrità file input"
-        return 1
-    fi
-}
-
-# Funzione summary finale con statistiche complete
+# Stampa riepilogo finale operazioni
 print_summary() {
-    local TOTAL_END_TIME=$(date +%s)
-    local TOTAL_TIME=$((TOTAL_END_TIME - TOTAL_START_TIME))
-    local ducking_type=$(check_sidechain_support)
+    local total_elapsed_time=$(($(date +%s) - TOTAL_START_TIME))
     
-    echo ""
-    echo "══════════════════════════════════════════════━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━════════════════"
-    echo "  🎯 CLEARVOICE 0.89 - ELABORAZIONE COMPLETATA"
-    echo "═══════════════════════════════════════━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━═══════════════════════"
-    echo "📊 STATISTICHE SESSIONE:"
-    echo "   • Preset utilizzato: $PRESET"
-    echo "   • Codec output: $CODEC ($BR)"
-    echo "   • File processati: ${#VALIDATED_FILES_GLOBAL[@]}"
-    echo "   • Tempo totale elaborazione: ${TOTAL_TIME}s"
-    echo ""
-    echo "🎛️ TECNOLOGIE APPLICATE:"
-    echo "   • ✅ LFE Ducking: ${ducking_type} (adattivo automatico)"
-    echo "   • 🎭 Soundstage spaziale POTENZIATO: Front ${FRONT_DELAY_SAMPLES}, Surround ${SURROUND_DELAY_SAMPLES} samples"
-    echo "   • 🔊 Voice boost intelligente: +${VOICE_VOL}dB con compressione adattiva"
-    echo "   • ⚙️  Crossover LFE professionale con filtraggio multi-polo"
-    echo "   • 🛡️  Limitatore anti-clipping con soft-clipping adattivo"
-    [[ "$PRESET" == "tv" ]] && echo "   • 🎯 Equalizzazione dialoghi per materiale problematico"
-    [[ "$ducking_type" == "REALE" ]] && echo "   • 🎯 Sidechaincompress REALE: Subwoofer controllato dalla voce in tempo reale"
-    [[ "$ducking_type" == "SIMULATO" ]] && echo "   • 🎯 Ducking SIMULATO: Compressione intelligente del subwoofer"
-    echo ""
-    echo "📁 File elaborati salvati come: [nome]_${PRESET}_clearvoice0.mkv"
-    echo "   Traccia ClearVoice impostata come default per riproduzione automatica"
-    echo "══════════════════════════════════════━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━═════════════════════════"
+    echo "" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "📊 RIEPILOGO ELABORAZIONE CLEARVOICE $VERSION" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    
+    if [[ ${#PROCESSED_FILES_INFO[@]} -gt 0 ]]; then
+        echo "✅ File elaborati con successo: ${#PROCESSED_FILES_INFO[@]}" >&2
+        for info in "${PROCESSED_FILES_INFO[@]}"; do
+            echo "   - $info" >&2
+        done
+    else
+        echo "ℹ️ Nessun file elaborato con successo." >&2
+    fi
+    
+    echo "" >&2
+    
+    if [[ ${#FAILED_FILES[@]} -gt 0 ]]; then
+        echo "❌ File falliti: ${#FAILED_FILES[@]}" >&2
+        for fail in "${FAILED_FILES[@]}"; do
+            echo "   - $fail" >&2
+        done
+    else
+        echo "🎉 Nessun file ha generato errori!" >&2
+    fi
+    
+    # Statistiche formati audio non compatibili
+    if [[ $MONO_COUNT -gt 0 || $STEREO_COUNT -gt 0 || $SURROUND71_COUNT -gt 0 || $OTHER_FORMAT_COUNT -gt 0 ]]; then
+        echo "" >&2
+        echo "📈 Formati rilevati non compatibili:" >&2
+        [[ $MONO_COUNT -gt 0 ]] && echo "   🎙️  Mono: $MONO_COUNT file" >&2
+        [[ $STEREO_COUNT -gt 0 ]] && echo "   🔄 Stereo: $STEREO_COUNT file" >&2
+        [[ $SURROUND71_COUNT -gt 0 ]] && echo "   🎭 7.1 Surround: $SURROUND71_COUNT file" >&2
+        [[ $OTHER_FORMAT_COUNT -gt 0 ]] && echo "   ❓ Altri formati: $OTHER_FORMAT_COUNT file" >&2
+    fi
+    
+    echo "" >&2
+    echo "⏱️  Tempo totale di esecuzione script: $total_elapsed_time secondi." >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 }
 
 # -----------------------------------------------------------------------------------------------
-#  ESECUZIONE PRINCIPALE CON PROCESSING SEQUENZIALE OTTIMIZZATO
+#  FUNZIONE MAIN E AVVIO SCRIPT
 # -----------------------------------------------------------------------------------------------
 
-# Verifica iniziale supporto tecnologie
-ducking_support=$(check_sidechain_support)
+main() {
+    # Verifica dipendenze iniziali
+    check_ffmpeg_version
+    if ! command -v awk &> /dev/null; then echo "❌ awk non trovato!" >&2; exit 1; fi
+    if ! command -v ffprobe &> /dev/null; then echo "❌ ffprobe non trovato!" >&2; exit 1; fi
 
-# Banner iniziale con configurazione attiva
-echo "🚀 Avvio CLEARVOICE 0.89 - Preset: $PRESET | Codec: $CODEC ($BR)"
-echo "   🔊 LFE Ducking: $ducking_support (rilevamento automatico) | 🎭 Soundstage: POTENZIATO (delay percettibili)"
+    # Parsing argomenti
+    parse_arguments "$@"
 
-# Validazione input con analisi dettagliata
-if ! validate_inputs; then
-    echo ""
-    echo "🆘 HELP: ClearVoice richiede tracce audio 5.1 surround"
-    echo "   Usa i comandi di conversione mostrati sopra, poi rilancia ClearVoice"
-    echo "   Per test rapido: ffprobe -show_streams [file.mkv]"
-    exit 1
-fi
+    # Configurazione preset
+    set_preset_params "$PRESET"
 
-# Informazioni tecnologie attive
-echo ""
-echo "🎛️ TECNOLOGIE ATTIVE:"
-echo "   • Compressore multi-banda per naturalezza voce"
-echo "   • Limitatore intelligente anti-clipping"
-echo "   • Crossover LFE professionale con controllo frequenze"
-echo "   • LFE Ducking: $ducking_support (adattivo automatico basato su supporto FFmpeg)"
-echo "   • Soundstage spaziale POTENZIATO: Profondità stereofonica con delay PERCETTIBILI"
-echo "   • Voice boost: +${VOICE_VOL}dB ottimizzato per preset $PRESET"
+    # Validazione input
+    if ! validate_inputs; then
+        print_summary # Mostra riepilogo anche se non ci sono file validi
+        exit 1
+    fi
 
-# Informazioni specifiche preset con delay POTENZIATI
-case "$PRESET" in
-    film)
-        echo "   🎬 Preset FILM: Ducking moderato + Soundstage cinematografico (5ms/30ms)"
-        ;;
-    serie)
-        echo "   📺 Preset SERIE: Ducking aggressivo + Soundstage compatto (4ms/25ms)"
-        ;;
-    tv)
-        echo "   📡 Preset TV: Ducking ultra + Equalizzazione dialoghi (3ms/20ms)"
-        ;;
-    cartoni)
-        echo "   🎨 Preset CARTONI: Ducking gentile + Soundstage espanso (6ms/35ms)"
-        ;;
-esac
-
-echo "   🎭 Parametri Soundstage POTENZIATO: Front ${FRONT_DELAY_SAMPLES}, Surround ${SURROUND_DELAY_SAMPLES} samples"
-
-# Processing sequenziale con gestione errori
-if [[ ${#VALIDATED_FILES_GLOBAL[@]} -gt 0 ]]; then
-    echo ""
-    echo "📁 Inizio processing ${#VALIDATED_FILES_GLOBAL[@]} file validati..."
-    echo "   Ogni file verrà elaborato con LFE Ducking $ducking_support + Soundstage POTENZIATO attivi"
-    echo ""
+    echo "" >&2
+    echo "🎬 INIZIO ELABORAZIONE DI ${#VALIDATED_FILES_GLOBAL[@]} FILE VALIDATI..." >&2
+    echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2 # ENC è globale
+    echo "   Ogni file verrà elaborato con LFE Ducking + Soundstage POTENZIATO attivi." >&2
+    echo "" >&2
     
-    # Contatore successi processing
-    success_count=0  
+    # APPROCCIO ALTERNATIVO: Loop per indice invece che per elemento
+    local i=0
+    local total_files=${#VALIDATED_FILES_GLOBAL[@]}
     
-    for f in "${VALIDATED_FILES_GLOBAL[@]}"; do
-        if process "$f"; then
-            ((success_count++))
+    while [ $i -lt $total_files ]; do
+        local current_file="${VALIDATED_FILES_GLOBAL[$i]}"
+        local file_number=$((i+1))
+        
+        echo "--------------------------------------------------------------------------------------------" >&2
+        echo " Elaborazione file $file_number/$total_files: $(basename "$current_file")" >&2
+        echo "--------------------------------------------------------------------------------------------" >&2
+        
+        if process "$current_file"; then
+            echo "   🎉 Successo per: $(basename "$current_file")" >&2
+        else
+            echo "   ⚠️  Fallimento per: $(basename "$current_file") (dettagli sopra)" >&2
         fi
-        echo ""  # Separatore tra file
+        echo "" >&2
+        
+        i=$((i+1))
     done
-    
-    echo "📊 Processing completato: $success_count/${#VALIDATED_FILES_GLOBAL[@]} file elaborati con successo"
-else
-    echo "❌ Nessun file 5.1 valido trovato nella selezione!"
-    echo "   Verifica che i file abbiano tracce audio 5.1 surround"
-fi
 
-# Summary finale con statistiche complete
-print_summary
+    print_summary
+    
+    if [[ ${#FAILED_FILES[@]} -gt 0 ]]; then
+        exit 1 # Esce con errore se ci sono stati fallimenti
+    fi
+    exit 0
+}
+
+# Esegui lo script
+main "$@"
