@@ -1,4 +1,3 @@
-
 # 🚀 ClearVoice 0.89 la Stele di Rosetta per Audio 🔊
 
 **(C)2025 by D@mocle77 - "Sandro Sabbioni"**
@@ -134,3 +133,58 @@ Se hai idee, bug da segnalare o vuoi contribuire con miglioramenti al codice, se
 ---
 
 Preparati a un'esperienza sonora che ti farà dire "Wow!" Adesso non ti resta che clonare la repo e far cantare i tuoi altoparlanti! 🎶
+
+---
+
+## 🎯 CARATTERISTICHE PRINCIPALI
+
+- 🎙️ **Voice boost intelligente con compressione multi-banda**
+- 🔊 **LFE Ducking**: Il subwoofer reagisce automaticamente alla voce (sidechain REALE o EMULATO)
+- 🌌 **Soundstage spaziale**: Delay temporali PERCETTIBILI per profondità stereofonica e surround
+- 🚫 **Limitatore anti-clipping** con soft-clipping adattivo
+- 🎚️ **Crossover LFE professionale** per controllo frequenze
+- 🎞️ **Preset ottimizzati** per diversi contenuti (Film, Serie, TV, Cartoni)
+- 📦 **Supporto codec multipli**: EAC3, AC3, DTS con parametri qualità ottimizzati
+- 🧠 **Gestione robusta** formati audio con fallback intelligenti
+- 🎧 **SoXR resampler** per qualità audio superiore (richiede build FFmpeg con SoXR)
+
+---
+
+## 🔬 ANALISI TECNICA DETTAGLIATA
+
+### 1. 🎙️ Equalizzazione voce italiana
+**FILM**: Boost 3kHz (+1.5dB), Cut 5kHz (-1dB)  
+**SERIE**: Boost 2.5kHz (+2dB), Cut 4.5kHz (-1.5dB), Boost 1.5kHz  
+**TV**: Boost 1kHz (+2.5dB), Boost 3kHz (+2dB), limitazione sopra i 5.5kHz  
+**CARTONI**: Boost 3.5kHz, Cut 6kHz leggero  
+→ Ottimizzato per l’intelligibilità del parlato italiano
+
+### 2. 🔊 Subwoofer intelligibile
+- Crossover 25–110Hz (2° ordine)
+- Boost 40Hz e 70Hz per presenza e calore
+- Attenuazione LFE (-13dB)
+→ Sub potente ma mai invasivo
+
+### 3. 🌌 Soundstaging spaziale
+- Front Delay: 4ms
+- Rear Delay: 25ms
+→ Profondità e spazialità reale senza artefatti
+
+### 4. 💬 Potenziamento voce
+- Gain +8.7dB
+- Compressione 3.5:1 (attack 15ms, release 200ms)
+- Softclip threshold 0.97
+→ Voce chiara e ben presente in ogni scena
+
+### 5. 🧨 Ducking LFE intelligente
+- Threshold -25dB, Ratio 6:1, Attack 20ms, Release 250ms
+- Sidechain reale o fallback emulato
+→ Il sub “rispetta” la voce
+
+### 6. 🎧 SoXR Resampling
+- Film: 28-bit
+- Serie/TV: 20-bit
+- Cartoni: 15-bit
+→ Conversione di alta qualità, fallback a SWR se SoXR non presente
+
+---
