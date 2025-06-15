@@ -1,4 +1,4 @@
-# 🚀 ClearVoice 0.89 la Stele di Rosetta per Audio 🔊
+# 🚀 ClearVoice la Stele di Rosetta per Audio 5.1 🔊
 
 **(C)2025 by D@mocle77 - "Sandro Sabbioni"**
 
