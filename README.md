@@ -1,8 +1,9 @@
+<!-- filepath: c:\Users\damocle\Desktop\README.md -->
 # 🚀 ClearVoice la Stele di Rosetta per Audio 5.1 🔊
 
-**(C)2025 by D@mocle77 - "Sandro Sabbioni"**
+**(C)2025 by "Sandro (D@mocle77) Sabbioni"**
 
-Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto per trasformare il tuo audio 5.1 da "uff" a "Mammamia, che spettacolo!". ClearVoice 0.89 non è un semplice script, è un artefatto tecnologico forgiato per la massima chiarezza dei dialoghi, un controllo LFE innovativo e un soundstage così immersivo che ti sembrerà di avere una sala IMAX nel salotto!
+Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto per trasformare il tuo audio 5.1 da "uff" a "mammamia, che spettacolo!". ClearVoice 0.89 non è un semplice script, è un artefatto tecnologico forgiato per la massima chiarezza dei dialoghi, un controllo LFE innovativo e un soundstage così immersivo che ti sembrerà di avere una sala IMAX nel salotto!
 
 ---
 
@@ -157,7 +158,7 @@ Preparati a un'esperienza sonora che ti farà dire "Wow!" Adesso non ti resta ch
 **SERIE**: Boost 2.5kHz (+2dB), Cut 4.5kHz (-1.5dB), Boost 1.5kHz  
 **TV**: Boost 1kHz (+2.5dB), Boost 3kHz (+2dB), limitazione sopra i 5.5kHz  
 **CARTONI**: Boost 3.5kHz, Cut 6kHz leggero  
-→ Ottimizzato per l’intelligibilità del parlato italiano
+→ Ottimizzato per l'intelligibilità del parlato italiano
 
 ### 2. 🔊 Subwoofer intelligibile
 - Crossover 25–110Hz (2° ordine)
@@ -166,9 +167,9 @@ Preparati a un'esperienza sonora che ti farà dire "Wow!" Adesso non ti resta ch
 → Sub potente ma mai invasivo
 
 ### 3. 🌌 Soundstaging spaziale
-- Front Delay: 4ms
-- Rear Delay: 25ms
-→ Profondità e spazialità reale senza artefatti
+- Front Delay: Disattivato (0ms) per massima chiarezza dialoghi
+- Rear Delay: Disattivato (0ms) 
+→ Configurabile: Preset disponibili da 4ms/25ms fino a 12ms/35ms per AVR statici
 
 ### 4. 💬 Potenziamento voce
 - Gain +8.7dB
@@ -177,9 +178,9 @@ Preparati a un'esperienza sonora che ti farà dire "Wow!" Adesso non ti resta ch
 → Voce chiara e ben presente in ogni scena
 
 ### 5. 🧨 Ducking LFE intelligente
-- Threshold -25dB, Ratio 6:1, Attack 20ms, Release 250ms
+- Threshold -32dB, Ratio 5.5:1, Attack 15ms, Release 300ms
 - Sidechain reale o fallback emulato
-→ Il sub “rispetta” la voce
+→ Il sub "rispetta" la voce con maggiore sensibilità
 
 ### 6. 🎧 SoXR Resampling
 - Film: 28-bit
