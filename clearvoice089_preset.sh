@@ -154,12 +154,12 @@ ask_yes_no() {
     
     # Continua a chiedere finché non si ottiene una risposta valida
     while true; do
-        echo -n "$prompt [s/n]: " >&2
-        read -r response
+        echo -n "$prompt [s/n]: "
+        read -r response < /dev/tty
         case "$response" in
             [Ss]* ) return 0;; # Restituisce 0 (true) per "sì"
             [Nn]* ) return 1;; # Restituisce 1 (false) per "no"
-            * ) echo "   Per favore, rispondi con 's' o 'n'." >&2;;
+            * ) echo "   Per favore, rispondi con 's' o 'n'.";;
         esac
     done
 }
@@ -222,7 +222,7 @@ parse_arguments() {
         echo "Codec supportati: eac3 (default), ac3, dts" >&2
         echo "Bitrate suggeriti: 384k (eac3), 640k (ac3), 756k/1536k (dts)" >&2
         echo "Esempio: $0 --serie eac3 384k movie.mkv" >&2
-        echo "Esempio con sovrascrittura: $0 --serie eac3 384k --overwrite movie.mkv" >&2 # AGGIUNTO
+        echo "Esempio con sovrascrittura: $0 --serie eac3 384k --overwrite movie.mkv" >&2
         exit 1
     fi
 
@@ -249,12 +249,10 @@ parse_arguments() {
         case "$1" in
             --overwrite)
                 OVERWRITE="true"
-                echo "ℹ️  Sovrascrittura automatica attivata" >&2 # AGGIUNTO: Messaggio di conferma
                 shift
                 ;;
             -*)
-                echo "❌ Opzione '$1' non riconosciuta" >&2
-                echo "Opzioni disponibili: --overwrite" >&2 # AGGIUNTO
+                echo "❌ Opzione '$1' non riconosciuta!" >&2
                 exit 1
                 ;;
             *)
@@ -300,7 +298,7 @@ set_preset_params() {
             SOFTCLIP_SETTINGS="asoftclip=type=atan:threshold=0.95:output=1.0"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="20" LFE_LP_FREQ="120" LFE_CROSS_POLES="2"
-            SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB" # MODIFICATO: Parametri ducking più sensibili
+            SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB"
             FC_EQ_PARAMS="equalizer=f=3000:width_type=q:w=1.5:g=1.5,equalizer=f=5000:width_type=q:w=2:g=-1"
             FLFR_EQ_PARAMS="" 
             LFE_EQ_PARAMS="equalizer=f=35:width_type=q:w=1:g=2,equalizer=f=60:width_type=q:w=2:g=1"
@@ -313,7 +311,7 @@ set_preset_params() {
             FRONT_FILTER="highpass=f=28:poles=2,lowpass=f=18000:poles=1"
             SOFTCLIP_SETTINGS="asoftclip=type=atan:threshold=0.97:output=1.0"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
-            LFE_HP_FREQ="25" LFE_LP_FREQ="110" LFE_CROSS_POLES="2" # CORRETTO: LP_FREQ -> LFE_LP_FREQ
+            LFE_HP_FREQ="25" LFE_LP_FREQ="110" LFE_CROSS_POLES="2"
             SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB"
             FC_EQ_PARAMS="equalizer=f=2500:width_type=q:w=1.8:g=2,equalizer=f=4500:width_type=q:w=2.2:g=-1.5,equalizer=f=1500:width_type=h:w=200:g=1"
             FLFR_EQ_PARAMS="equalizer=f=300:width_type=q:w=2:g=-1"
@@ -328,7 +326,7 @@ set_preset_params() {
             SOFTCLIP_SETTINGS="asoftclip=type=tanh:threshold=0.9:output=0.95"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="30" LFE_LP_FREQ="100" LFE_CROSS_POLES="1"
-            SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB" # MODIFICATO: Parametri ducking più sensibili
+            SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB"
             FC_EQ_PARAMS="equalizer=f=1000:width_type=h:w=400:g=2.5,equalizer=f=3000:width_type=h:w=1000:g=2,lowpass=f=5500"
             FLFR_EQ_PARAMS="equalizer=f=1500:width_type=h:w=500:g=1.5"
             LFE_EQ_PARAMS="equalizer=f=50:width_type=q:w=1.5:g=2"
@@ -342,7 +340,7 @@ set_preset_params() {
             SOFTCLIP_SETTINGS="asoftclip=type=sin:threshold=0.98:output=1.0"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="18" LFE_LP_FREQ="130" LFE_CROSS_POLES="2"
-            SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB" # MODIFICATO: Parametri ducking più sensibili
+            SC_ATTACK="15" SC_RELEASE="300" SC_THRESHOLD="-32dB" SC_RATIO="5.5" SC_MAKEUP="0dB"
             FC_EQ_PARAMS="equalizer=f=3500:width_type=q:w=2:g=1,equalizer=f=6000:width_type=q:w=2.5:g=-0.5"
             FLFR_EQ_PARAMS="" 
             LFE_EQ_PARAMS="equalizer=f=30:width_type=q:w=1:g=1.5,equalizer=f=80:width_type=q:w=1.5:g=1"
@@ -391,7 +389,7 @@ check_sidechain_support() {
 # Funzione principale di elaborazione audio per singolo file
 process() {
     local input_file="$1"
-    local filename out log_file input_dir
+    local filename log_file input_dir
     
     if [[ ! -f "$input_file" ]]; then
         echo "❌ File input non trovato: $input_file" >&2
@@ -405,18 +403,21 @@ process() {
     # Ottieni la directory e il nome del file
     input_dir=$(dirname "$input_file")
     filename=$(basename "$input_file")
-    out="${filename%.*}_${PRESET}_clearvoice${VERSION}.mkv"
+    
+    # Crea il percorso completo per il file di output
+    local out="${input_dir}/${filename%.*}_${PRESET}_clearvoice${VERSION}.mkv"
     log_file="${input_dir}/${filename%.*}_${PRESET}_clearvoice${VERSION}.log"
     
     echo "🔄 Preparazione elaborazione per: $filename" >&2
     echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2
-    echo "   Output previsto: $out" >&2
-    echo "   Log file: $log_file" >&2
+    echo "   Output previsto: $(basename "$out")" >&2
+    echo "   Log file: $(basename "$log_file")" >&2
     
     # Test esplicito di scrittura del file di log
     if ! touch "$log_file" 2>/dev/null; then
         echo "⚠️ Impossibile creare il file di log: $log_file" >&2
         echo "   Continuazione senza logging..." >&2
+        log_file=""
     else
         # Inizializza il file di log
         {
@@ -428,45 +429,53 @@ process() {
             echo "----------------------------------------"
         } > "$log_file"
         
-        echo "   📝 File di log creato: $log_file" >&2
+        echo "   📝 File di log creato: $(basename "$log_file")" >&2
     fi
     
     # Controllo esistenza file output con richiesta di conferma
     if [[ -f "$out" ]]; then
         if [[ "$OVERWRITE" == "true" ]]; then
-            echo "⚠️ File output già esistente: $out (sovrascrittura automatica)" >&2
-            if [[ -w "$log_file" ]]; then
+            echo "⚠️ File output già esistente: $(basename "$out") (sovrascrittura automatica)" >&2
+            if [[ -n "$log_file" && -w "$log_file" ]]; then
                 echo "NOTA: File output già esistente - sovrascrittura automatica attivata" >> "$log_file"
             fi
         else
-            echo "⚠️ File output già esistente: $out" >&2
-            if ask_yes_no "   Vuoi sovrascrivere il file esistente?"; then
-                echo "   ✅ Sovrascrittura confermata." >&2
-                if [[ -w "$log_file" ]]; then
-                    echo "NOTA: File output già esistente - sovrascrittura confermata dall'utente" >> "$log_file"
-                fi
-            else
-                echo "   ❌ Sovrascrittura rifiutata. Elaborazione annullata." >&2
-                if [[ -w "$log_file" ]]; then
-                    echo "NOTA: File output già esistente - sovrascrittura rifiutata dall'utente" >> "$log_file"
-                    echo "ELABORAZIONE ANNULLATA" >> "$log_file"
-                fi
-                FAILED_FILES+=("$(basename "$input_file") (Sovrascrittura rifiutata)")
-                return 1
-            fi
+            echo "⚠️ File output già esistente: $(basename "$out")" >&2
+            echo -n "   Vuoi sovrascrivere il file esistente? [s/n]: "
+            
+            local user_response
+            read -r user_response < /dev/tty
+            
+            case "$user_response" in
+                [Ss]* )
+                    echo "   ✅ Sovrascrittura confermata." >&2
+                    if [[ -n "$log_file" && -w "$log_file" ]]; then
+                        echo "NOTA: File output già esistente - sovrascrittura confermata dall'utente" >> "$log_file"
+                    fi
+                    ;;
+                * )
+                    echo "   ❌ Sovrascrittura rifiutata. Elaborazione annullata." >&2
+                    if [[ -n "$log_file" && -w "$log_file" ]]; then
+                        echo "NOTA: File output già esistente - sovrascrittura rifiutata dall'utente" >> "$log_file"
+                        echo "ELABORAZIONE ANNULLATA" >> "$log_file"
+                    fi
+                    FAILED_FILES+=("$(basename "$input_file") (Sovrascrittura rifiutata)")
+                    return 1
+                    ;;
+            esac
         fi
     fi
     
     # Costruzione filtergraph
     local LOCAL_FILTER_GRAPH
     if ! LOCAL_FILTER_GRAPH=$(build_audio_filter "$input_file"); then
-        if [[ -w "$log_file" ]]; then
+        if [[ -n "$log_file" && -w "$log_file" ]]; then
             echo "ERRORE: Impossibile costruire l'audio filter." >> "$log_file"
         fi
         return 1
     fi
     
-    if [[ -w "$log_file" ]]; then
+    if [[ -n "$log_file" && -w "$log_file" ]]; then
         echo "Filtergraph FFmpeg:" >> "$log_file"
         echo "$LOCAL_FILTER_GRAPH" >> "$log_file"
         echo "----------------------------------------" >> "$log_file"
@@ -478,7 +487,7 @@ process() {
     
     # Esecuzione del comando FFmpeg
     echo "🎬 Avvio elaborazione FFmpeg..." >&2
-    
+
     # Determina numero di threads
     local threads_count=0
     if command -v nproc &> /dev/null; then
@@ -488,7 +497,7 @@ process() {
     else
         threads_count=$DEFAULT_THREADS
     fi
-    
+
     # Costruzione comando FFmpeg con gestione sicura di $EXTRA
     if [[ -n "$EXTRA" ]]; then
         # Converti EXTRA in array per gestire correttamente gli spazi
@@ -500,26 +509,27 @@ process() {
           -i "$input_file" \
           -filter_complex "$LOCAL_FILTER_GRAPH" \
           -map "[out]" -map 0:a -c:a:0 "$ENC" -b:a:0 "$BR" "${extra_args[@]}" \
+          -c:a:1 copy \
           -metadata:s:a:0 title="Italiano 5.1 ClearVoice $PRESET ($ENC $BR)" \
           -metadata:s:a:0 language=ita -disposition:a:0 default \
           -map 0:v -c:v copy -map 0:s? -c:s copy \
-          -movflags +faststart "$out" 2> >(tee -a "$log_file" >&2)
+          -movflags +faststart "$out" 2> >(if [[ -n "$log_file" && -w "$log_file" ]]; then tee -a "$log_file" >&2; else cat >&2; fi)
     else
         ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero \
           -threads "$threads_count" -filter_threads "$threads_count" -thread_queue_size 512 \
           -i "$input_file" \
           -filter_complex "$LOCAL_FILTER_GRAPH" \
           -map "[out]" -map 0:a -c:a:0 "$ENC" -b:a:0 "$BR" \
+          -c:a:1 copy \
           -metadata:s:a:0 title="Italiano 5.1 ClearVoice $PRESET ($ENC $BR)" \
           -metadata:s:a:0 language=ita -disposition:a:0 default \
           -map 0:v -c:v copy -map 0:s? -c:s copy \
-          -movflags +faststart "$out" 2> >(tee -a "$log_file" >&2)
+          -movflags +faststart "$out" 2> >(if [[ -n "$log_file" && -w "$log_file" ]]; then tee -a "$log_file" >&2; else cat >&2; fi)
     fi
     
-    # Cattura codice di uscita
     local FFMPEG_RESULT_CODE=$?
     
-    # Il resto della funzione rimane uguale...
+    # Verifica risultato FFmpeg
     if [ $FFMPEG_RESULT_CODE -eq 0 ]; then
         local file_elapsed_time_secs=$(($(date +%s) - file_start_time))
         local output_size_bytes_val
@@ -529,7 +539,7 @@ process() {
              output_size_bytes_val=$(stat -c%s "$out" 2>/dev/null || echo "0")
         fi
         
-        if [[ -w "$log_file" ]]; then
+        if [[ -n "$log_file" && -w "$log_file" ]]; then
             echo "✅ SUCCESSO: Elaborazione completata" >> "$log_file"
             echo "Tempo impiegato: $file_elapsed_time_secs secondi" >> "$log_file"
             echo "Dimensione file output: $output_size_bytes_val bytes" >> "$log_file"
@@ -537,17 +547,17 @@ process() {
         fi
         
         echo "✅ Elaborazione completata con successo per $filename!" >&2
-        echo "   File generato: $out ($output_size_bytes_val bytes)" >&2
+        echo "   File generato: $(basename "$out") ($output_size_bytes_val bytes)" >&2
         echo "   Tempo impiegato: $file_elapsed_time_secs secondi" >&2
         
-        if [[ -f "$log_file" ]]; then
-            echo "   Log salvato in: $log_file" >&2
+        if [[ -n "$log_file" && -f "$log_file" ]]; then
+            echo "   Log salvato in: $(basename "$log_file")" >&2
         fi
         
         PROCESSED_FILES_INFO+=("$(basename "$input_file") -> $(basename "$out") | ${file_elapsed_time_secs}s | $output_size_bytes_val bytes")
         return 0
     else
-        if [[ -w "$log_file" ]]; then
+        if [[ -n "$log_file" && -w "$log_file" ]]; then
             echo "❌ ERRORE: FFmpeg ha fallito con codice $FFMPEG_RESULT_CODE" >> "$log_file"
             echo "Possibili cause: spazio disco, codec non supportati, file danneggiato, permessi" >> "$log_file"
             echo "===== ELABORAZIONE FALLITA =====" >> "$log_file"
@@ -555,18 +565,18 @@ process() {
         
         echo "❌ Errore FFmpeg durante l'elaborazione di $filename (Codice: $FFMPEG_RESULT_CODE)" >&2
         
-        if [[ -f "$log_file" ]]; then
-            echo "   Log dettagli errore in: $log_file" >&2
+        if [[ -n "$log_file" && -f "$log_file" ]]; then
+            echo "   Log dettagli errore in: $(basename "$log_file")" >&2
         fi
         
         echo "   💡 Verifica: spazio disco, codec supportati, integrità file input, permessi." >&2
         
         if [[ -f "$out" ]]; then
             rm -f "$out"
-            if [[ -w "$log_file" ]]; then
+            if [[ -n "$log_file" && -w "$log_file" ]]; then
                 echo "🗑️ File di output parziale rimosso: $out" >> "$log_file"
             fi
-            echo "   🗑️ File di output parziale rimosso: $out" >&2
+            echo "   🗑️ File di output parziale rimosso: $(basename "$out")" >&2
         fi
         
         FAILED_FILES+=("$(basename "$input_file") (FFmpeg error $FFMPEG_RESULT_CODE)")
@@ -586,33 +596,33 @@ build_audio_filter() {
     local current_hp_freq="$HP_FREQ" current_lp_freq="$LP_FREQ"
 
     # Processamento canali surround BL/BR con compressore per tutti i preset
-    local bl_br_filters=""  # AGGIUNTO: Dichiarazione variabile locale
+    local bl_br_filters=""
 
     if [[ "${CODEC,,}" == "dts" ]]; then
         echo "ℹ️  Adattamento parametri per codec DTS (volume frontale non ridotto)" >&2
         case "$PRESET" in
             film)
                 voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.3")
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9565")  # Come nel tuo script originale
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9565")
                 surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.85")
                 current_hp_freq="120"; current_lp_freq="7700"
                 [[ -n "$LFE_EQ_PARAMS" ]] && LFE_EQ_PARAMS="equalizer=f=35:width_type=q:w=1:g=0.5,equalizer=f=60:width_type=q:w=2:g=0"
                 ;;
             serie)
                 voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.1")
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9524")  # Come nel tuo script originale
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9524")
                 surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.88")
                 current_hp_freq="135"; current_lp_freq="8000"
                 ;;
             tv)
                 voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.3")
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9524")  # Come nel tuo script originale
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9524")
                 surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.88")
                 current_hp_freq="420"; current_lp_freq="5200"
                 ;;
             cartoni)
                 voice_vol_adj=$(safe_awk_calc "$VOICE_VOL + 0.2")
-                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9524")  # Come nel tuo script originale
+                lfe_vol_adj=$(safe_awk_calc "$LFE_VOL * 0.9524")
                 surround_vol_adj=$(safe_awk_calc "$SURROUND_VOL * 0.9")
                 current_hp_freq="90"; current_lp_freq="8700"
                 ;;
@@ -686,7 +696,7 @@ build_audio_filter() {
         filter_graph+="[lfe_processed]${lfe_ducking_filter_str}[lfe_out];"
     fi
 
-        # Compressore per effetti - ora applicato a tutti i preset
+    # Compressore per effetti - ora applicato a tutti i preset
     case "$PRESET" in
         film)
             # Film: Moderato: Preserva l'impatto cinematografico degli effetti
@@ -913,17 +923,17 @@ main() {
 
     echo "" >&2
     echo "🎬 INIZIO ELABORAZIONE DI ${#VALIDATED_FILES_GLOBAL[@]} FILE VALIDATI..." >&2
-    echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2 # ENC è globale
+    echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2
     echo "   Ogni file verrà elaborato con LFE Ducking attivo." >&2
-    if [[ "$OVERWRITE" == "true" ]]; then  # AGGIUNTO: Mostra stato sovrascrittura
+    if [[ "$OVERWRITE" == "true" ]]; then
         echo "   Sovrascrittura automatica: ATTIVA" >&2
     else
         echo "   Sovrascrittura automatica: DISATTIVA (richiesta conferma)" >&2
     fi
     echo "" >&2
     
-    # APPROCCIO ALTERNATIVO: Loop per indice invece che per elemento
-    local i=0  # ORA È CORRETTO: dentro la funzione main()
+    # Loop per elaborazione file
+    local i=0
     local total_files=${#VALIDATED_FILES_GLOBAL[@]}
     
     while [ $i -lt $total_files ]; do
