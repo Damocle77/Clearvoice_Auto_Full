@@ -133,7 +133,7 @@ Se hai idee, bug da segnalare o vuoi contribuire con miglioramenti al codice, se
 
 ---
 
-Preparati a un'esperienza sonora che ti farà dire "Wow!" Adesso non ti resta che clonare la repo e far cantare i tuoi altoparlanti! 🎶
+Adesso non ti resta che clonare la repo e far cantare i tuoi altoparlanti! 🎶
 
 ---
 
