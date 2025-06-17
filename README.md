@@ -167,8 +167,7 @@ Adesso non ti resta che clonare la repo e far cantare i tuoi altoparlanti! 🎶
 → Sub potente ma mai invasivo
 
 ### 3. 🌌 Soundstaging spaziale
-- Front Delay: configurabile (default 0ms)
-- Rear Delay: configurabile (default 0ms)
+- Front-Rear Delay: configurabile (default 0ms)
 → Configurabile: Preset disponibili da 4ms/25ms fino a 12ms/35ms per AVR statici
 
 ### 4. 💬 Potenziamento voce
