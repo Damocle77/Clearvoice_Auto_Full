@@ -3,7 +3,7 @@
 
 **2025 by "Sandro (D@mocle77) Sabbioni"**
 
-Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto per trasformare il tuo audio 5.1 da "uff" a "mammamia, che spettacolo!". ClearVoice 0.89 non è un semplice script, è una pipeline tecnologica forgiata per la massima chiarezza dei dialoghi, un controllo LFE innovativo e un audio così immersivo che ti sembrerà di avere una sala multicanale nel salotto!
+Benvenuto, audionauta! Sei atterrato nella repository che custodisce il segreto per trasformare il tuo audio 5.1 da "uff..." a "mammamia, che spettacolo!". ClearVoice 0.89 non è un semplice script, è una pipeline tecnologica forgiata per la massima chiarezza dei dialoghi, un controllo LFE innovativo e un audio così immersivo che ti sembrerà di avere una sala multicanale nel salotto!
 
 ---
 
