@@ -353,7 +353,7 @@ set_preset_params() {
     ENC="$CODEC"
     EXTRA=""
     if [[ "${CODEC,,}" == "dts" ]]; then
-        EXTRA="-strict -2 -ar 48000 -channel_layout 5.1(side) -compression_level 2"
+        EXTRA="-strict -2 -ar 48000 -channel_layout 5.1 -compression_level 2"
     fi
     TITLE="ClearVoice $VERSION - $preset_choice ($CODEC $BR)"
 }
