@@ -112,7 +112,7 @@ La traccia audio ClearVoice sarà impostata come default per una riproduzione au
 
 Per i visual thinkers, ecco un diagramma che rappresenta in modo chiaro e sintetico il flusso di elaborazione audio realizzato da `clearvoice089_preset.sh`.
 
-![Schema Flusso ClearVoice](schema_clearvoice089.png)
+![Schema Flusso ClearVoice](schema_clearvoice.png)
 
 **Legenda del processo:**
 1. **Input Audio Stream:** file audio 5.1 in formato `.mkv`
