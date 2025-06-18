@@ -237,6 +237,14 @@ Per i visual thinkers, ecco un diagramma che rappresenta in modo chiaro e sintet
 
 ---
 
+## 🗺️ Schema Grafico del Flusso Audio
+
+![Schema Pipeline ClearVoice](schema_clearvoice.png)
+
+Per i visual thinkers, ecco un diagramma che rappresenta in modo chiaro e sintetico il flusso di elaborazione audio realizzato da `clearvoice093_preset.sh`.
+
+---
+
 ## 🤝 Contribuisci (Unisciti alla Resistenza Audio!)
 
 Se hai idee, bug da segnalare o vuoi contribuire con miglioramenti al codice, sentiti libero di aprire una Issue o una Pull Request! L'audio di qualità è un diritto, non un privilegio!
