@@ -1,4 +1,4 @@
-# 🚀 ClearVoice 0.95 – La Stele di Rosetta per Audio 5.1 🔊
+# 🚀 ClearVoice – La Stele di Rosetta per Audio 5.1 🔊
 
 **2025 by "Sandro (D@mocle77) Sabbioni"**
 
