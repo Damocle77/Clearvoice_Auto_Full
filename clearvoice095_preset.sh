@@ -88,24 +88,24 @@ OVERWRITE="false"           # Valore predefinito: non sovrascrivere file esisten
 VALIDATED_FILES_GLOBAL=()   # File che hanno superato i controlli di compatibilità 5.1
 DUCKING_ENABLED="false"     # Verrà impostato a true se sidechaincompress è supportato
 
-# Array per gestione dei file e statistiche
+# Array per gestione dei file e statistiche:
 FAILED_FILES=()              # Memorizza i file che hanno generato errori durante l'elaborazione
 PROCESSED_FILES_INFO=()      # Dettagli sui file elaborati con successo
 VALIDATED_FILES_GLOBAL=()    # File che hanno superato i controlli di compatibilità 5.1
 
-# Contatori per statistiche formato audio
+# Contatori per statistiche formato audio:
 MONO_COUNT=0
 STEREO_COUNT=0
 SURROUND71_COUNT=0
 OTHER_FORMAT_COUNT=0
 
-# Variabili globali per parametri preset
+# Variabili globali configurate per parametri preset:
 PRESET=""                    # Tipo di ottimizzazione: film, serie, tv o cartoni
 CODEC="eac3"                 # Codec audio predefinito (eac3, ac3, dts)
 BR="384k"                    # Bitrate audio predefinito
 INPUTS=()                    # Percorsi input specificati dall'utente (file o directory)
 
-# Parametri audio configurabili in base al preset
+# Parametri audio configurabili in base al preset:
 VOICE_VOL=""                 # Amplificazione canale centrale (dialoghi)
 LFE_VOL=""                   # Volume LFE (subwoofer)
 SURROUND_VOL=""              # Volume canali surround
@@ -131,9 +131,7 @@ ENC=""                       # Codifica finale
 EXTRA=""                     # Parametri extra codec-specifici
 TITLE=""                     # Titolo metadata per la traccia audio
 DENOISE_FILTER=""            # Filtro riduzione rumore (solo preset TV)
-
-# Inizializza tempo globale per statistiche finali
-TOTAL_START_TIME=$(date +%s) # Memorizza timestamp per calcolare durata totale dell'elaborazione
+TOTAL_START_TIME=$(date +%s) # Memorizza timestamp per durata totale dell'elaborazione
 
 # -----------------------------------------------------------------------------------------------
 #  FUNZIONI HELPER
@@ -158,7 +156,7 @@ check_ffmpeg_version() {
         echo "❌ FFmpeg non trovato! Installa FFmpeg per utilizzare questo script." >&2
         exit 1
     fi
-    
+    # Controllo versione minima ffmpeg
     local current_version
     current_version=$(ffmpeg -version | head -n1 | awk -F'[ -]' '{print $3}')
     
@@ -202,7 +200,7 @@ safe_awk_calc() {
 
 # Parsing argomenti da linea di comando
 parse_arguments() {
-    # Controllo argomenti minimi
+    # Controllo numero minimo di argomenti
     if [[ $# -lt 3 ]]; then
         echo "❌ Errore: Argomenti insufficienti!" >&2
         echo "Uso: $0 --preset codec bitrate [--overwrite] file1.mkv [file2.mkv ...]" >&2
@@ -272,7 +270,10 @@ parse_arguments() {
     fi
 }
 
-# Impostazione parametri dinamici basati sul preset selezionato
+# -----------------------------------------------------------------------------------------------
+# PARAMETRI PRESET 
+# -----------------------------------------------------------------------------------------------
+
 set_preset_params() {
     local preset_choice="$1"
     echo "ℹ️  Configurazione preset: $preset_choice" >&2
@@ -398,7 +399,7 @@ check_sidechain_support() {
 }
 
 # -----------------------------------------------------------------------------------------------
-#  ELABORAZIONE AUDIO E FILTERGRAPH
+#  ELABORAZIONE AUDIO E FILTERGRAPH AVANZATO
 # -----------------------------------------------------------------------------------------------
 
 # Funzione principale di elaborazione audio per singolo file
@@ -502,7 +503,6 @@ process() {
     # Esecuzione del comando FFmpeg
     echo "🎬 Avvio elaborazione FFmpeg..." >&2
 
-    # Determina numero massimo di threads disponibili
 local threads_count=0
 local available_cores=0
 
@@ -516,7 +516,7 @@ elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]];
 else
     available_cores=$DEFAULT_THREADS
 fi
-# USA TUTTI I CORES DISPONIBILI (massima performance)
+# Usa tutti i cores disponibili (massima performance)
 threads_count=$available_cores
 # Assicura minimo ragionevole ma lascia massimo libero
 threads_count=$(( threads_count < 2 ? 2 : threads_count ))
@@ -641,11 +641,15 @@ echo "🚀 PERFORMANCE MASSIMA: Cores rilevati: $available_cores | Threads utili
     fi
 }
 
-# Costruisce il complesso filtergraph audio per l'elaborazione avanzata
+
+# -----------------------------------------------------------------------------------------------
+# ESECUZIONE FILTRI PRINCIPALE (STEP 0..7)
+# -----------------------------------------------------------------------------------------------
+
 build_audio_filter() {
     local file="$1"
     
-    # Debug layout audio
+    # PARTE 0: INIZIALIZZAZIONE - Controllo codec e canali
     local channels current_layout codec_name
     
     channels=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
@@ -780,6 +784,10 @@ build_audio_filter() {
 
     echo "$filter_graph"
 }
+
+# -----------------------------------------------------------------------------------------------
+#  VALIDAZIONE FILE E INPUT
+# -----------------------------------------------------------------------------------------------
 
 validate_file() {
     local file="$1"
@@ -951,7 +959,7 @@ print_summary() {
 }
 
 # -----------------------------------------------------------------------------------------------
-#  FUNZIONE MAIN E AVVIO SCRIPT
+#  FUNZIONE MAIN E INIZIALIZZAZIONE SCRIPT
 # -----------------------------------------------------------------------------------------------
 
 main() {
@@ -1035,5 +1043,5 @@ main() {
     fi
 }
 
-# Esegui lo script
+# Esecuzione dello script
 main "$@"
