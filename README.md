@@ -45,17 +45,15 @@ chmod +x clearvoice095_preset.sh
 Esegui con i parametri desiderati:
 
 ```bash
-./clearvoice095_preset.sh --film eac3 384k "Film_epico.mkv"
+./clearvoice095_preset.sh --film eac3 768k "Film_epico.mkv"
 ./clearvoice095_preset.sh --serie ac3 640k *.mkv
 ./clearvoice095_preset.sh --tv dts 768k "Serie_TV.mkv"
-./clearvoice095_preset.sh --cartoni "Cartone_animato.mkv"
+./clearvoice095_preset.sh --cartoni ac3 640k "Cartone_animato.mkv"
 ```
 
 - **Preset disponibili:** `--film`, `--serie`, `--tv`, `--cartoni`
-- **Codec supportati:** `eac3`, `ac3`, `dts`
-- **Bitrate suggeriti:** `384k`, `640k`, `768k`, `1536k`
-- **Opzione sovrascrittura:** `--overwrite`
-- **Help:** `./clearvoice095_preset.sh --help`
+- **Codec supportati:** `ac3`, `eac3`, `dts`
+- **Bitrate suggeriti:** `384k`, `640k`, `768k`, `756k`, `1536k`
 
 ---
 
