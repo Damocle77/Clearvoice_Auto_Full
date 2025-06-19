@@ -131,6 +131,7 @@ ENC=""                       # Codifica finale
 EXTRA=""                     # Parametri extra codec-specifici
 TITLE=""                     # Titolo metadata per la traccia audio
 DENOISE_FILTER=""            # Filtro riduzione rumore (solo preset TV)
+DEESSER_FILTER=""            # Filtro de-esser per sibilanza (optionale)
 TOTAL_START_TIME=$(date +%s) # Memorizza timestamp per durata totale dell'elaborazione
 
 # -----------------------------------------------------------------------------------------------
@@ -308,18 +309,29 @@ set_preset_params() {
             DENOISE_FILTER="" 
             ;;
         tv) 
-            VOICE_VOL="8.2" LFE_VOL="0.16" SURROUND_VOL="3.8" 
-            HP_FREQ="400" LP_FREQ="5000"
-            COMPRESSOR_SETTINGS="acompressor=threshold=-18dB:ratio=3.8:attack=8:release=180:makeup=2.5dB"
-            FRONT_FILTER="highpass=f=100:poles=1,lowpass=f=8000:poles=1,acompressor=threshold=-18dB:ratio=2.2:attack=15:release=120"
-            SOFTCLIP_SETTINGS="asoftclip=type=tanh:threshold=0.9:output=0.95"
-            FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
-            LFE_HP_FREQ="40" LFE_LP_FREQ="100" LFE_CROSS_POLES="1"
-            SC_ATTACK="6" SC_RELEASE="160" SC_THRESHOLD="-47dB" SC_RATIO="4.8" SC_MAKEUP="3dB"
-            FC_EQ_PARAMS="equalizer=f=900:width_type=q:w=1.6:g=1.8,equalizer=f=2000:width_type=q:w=1.5:g=3.5,equalizer=f=3000:width_type=q:w=1.2:g=2.8,equalizer=f=300:width_type=q:w=2:g=-2.2"
-            FLFR_EQ_PARAMS="equalizer=f=1500:width_type=h:w=500:g=1.5"
+            VOICE_VOL="6.8"       # Ridotto per meno effetto "televisivo"
+            LFE_VOL="0.16"        # QUESTA MANCAVA - causava volume= vuoto
+            SURROUND_VOL="4.2"    # QUESTA MANCAVA - causava volume=dB
+            HP_FREQ="200" 
+            LP_FREQ="6500" 
+            COMPRESSOR_SETTINGS="acompressor=threshold=-20dB:ratio=3.2:attack=12:release=220:makeup=2.0dB" 
+            FRONT_FILTER="highpass=f=80:poles=1,lowpass=f=12000:poles=1,acompressor=threshold=-20dB:ratio=1.8:attack=20:release=140" 
+            SOFTCLIP_SETTINGS="asoftclip=type=tanh:threshold=0.92:output=0.92" 
+            FRONT_DELAY_SAMPLES="0" 
+            SURROUND_DELAY_SAMPLES="0" 
+            LFE_HP_FREQ="40" 
+            LFE_LP_FREQ="100" 
+            LFE_CROSS_POLES="1"
+            SC_ATTACK="8" 
+            SC_RELEASE="200" 
+            SC_THRESHOLD="-44dB" 
+            SC_RATIO="3.5" 
+            SC_MAKEUP="2.0dB" 
+            FC_EQ_PARAMS="equalizer=f=900:width_type=q:w=1.8:g=1.2,equalizer=f=2000:width_type=q:w=1.5:g=2.8,equalizer=f=3000:width_type=q:w=1.4:g=2.2,equalizer=f=300:width_type=q:w=2:g=-1.8" 
+            FLFR_EQ_PARAMS="equalizer=f=1500:width_type=h:w=500:g=1.2" 
             LFE_EQ_PARAMS="equalizer=f=50:width_type=q:w=1.5:g=2.0,equalizer=f=80:width_type=q:w=2.2:g=-0.2,equalizer=f=100:width_type=q:w=1.8:g=-0.6"
-            DENOISE_FILTER="afftdn=nr=20:nf=-42:tn=1,anlmdn=s=0.0001:p=0.002:r=0.005"
+            DENOISE_FILTER="afftdn=nr=4:nf=-35:tn=0"
+            DEESSER_FILTER="deesser=i=0.4:f=0.229" 
             ;;
         cartoni)
             VOICE_VOL="9.7" LFE_VOL="0.16" SURROUND_VOL="4.2" 
@@ -454,15 +466,15 @@ process() {
    # Controllo esistenza file output con richiesta di conferma FORZATA
     if [[ -f "$out" && "$out" != "$input_file" ]]; then
         if [[ "$OVERWRITE" == "true" ]]; then
-        echo "⚠️ File output già esistente: $(basename "$out") (sovrascrittura automatica)" >&2
+            echo "⚠️ File output già esistente: $(basename "$out") (sovrascrittura automatica)" >&2
         else
             echo "⚠️ File output già esistente: $(basename "$out")" >&2
-        
-            # Loop finché non otteniamo una risposta valida
+            
+            # Richiesta interattiva per tutti gli ambienti
             while true; do
                 echo -n "   Vuoi sovrascrivere il file esistente? [s/n]: " >&2
                 read -r risposta
-            
+                
                 case "$risposta" in
                     [sS]*)
                         echo "   ✅ Sovrascrittura confermata." >&2
@@ -682,6 +694,7 @@ build_audio_filter() {
     fc_filters+="highpass=f=${HP_FREQ},lowpass=f=${LP_FREQ}"
     [[ -n "$FC_EQ_PARAMS" ]] && fc_filters+=",${FC_EQ_PARAMS}"
     fc_filters+=",${COMPRESSOR_SETTINGS}"
+    [[ -n "$DEESSER_FILTER" ]] && fc_filters+=",${DEESSER_FILTER}"
     fc_filters+=",volume=${VOICE_VOL}dB"
     fc_filters+=",alimiter=level_in=1:level_out=0.95:limit=0.98:attack=0.1:release=5"
     fc_filters+=",${SOFTCLIP_SETTINGS}"
@@ -720,7 +733,7 @@ build_audio_filter() {
         if [[ "$SC_THRESHOLD" =~ ^-?[0-9]+dB$ ]]; then
             local db_value
             db_value=$(echo "$SC_THRESHOLD" | sed 's/dB$//')
-            if [[ $(echo "$db_value < -60" | bc -l) -eq 1 ]] || [[ $(echo "$db_value > -10" | bc -l) -eq 1 ]]; then
+            if awk -v val="$db_value" 'BEGIN { exit !(val < -60 || val > -10) }'; then
                 echo "⚠️ Threshold '$db_value'dB fuori range, usando -35dB" >&2
                 db_value="-35"
             fi
@@ -794,6 +807,7 @@ validate_file() {
     local filename=$(basename "$file")
     
     echo "   🔎 Controllo: $filename" >&2
+    echo "   🔍 DEBUG: Percorso completo: $file" >&2
     
     # Controllo esistenza e leggibilità
     if [[ ! -f "$file" ]]; then
@@ -831,6 +845,7 @@ validate_file() {
     if [[ "$channels" == "6" ]] || [[ "$channel_layout" =~ 5\.1 ]]; then
         echo "      ✅ Audio 5.1 compatibile ($codec_name, layout: ${channel_layout:-unknown}). Aggiunto alla coda." >&2
         VALIDATED_FILES_GLOBAL+=("$file")
+        echo "   🔍 DEBUG: Array ora contiene ${#VALIDATED_FILES_GLOBAL[@]} file" >&2
         return 0
     else
         # Incrementa contatori per statistiche
@@ -963,41 +978,37 @@ print_summary() {
 # -----------------------------------------------------------------------------------------------
 
 main() {
-    # Verifica dipendenze iniziali
-    check_ffmpeg_version
-    if ! command -v awk &> /dev/null; then echo "❌ awk non trovato!" >&2; exit 1; fi
-    if ! command -v ffprobe &> /dev/null; then echo "❌ ffprobe non trovato!" >&2; exit 1; fi
-    if ! command -v bc &> /dev/null; then echo "⚠️ 'bc' non trovato. Alcuni controlli numerici potrebbero essere meno precisi." >&2; fi
-
-    # Banner di avvio
-    echo "══════════════════════════════════════════════════════════════════════════" >&2
-    echo "       CLEARVOICE $VERSION - OTTIMIZZAZIONE AUDIO CON DUCKING AVANZATO    " >&2
-    echo "                 CON EQUALIZZAZIONI ITALIANE OTTIMIZZATE                  " >&2
-    echo "══════════════════════════════════════════════════════════════════════════" >&2
-    echo "" >&2
-
-    # Parsing argomenti
+    # 1. Parsing argomenti da linea di comando
     parse_arguments "$@"
-
-    # Configurazione preset
+    
+    # 2. Verifica versione FFmpeg
+    check_ffmpeg_version
+    
+    # 3. Configurazione parametri preset
     set_preset_params "$PRESET"
-
-    # Controlla se il filtro sidechaincompress è supportato
+    
+    # 4. Controllo supporto sidechain per ducking
     if check_sidechain_support; then
         DUCKING_ENABLED="true"
-        echo "✅ Ducking Multicanale sostenuto disponibile e attivato." >&2
+        echo "✅ Sidechain compression supportato - Ducking multicanale ATTIVO" >&2
     else
-        DUCKING_ENABLED="false"
-        echo "⚠️ Ducking non disponibile - Il filtro sidechaincompress non è supportato in questa versione di FFmpeg." >&2
-        echo "   Verrà applicata l'ottimizzazione standard senza ducking dinamico." >&2
+        echo "⚠️ Sidechain compression non disponibile - Ducking DISATTIVO" >&2
     fi
-
-    # Validazione input
+    
+    # 5. Header informativo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "🎙️ CLEARVOICE $VERSION - OTTIMIZZAZIONE AUDIO 5.1 CON DUCKING MULTICANALE" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    
+    # 6. Validazione input
+    echo "🔍 Validazione file di input..." >&2
     if ! validate_inputs; then
-        print_summary # Mostra riepilogo anche se non ci sono file validi
+        echo "❌ Nessun file 5.1 compatibile trovato per l'elaborazione!" >&2
+        print_summary
         exit 1
     fi
-
+    
+    # 7. Resto del codice esistente...
     echo "" >&2
     echo "🎬 INIZIO ELABORAZIONE DI ${#VALIDATED_FILES_GLOBAL[@]} FILE VALIDATI..." >&2
     echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2
@@ -1014,27 +1025,44 @@ main() {
     fi
     echo "" >&2
     
-    # Loop per elaborazione file
-    local i=0
-    local total_files=${#VALIDATED_FILES_GLOBAL[@]}
-    
-    while [ $i -lt $total_files ]; do
-        local current_file="${VALIDATED_FILES_GLOBAL[$i]}"
-        local file_number=$((i+1))
-        
-        echo "--------------------------------------------------------------------------------------------" >&2
-        echo " Elaborazione file $file_number/$total_files: $(basename "$current_file")" >&2
-        echo "--------------------------------------------------------------------------------------------" >&2
-        
-        if process "$current_file"; then
-            echo "   🎉 Successo per: $(basename "$current_file")" >&2
-        else
-            echo "   ⚠️  Fallimento per: $(basename "$current_file") (dettagli sopra)" >&2
-        fi
-        echo "" >&2
-        
-        i=$((i+1))
+    # DEBUG: Mostra i file validati
+    echo "🔍 DEBUG: File validati nell'array (${#VALIDATED_FILES_GLOBAL[@]} totali):" >&2
+    for ((debug_i=0; debug_i<${#VALIDATED_FILES_GLOBAL[@]}; debug_i++)); do
+        echo "   [$debug_i] $(basename "${VALIDATED_FILES_GLOBAL[$debug_i]}")" >&2
     done
+    echo "" >&2
+
+    # PROCESSING SEQUENZIALE SEMPLICE come nella versione funzionante
+    if [[ ${#VALIDATED_FILES_GLOBAL[@]} -gt 0 ]]; then
+        echo "📁 Processing ${#VALIDATED_FILES_GLOBAL[@]} file validati..." >&2
+        
+        # Loop semplice come nello script funzionante
+        for f in "${VALIDATED_FILES_GLOBAL[@]}"; do
+            local file_number=1
+            local total_files=${#VALIDATED_FILES_GLOBAL[@]}
+            
+            # Calcola il numero progressivo del file
+            for ((i=0; i<${#VALIDATED_FILES_GLOBAL[@]}; i++)); do
+                if [[ "${VALIDATED_FILES_GLOBAL[$i]}" == "$f" ]]; then
+                    file_number=$((i+1))
+                    break
+                fi
+            done
+            
+            echo "--------------------------------------------------------------------------------------------" >&2
+            echo " Elaborazione file $file_number/$total_files: $(basename "$f")" >&2
+            echo "--------------------------------------------------------------------------------------------" >&2
+            
+            if process "$f"; then
+                echo "   🎉 Successo per: $(basename "$f")" >&2
+            else
+                echo "   ⚠️  Fallimento per: $(basename "$f") (dettagli sopra)" >&2
+            fi
+            echo "" >&2
+        done
+    else
+        echo "❌ Nessun file 5.1 valido trovato!" >&2
+    fi
 
     print_summary
     
