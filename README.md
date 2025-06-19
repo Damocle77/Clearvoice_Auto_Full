@@ -2,13 +2,13 @@
 
 **2025 by "Sandro (D@mocle77) Sabbioni"**
 
-Benvenuto audionauta! ClearVoice è la pipeline definitiva per ottimizzare l’audio 5.1: dialoghi cristallini, subwoofer controllato, soundstage immersivo e compatibilità totale con tutti i codec principali. Ottimizzato per lingua italiana, sidechain multicanale ultra-sensibile e SoXR resampling di qualità superiore.
+Benvenuto audionauta! ClearVoice è la "pipeline definitiva" sviluppata da me in Bash Scripting + AWK per ottimizzare l’audio 5.1! Avrai dialoghi cristallini, subwoofer arioso e compatibilità totale con tutti i codec principali (ac3-eac3-dts). Ottimizzata con focus sull'intellegibilità della lingua italiana, arricchita con sidechain multicanale + ducking dinamico e SoXR resampling HD per qualità superiore.
 
 ---
 
 ## 🎯 Mission Statement
 
-Quante volte hai dovuto alzare il volume per capire i dialoghi? O hai sentito il subwoofer coprire tutto? ClearVoice prende il tuo audio 5.1 e lo trasforma con una pipeline di ottimizzazione multi-stadio: dialoghi in primo piano, LFE preciso, ambiente sonoro avvolgente.
+Quante volte hai dovuto smanettare con il volume per sentire correttamente i dialoghi? O hai sentito il subwoofer coprire tutto? ClearVoice prende il tuo audio 5.1 standard e lo trasforma con una pipeline di ottimizzazione multi-stadio: dialoghi in primo piano, LFE controllato, ambiente sonoro caldo ed avvolgente....questa è la via!!!
 
 ---
 
