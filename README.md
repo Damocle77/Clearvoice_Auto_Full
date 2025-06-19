@@ -6,13 +6,13 @@ Benvenuto audionauta! ClearVoice è la "pipeline definitiva" sviluppata con atte
 
 ---
 
-## 🎯 Mission Statement
+## 🎯 Mission Statement (A cosa serve questo Script?)
 
 Quante volte hai dovuto smanettare con il volume per sentire correttamente i dialoghi? O hai sentito il subwoofer coprire tutto? ClearVoice prende il tuo audio 5.1 standard e lo trasforma con una pipeline di ottimizzazione multi-stadio: dialoghi in primo piano, LFE controllato, ambiente sonoro caldo ed avvolgente....questa è la via!!!
 
 ---
 
-## ✨ Feature List
+## ✨ Feature List (La tua battlestation!)
 
 - **🎙️ Voice Boost Multi-Stadio:** Denoise → Filtri → EQ → Compressore → Volume → Limiter. Ottimizzazione specifica per voce italiana.
 - **🔊 Ducking Multicanale Ultra-Sensibile:** Sidechain su TUTTI i canali, rilevamento voce anche a bassissimo volume, parametri professionali.
