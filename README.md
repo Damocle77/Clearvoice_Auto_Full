@@ -18,7 +18,6 @@ Quante volte hai dovuto smanettare con il volume per sentire correttamente i dia
 - **🔊 Ducking Multicanale Ultra-Sensibile:** Sidechain su TUTTI i canali, rilevamento voce anche a bassissimo volume, parametri professionali.
 - **🎚️ LFE Processing Avanzato:** Crossover configurabile, ducking LFE sensibile, equalizzazione subwoofer specifica.
 - **🎛️ Preset Specializzati:** Film, Serie, TV, Cartoni. Parametri calibrati per ogni scenario.
-- **🔬 Filtri crossover Butterworth/Linkwitz-Riley (1°/2° ordine).
 - **⚙️ Codec Multipli:** EAC3, AC3, DTS con parametri ottimizzati e gestione automatica layout.
 - **🌠 SoXR Resampling:** Precisione adattiva (28/20/15-bit), fallback automatico a SWR.
 - **🧠 Gestione Robusta:** Validazione multi-formato, batch processing, logging dettagliato, resume capability.
