@@ -14,8 +14,8 @@
 # 🎛️ DUCKING MULTICANALE ULTRA-SENSIBILE:
 #    • Sidechain compression su TUTTI i canali (FL/FR/LFE/BL/BR)
 #    • Rilevamento voce anche a volume molto basso (threshold fino a -47dB)
-#    • Preprocessing sidechain aggressivo (14dB boost + compressore 8:1)
-#    • Parametri attack/release ottimizzati per naturalezza (2-8ms / 50-200ms)
+#    • Preprocessing sidechain aggressivo (16dB boost + compressore 10:1)
+#    • Parametri attack/release ottimizzati per naturalezza (1-6ms / 40-200ms)
 #    • Makeup gain automatico per compensazione volume post-ducking
 #    • Attenuazione selettiva: musica/effetti si abbassano quando parla la voce
 #
@@ -23,8 +23,13 @@
 #    • Filtri crossover Butterworth/Linkwitz-Riley (1°/2° ordine)
 #    • Range frequenze LFE ottimizzato (30-120Hz, configurabile per preset)
 #    • Ducking LFE sensibile per evitare mascheramento dialoghi
-#    • Equalizzazione subwoofer specifica (boost 40-80Hz, controllo risonanze)
+#    • Equalizzazione subwoofer specifica per ARIOSITÀ e controllo muddy:
+#      - FILM: Sub-bass 35Hz (+2.0dB), punch 60Hz (+2.2dB), taglio muddy 90-120Hz (-0.5/-1.2dB)
+#      - SERIE: Bilanciato 40-70Hz (+2.0/+1.8dB), controllo mid-bass 85-110Hz (-0.3/-0.8dB)
+#      - TV: Conservativo 50Hz (+2.0dB), separazione voce 80-100Hz (-0.2/-0.6dB)
+#      - CARTONI: Estensione 28Hz (+1.8dB), punch 55Hz (+2.0dB), controlli 80-95Hz
 #    • Volume LFE adattivo per codec DTS (riduzione automatica 0.10-0.16x)
+#    • Separazione chirurgica frequenze che mascherano dialoghi italiani
 #
 # 🎬 PRESET SPECIALIZZATI PER CONTENUTI MULTIMEDIALI:
 #    • FILM: Massima qualità, soundstage cinematografico, compressione delicata
@@ -64,9 +69,9 @@
 #
 # 🎚️ LFE REDUCTION SENSIBILE PER VOCE BASSA:
 #    • Threshold ducking estremamente sensibile (fino a -47dB per preset TV)
-#    • Preprocessing voce potenziato: +14dB boost → compressore 8:1 → +18dB
+#    • Preprocessing voce potenziato: +16dB boost → compressore 10:1 → +20dB
 #    • Range frequenze sidechain ottimizzato (180-4000Hz vs standard 200-3800Hz)
-#    • Attack/release ultra-veloci per reazione istantanea (2ms attack, 50ms release)
+#    • Attack/release ultra-veloci per reazione istantanea (1ms attack, 40ms release)
 #    • LFE reduction progressivo: 0.16x (film) → 0.14x (tv) → 0.10x (tv+dts)
 #    • Evita mascheramento anche con dialoghi sussurrati o in background
 # -----------------------------------------------------------------------------------------------
@@ -274,63 +279,59 @@ set_preset_params() {
     
     case "$preset_choice" in
         film) 
-            VOICE_VOL="10.5" LFE_VOL="0.16" SURROUND_VOL="4.2" 
+            VOICE_VOL="9.8" LFE_VOL="0.16" SURROUND_VOL="4.2" 
             HP_FREQ="110" LP_FREQ="8000"
             COMPRESSOR_SETTINGS="acompressor=threshold=-20dB:ratio=4.5:attack=8:release=180:makeup=2.5dB"
             FRONT_FILTER="highpass=f=22:poles=2,lowpass=f=20000:poles=1,acompressor=threshold=-20dB:ratio=2.0:attack=20:release=100"
             SOFTCLIP_SETTINGS="asoftclip=type=atan:threshold=0.95:output=1.0"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="35" LFE_LP_FREQ="110" LFE_CROSS_POLES="2"
-            SC_ATTACK="3" SC_RELEASE="120" SC_THRESHOLD="-40dB" SC_RATIO="3.8" SC_MAKEUP="2dB"
-            # Equalizzazione lingua italiana ottimizzata per film
-            FC_EQ_PARAMS="equalizer=f=800:width_type=q:w=2.0:g=1.2,equalizer=f=2200:width_type=q:w=1.6:g=3.8,equalizer=f=3000:width_type=q:w=1.4:g=2.8,equalizer=f=400:width_type=q:w=2.2:g=-1.5"
+            SC_ATTACK="3" SC_RELEASE="120" SC_THRESHOLD="-42dB" SC_RATIO="3.8" SC_MAKEUP="2dB"
+            FC_EQ_PARAMS="equalizer=f=800:width_type=q:w=2.0:g=1.5,equalizer=f=2200:width_type=q:w=1.6:g=4.2,equalizer=f=3000:width_type=q:w=1.4:g=3.2,equalizer=f=400:width_type=q:w=2.2:g=-1.8"
             FLFR_EQ_PARAMS="" 
-            LFE_EQ_PARAMS="equalizer=f=40:width_type=q:w=1.2:g=2.5,equalizer=f=70:width_type=q:w=1.8:g=1.5"
+            LFE_EQ_PARAMS="equalizer=f=35:width_type=q:w=1.0:g=2.0,equalizer=f=60:width_type=q:w=1.5:g=2.2,equalizer=f=90:width_type=q:w=2.0:g=-0.5,equalizer=f=120:width_type=q:w=1.8:g=-1.2"
             DENOISE_FILTER="" 
             ;;
         serie)
-            VOICE_VOL="10.2" LFE_VOL="0.16" SURROUND_VOL="4.2" 
+            VOICE_VOL="9.5" LFE_VOL="0.16" SURROUND_VOL="4.2" 
             HP_FREQ="120" LP_FREQ="7800"
             COMPRESSOR_SETTINGS="acompressor=threshold=-18dB:ratio=4.2:attack=10:release=200:makeup=2.5dB"
             FRONT_FILTER="highpass=f=28:poles=2,lowpass=f=18000:poles=1,acompressor=threshold=-20dB:ratio=2.0:attack=20:release=100"
             SOFTCLIP_SETTINGS="asoftclip=type=atan:threshold=0.97:output=1.0"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="38" LFE_LP_FREQ="108" LFE_CROSS_POLES="2"
-            SC_ATTACK="5" SC_RELEASE="180" SC_THRESHOLD="-42dB" SC_RATIO="2.5" SC_MAKEUP="1.5dB"
-            # Equalizzazione lingua italiana ottimizzata per serie
-            FC_EQ_PARAMS="equalizer=f=800:width_type=q:w=1.7:g=1.2,equalizer=f=2200:width_type=q:w=1.5:g=3.5,equalizer=f=2800:width_type=q:w=1.2:g=2.8,equalizer=f=300:width_type=q:w=2:g=-2"
+            SC_ATTACK="5" SC_RELEASE="180" SC_THRESHOLD="-44dB" SC_RATIO="3.0" SC_MAKEUP="1.5dB"
+            FC_EQ_PARAMS="equalizer=f=800:width_type=q:w=1.7:g=1.5,equalizer=f=2200:width_type=q:w=1.5:g=4.0,equalizer=f=2800:width_type=q:w=1.2:g=3.2,equalizer=f=300:width_type=q:w=2:g=-2.2"
             FLFR_EQ_PARAMS="equalizer=f=300:width_type=q:w=2:g=-1"
-            LFE_EQ_PARAMS="equalizer=f=45:width_type=q:w=1.2:g=2.2,equalizer=f=80:width_type=q:w=1.5:g=1"
+            LFE_EQ_PARAMS="equalizer=f=40:width_type=q:w=1.2:g=2.0,equalizer=f=70:width_type=q:w=1.8:g=1.8,equalizer=f=85:width_type=q:w=2.0:g=-0.3,equalizer=f=110:width_type=q:w=1.5:g=-0.8"
             DENOISE_FILTER="" 
             ;;
         tv) 
-            VOICE_VOL="8.0" LFE_VOL="0.14" SURROUND_VOL="3.8" 
+            VOICE_VOL="8.2" LFE_VOL="0.16" SURROUND_VOL="3.8" 
             HP_FREQ="400" LP_FREQ="5000"
             COMPRESSOR_SETTINGS="acompressor=threshold=-18dB:ratio=3.8:attack=8:release=180:makeup=2.5dB"
             FRONT_FILTER="highpass=f=100:poles=1,lowpass=f=8000:poles=1,acompressor=threshold=-18dB:ratio=2.2:attack=15:release=120"
             SOFTCLIP_SETTINGS="asoftclip=type=tanh:threshold=0.9:output=0.95"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="40" LFE_LP_FREQ="100" LFE_CROSS_POLES="1"
-            SC_ATTACK="8" SC_RELEASE="200" SC_THRESHOLD="-47dB" SC_RATIO="4.5" SC_MAKEUP="3dB"
-            # Equalizzazione lingua italiana ottimizzata per TV
-            FC_EQ_PARAMS="equalizer=f=900:width_type=q:w=1.6:g=1.5,equalizer=f=2000:width_type=q:w=1.5:g=3.2,equalizer=f=3000:width_type=q:w=1.2:g=2.5,equalizer=f=300:width_type=q:w=2:g=-2"
+            SC_ATTACK="6" SC_RELEASE="160" SC_THRESHOLD="-47dB" SC_RATIO="4.8" SC_MAKEUP="3dB"
+            FC_EQ_PARAMS="equalizer=f=900:width_type=q:w=1.6:g=1.8,equalizer=f=2000:width_type=q:w=1.5:g=3.5,equalizer=f=3000:width_type=q:w=1.2:g=2.8,equalizer=f=300:width_type=q:w=2:g=-2.2"
             FLFR_EQ_PARAMS="equalizer=f=1500:width_type=h:w=500:g=1.5"
-            LFE_EQ_PARAMS="equalizer=f=50:width_type=q:w=1.5:g=2"
+            LFE_EQ_PARAMS="equalizer=f=50:width_type=q:w=1.5:g=2.0,equalizer=f=80:width_type=q:w=2.2:g=-0.2,equalizer=f=100:width_type=q:w=1.8:g=-0.6"
             DENOISE_FILTER="afftdn=nr=20:nf=-42:tn=1,anlmdn=s=0.0001:p=0.002:r=0.005"
             ;;
         cartoni)
-            VOICE_VOL="10.0" LFE_VOL="0.16" SURROUND_VOL="4.2" 
+            VOICE_VOL="9.7" LFE_VOL="0.16" SURROUND_VOL="4.2" 
             HP_FREQ="90" LP_FREQ="9000"
             COMPRESSOR_SETTINGS="acompressor=threshold=-17dB:ratio=3.8:attack=8:release=160:makeup=2.5dB"
             FRONT_FILTER="highpass=f=20:poles=2,lowpass=f=21000:poles=1,acompressor=threshold=-15dB:ratio=1.8:attack=25:release=150"
             SOFTCLIP_SETTINGS="asoftclip=type=sin:threshold=0.98:output=1.0"
             FRONT_DELAY_SAMPLES="0" SURROUND_DELAY_SAMPLES="0" 
             LFE_HP_FREQ="30" LFE_LP_FREQ="120" LFE_CROSS_POLES="2"
-            SC_ATTACK="3" SC_RELEASE="130" SC_THRESHOLD="-42dB" SC_RATIO="3.2" SC_MAKEUP="2.5dB"
-            # Equalizzazione lingua italiana ottimizzata per cartoni
-            FC_EQ_PARAMS="equalizer=f=850:width_type=q:w=1.6:g=1.2,equalizer=f=2500:width_type=q:w=1.5:g=3.0,equalizer=f=3500:width_type=q:w=1.2:g=2.8,equalizer=f=300:width_type=q:w=2:g=-2"
+            SC_ATTACK="3" SC_RELEASE="130" SC_THRESHOLD="-44dB" SC_RATIO="3.5" SC_MAKEUP="2.5dB"
+            FC_EQ_PARAMS="equalizer=f=850:width_type=q:w=1.6:g=1.5,equalizer=f=2500:width_type=q:w=1.5:g=3.5,equalizer=f=3500:width_type=q:w=1.2:g=3.2,equalizer=f=4000:width_type=q:w=1.5:g=1.8,equalizer=f=300:width_type=q:w=2:g=-2.2"
             FLFR_EQ_PARAMS="" 
-            LFE_EQ_PARAMS="equalizer=f=30:width_type=q:w=1:g=1.5,equalizer=f=80:width_type=q:w=1.5:g=1"
+            LFE_EQ_PARAMS="equalizer=f=28:width_type=q:w=0.8:g=1.8,equalizer=f=55:width_type=q:w=1.5:g=2.0,equalizer=f=80:width_type=q:w=1.5:g=1.2,equalizer=f=95:width_type=q:w=2.0:g=-0.4"
             DENOISE_FILTER="" 
             ;;
         *) echo "❌ Preset '$preset_choice' non valido!" >&2; exit 1;;
@@ -346,26 +347,26 @@ set_preset_params() {
         # Adattamenti specifici per DTS
         case "$PRESET" in
             film)
-                VOICE_VOL="10.8"  # Aumentato per DTS
-                LFE_VOL="0.12"    # Ridotto per DTS
+                VOICE_VOL="10.8"
+                LFE_VOL="0.12"
                 SURROUND_VOL=$(safe_awk_calc "$SURROUND_VOL * 0.85")
                 HP_FREQ="120"; LP_FREQ="7700"
                 echo "ℹ️  LFE ridotto per codec DTS (${LFE_VOL}x)" >&2
                 ;;
             serie)
-                VOICE_VOL="10.3"  # Aumentato per DTS
+                VOICE_VOL="10.3"
                 LFE_VOL="0.12"
                 SURROUND_VOL=$(safe_awk_calc "$SURROUND_VOL * 0.88")
                 HP_FREQ="135"; LP_FREQ="8000"
                 ;;
             tv)
-                VOICE_VOL="8.3"   # Aumentato per DTS
-                LFE_VOL="0.10"    # Ancora più ridotto per TV+DTS
+                VOICE_VOL="8.3"
+                LFE_VOL="0.10"
                 SURROUND_VOL=$(safe_awk_calc "$SURROUND_VOL * 0.88")
                 HP_FREQ="420"; LP_FREQ="5200"
                 ;;
             cartoni)
-                VOICE_VOL="10.2"  # Aumentato per DTS
+                VOICE_VOL="10.2"
                 LFE_VOL="0.12"
                 SURROUND_VOL=$(safe_awk_calc "$SURROUND_VOL * 0.9")
                 HP_FREQ="90"; LP_FREQ="8700"
@@ -550,7 +551,7 @@ echo "🚀 PERFORMANCE MASSIMA: Cores rilevati: $available_cores | Threads utili
         [[ $has_subtitles -gt 0 ]] && codec_args+=(-c:s copy)
         
         # Preparazione metadata
-        local metadata_args=(-metadata:s:a:0 "title=Italiano 5.1 ClearVoice $PRESET ($ENC $BR)" -metadata:s:a:0 language=ita -disposition:a:0 default)
+        local metadata_args=(-metadata:s:a:0 "title=ClearVoice $PRESET ($ENC $BR)" -metadata:s:a:0 language=ita -disposition:a:0 default)
         
         # Esecuzione FFmpeg
         ffmpeg -hwaccel auto -y -hide_banner -avoid_negative_ts make_zero \
@@ -645,9 +646,7 @@ build_audio_filter() {
     local file="$1"
     
     # Debug layout audio
-    local channels
-    local current_layout
-    local codec_name
+    local channels current_layout codec_name
     
     channels=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of csv=p=0 "$file" 2>/dev/null)
     current_layout=$(ffprobe -v error -select_streams a:0 -show_entries stream=channel_layout -of csv=p=0 "$file" 2>/dev/null)
@@ -660,10 +659,14 @@ build_audio_filter() {
     
     # PARTE 1: CHANNEL SPLITTING - Estrazione dei canali individuali
     if [[ "$channels" == "6" ]]; then
-        # Versione robusta che usa asplit + channelsplit per estrarre i canali
-        filter_graph="[0:a]aformat=channel_layouts=5.1[audio5dot1];"
-        filter_graph+="[audio5dot1]channelsplit=channel_layout=5.1[FL][FR][FC][LFE_orig][BL][BR];"
-        echo "✅ Layout 5.1 rilevato - Estrazione canali attiva" >&2
+        local split_layout="5.1"
+        if [[ "$current_layout" =~ 5\.1\(side\) ]]; then
+            split_layout="5.1(side)"
+        elif [[ -z "$current_layout" || "$current_layout" == "unknown" ]]; then
+            echo "⚠️ Layout sconosciuto ma 6 canali - Assumendo 5.1 standard" >&2
+        fi
+        filter_graph="[0:a]channelsplit=channel_layout=${split_layout}[FL][FR][FC][LFE_orig][BL][BR];"
+        echo "✅ Layout 5.1 rilevato ($split_layout) - Estrazione canali attiva" >&2
     else
         echo "❌ File non ha 6 canali (ha $channels)" >&2
         return 1
@@ -682,10 +685,18 @@ build_audio_filter() {
 
     # PARTE 3: SIDECHAIN DUCKING ULTRA-SENSIBILE - Prepara il segnale di controllo per voce bassa
     if [[ "$DUCKING_ENABLED" == "true" ]]; then
-        echo "🎛️ Ducking multicanale attivo - Controllo dinamico basato su voce (sensibile)" >&2
-        filter_graph+="[center_out]asplit=2[center_final][voice_sidechain];"
-        # Preprocessing più aggressivo per voce bassa (sensibilità aumentata)
-        filter_graph+="[voice_sidechain]highpass=f=180,lowpass=f=4000,volume=14dB,acompressor=threshold=-40dB:ratio=8:attack=2:release=50,volume=18dB[sidechain_control];"
+        echo "🎛️ Ducking multicanale attivo - Controllo dinamico SOSTENUTO basato su voce" >&2
+        filter_graph+="[center_out]asplit=6[center_final][voice_sc1][voice_sc2][voice_sc3][voice_sc4][voice_sc5];"
+        
+        # Preprocessing ANCORA PIÙ aggressivo per voce bassa
+        local sidechain_process="highpass=f=180,lowpass=f=4000,volume=16dB,acompressor=threshold=-38dB:ratio=10:attack=1:release=40,volume=20dB"
+        
+        # Crea 5 sidechain identici per tutti i canali da duckare
+        filter_graph+="[voice_sc1]${sidechain_process}[sc_fl];"
+        filter_graph+="[voice_sc2]${sidechain_process}[sc_fr];"
+        filter_graph+="[voice_sc3]${sidechain_process}[sc_lfe];"
+        filter_graph+="[voice_sc4]${sidechain_process}[sc_bl];"
+        filter_graph+="[voice_sc5]${sidechain_process}[sc_br];"
     else
         filter_graph+="[center_out]acopy[center_final];"
         echo "⚠️ Ducking non disponibile - Sidechain non supportato" >&2
@@ -699,26 +710,28 @@ build_audio_filter() {
     [[ "$FRONT_DELAY_SAMPLES" != "0" ]] && fl_fr_filters+=",adelay=${FRONT_DELAY_SAMPLES}"
     fl_fr_filters="${fl_fr_filters%,}" # Rimuove l'ultima virgola se presente
 
+    local sc_threshold_numeric=""
     if [[ "$DUCKING_ENABLED" == "true" ]]; then
         # Conversione threshold da dB a valore lineare per sidechaincompress
-        local sc_threshold_numeric
         if [[ "$SC_THRESHOLD" =~ ^-?[0-9]+dB$ ]]; then
             local db_value
             db_value=$(echo "$SC_THRESHOLD" | sed 's/dB$//')
-            if [[ "$db_value" -lt -60 ]] || [[ "$db_value" -gt 0 ]]; then
-                echo "⚠️ Threshold fuori range, usando -35dB" >&2
+            if [[ $(echo "$db_value < -60" | bc -l) -eq 1 ]] || [[ $(echo "$db_value > -10" | bc -l) -eq 1 ]]; then
+                echo "⚠️ Threshold '$db_value'dB fuori range, usando -35dB" >&2
                 db_value="-35"
             fi
-            sc_threshold_numeric=$(awk "BEGIN { result = 10^($db_value/20); if(result < 0.001) result = 0.001; if(result > 1.0) result = 1.0; printf \"%.4f\", result }")            
+            sc_threshold_numeric=$(awk "BEGIN { result = 10^($db_value/20); if(result < 0.001) result = 0.001; if(result > 0.3) result = 0.3; printf \"%.6f\", result }")            
         else
-            sc_threshold_numeric="0.010"
+            echo "❌ ERRORE: Formato threshold non valido '$SC_THRESHOLD' - Usando default" >&2
+            sc_threshold_numeric="0.025"
         fi
+        echo "🔢 Threshold ducking: $SC_THRESHOLD → $sc_threshold_numeric (lineare)" >&2
         
         # Applica filtri base e poi ducking
         filter_graph+="[FL]${fl_fr_filters}[fl_pre];"
         filter_graph+="[FR]${fl_fr_filters}[fr_pre];"
-        filter_graph+="[fl_pre][sidechain_control]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[fl_out];"
-        filter_graph+="[fr_pre][sidechain_control]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[fr_out];"
+        filter_graph+="[fl_pre][sc_fl]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[fl_out];"
+        filter_graph+="[fr_pre][sc_fr]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[fr_out];"
     else
         # Senza ducking, applica solo i filtri base
         filter_graph+="[FL]${fl_fr_filters}[fl_out];"
@@ -732,7 +745,7 @@ build_audio_filter() {
     filter_graph+="[LFE_orig]${lfe_filters}[lfe_processed];"
 
     if [[ "$DUCKING_ENABLED" == "true" ]]; then    
-        filter_graph+="[lfe_processed][sidechain_control]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[lfe_out];"
+        filter_graph+="[lfe_processed][sc_lfe]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[lfe_out];"
     else
         filter_graph+="[lfe_processed]acopy[lfe_out];"
     fi
@@ -745,18 +758,17 @@ build_audio_filter() {
     if [[ "$DUCKING_ENABLED" == "true" ]]; then
         filter_graph+="[BL]${bl_br_filters}[bl_pre];"
         filter_graph+="[BR]${bl_br_filters}[br_pre];"
-        filter_graph+="[bl_pre][sidechain_control]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[bl_out];"
-        filter_graph+="[br_pre][sidechain_control]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[br_out];"
+        filter_graph+="[bl_pre][sc_bl]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[bl_out];"
+        filter_graph+="[br_pre][sc_br]sidechaincompress=threshold=${sc_threshold_numeric}:ratio=${SC_RATIO}:attack=${SC_ATTACK}:release=${SC_RELEASE}:makeup=${SC_MAKEUP}[br_out];"
     else
         filter_graph+="[BL]${bl_br_filters}[bl_out];"
         filter_graph+="[BR]${bl_br_filters}[br_out];"
     fi
 
     # PARTE 7: JOIN FINALE - Unione di tutti i canali processati
-    # Usa join semplice e compatibile con DTS
     if [[ "${CODEC,,}" == "dts" ]]; then
         # Layout specifico per DTS
-        filter_graph+="[fl_out][fr_out][center_final][lfe_out][bl_out][br_out]join=inputs=6:channel_layout=5.1(side)[joined];"
+        filter_graph+="[fl_out][fr_out][center_final][lfe_out][bl_out][br_out]join=inputs=6:channel_layout=5.1\\(side\\)[joined];"
     else
         # Layout generico per altri codec
         filter_graph+="[fl_out][fr_out][center_final][lfe_out][bl_out][br_out]join=inputs=6:channel_layout=5.1[joined];"
@@ -932,7 +944,7 @@ print_summary() {
     
     echo "" >&2
     echo "⏱️  Tempo totale di esecuzione script: $total_elapsed_time secondi." >&2
-    echo "🎛️  Ducking Multicanale: $([ "$DUCKING_ENABLED" == "true" ] && echo "ATTIVO (Sensibile)" || echo "NON DISPONIBILE")" >&2
+    echo "🎛️  Ducking Multicanale: $([ "$DUCKING_ENABLED" == "true" ] && echo "ATTIVO (Sostenuto)" || echo "NON DISPONIBILE")" >&2
     echo "🇮🇹  Equalizzazioni ottimizzate per voce italiana: ATTIVE" >&2
     echo "🎯  Codec: $CODEC | Bitrate: $BR | Preset: $PRESET" >&2
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
@@ -947,12 +959,13 @@ main() {
     check_ffmpeg_version
     if ! command -v awk &> /dev/null; then echo "❌ awk non trovato!" >&2; exit 1; fi
     if ! command -v ffprobe &> /dev/null; then echo "❌ ffprobe non trovato!" >&2; exit 1; fi
+    if ! command -v bc &> /dev/null; then echo "⚠️ 'bc' non trovato. Alcuni controlli numerici potrebbero essere meno precisi." >&2; fi
 
     # Banner di avvio
-    echo "╔══════════════════════════════════════════════════════════════════════════╗" >&2
-    echo "║       CLEARVOICE $VERSION - OTTIMIZZAZIONE AUDIO CON DUCKING AVANZATO    ║" >&2
-    echo "║                 CON EQUALIZZAZIONI ITALIANE OTTIMIZZATE                  ║" >&2
-    echo "╚══════════════════════════════════════════════════════════════════════════╝" >&2
+    echo "══════════════════════════════════════════════════════════════════════════" >&2
+    echo "       CLEARVOICE $VERSION - OTTIMIZZAZIONE AUDIO CON DUCKING AVANZATO    " >&2
+    echo "                 CON EQUALIZZAZIONI ITALIANE OTTIMIZZATE                  " >&2
+    echo "══════════════════════════════════════════════════════════════════════════" >&2
     echo "" >&2
 
     # Parsing argomenti
@@ -964,7 +977,7 @@ main() {
     # Controlla se il filtro sidechaincompress è supportato
     if check_sidechain_support; then
         DUCKING_ENABLED="true"
-        echo "✅ Ducking Multicanale sensibile disponibile e attivato." >&2
+        echo "✅ Ducking Multicanale sostenuto disponibile e attivato." >&2
     else
         DUCKING_ENABLED="false"
         echo "⚠️ Ducking non disponibile - Il filtro sidechaincompress non è supportato in questa versione di FFmpeg." >&2
@@ -981,7 +994,7 @@ main() {
     echo "🎬 INIZIO ELABORAZIONE DI ${#VALIDATED_FILES_GLOBAL[@]} FILE VALIDATI..." >&2
     echo "   Preset: $PRESET | Codec: $ENC ($BR)" >&2
     if [[ "$DUCKING_ENABLED" == "true" ]]; then
-        echo "   Ducking Multicanale: ATTIVO (Sensibile per voce bassa)" >&2
+        echo "   Ducking Multicanale: ATTIVO (Sostenuto per voce bassa)" >&2
     else
         echo "   Ducking Multicanale: NON DISPONIBILE" >&2
     fi
