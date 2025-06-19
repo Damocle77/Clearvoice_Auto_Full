@@ -63,7 +63,7 @@ Esegui con i parametri desiderati:
 
 ![Schema Pipeline ClearVoice](schema_clearvoice.png)
 
-**Legenda del nuovo flowchart (da rigenerare):**
+**Legenda del flowchart:**
 
 1. **Input File(s)**
 2. **Validazione Layout + Canali + Codec**
@@ -96,6 +96,6 @@ Hai idee o bug? Apri una Issue o una Pull Request!
 
 ---
 
-*E ora... lascia che i tuoi altoparlanti suonino... nel modo giusto!*
+*E ora... lascia che i tuoi altoparlanti suonino... nel modo giusto, la qualità non è un privilegio!*
 
 
