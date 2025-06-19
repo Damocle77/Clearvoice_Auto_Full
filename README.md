@@ -6,13 +6,13 @@ Benvenuto audionauta! ClearVoice è la "pipeline definitiva" sviluppata con atte
 
 ---
 
-## 🎯 Mission Statement (A cosa serve questo Script?)
+## 🎯 Mission Statement (a cosa serve questo Script?)
 
 Quante volte hai dovuto smanettare con il volume per sentire correttamente i dialoghi? O hai sentito il subwoofer coprire tutto? ClearVoice prende il tuo audio 5.1 standard e lo trasforma con una pipeline di ottimizzazione multi-stadio: dialoghi in primo piano, LFE controllato, ambiente sonoro caldo ed avvolgente....questa è la via!!!
 
 ---
 
-## ✨ Feature List (La tua battlestation!)
+## ✨ Feature List (la tua battlestation!)
 
 - **🎙️ Voice Boost Multi-Stadio:** Denoise → Filtri → EQ → Compressore → Volume → Limiter. Ottimizzazione specifica per voce italiana.
 - **🔊 Ducking Multicanale Ultra-Sensibile:** Sidechain su TUTTI i canali, rilevamento voce anche a bassissimo volume, parametri professionali.
@@ -25,7 +25,7 @@ Quante volte hai dovuto smanettare con il volume per sentire correttamente i dia
 
 ---
 
-## 🛠️ Tecnologie Utilizzate
+## 🛠️ Tecnologie Utilizzate (power-up digitale)
 
 - **Bash, AWK:** Motore di scripting e calcoli robusti.
 - **FFmpeg (>=6.0):** Filtri avanzati (sidechaincompress, limiter, equalizer, compressor, denoise, join/split canali).
@@ -34,7 +34,7 @@ Quante volte hai dovuto smanettare con il volume per sentire correttamente i dia
 
 ---
 
-## 🚀 Guida Rapida all'Uso
+## 🚀 Guida Rapida all'Uso (starter pack utente)
 
 Rendi eseguibile lo script:
 
@@ -57,7 +57,7 @@ Esegui con i parametri desiderati:
 
 ---
 
-## 🗺️ Schema Grafico del Flusso Audio
+## 🗺️ Schema Grafico del Flusso Audio (sound pipeline overview)
 
 ![Schema Pipeline ClearVoice](schema_clearvoice.png)
 
@@ -75,7 +75,7 @@ Esegui con i parametri desiderati:
 
 ---
 
-## 🔬 Analisi Tecnica Dettagliata
+## 🔬 Analisi Tecnica Dettagliata (analisi forense del codice)
 
 - **Ducking Multicanale:** Sidechain su FL/FR/LFE/BL/BR, threshold fino a -47dB, attack/release ottimizzati.
 - **Voice Processing:** EQ dedicata per voce italiana (800Hz, 2200-2800Hz), compressione multi-banda, limiter anti-distorsione.
@@ -86,7 +86,7 @@ Esegui con i parametri desiderati:
 
 ---
 
-## 🤝 Contribuisci
+## 🤝 Contribuisci (unisciti all'alleanza e dona il tuo mana)
 
 Hai idee o bug? Apri una Issue o una Pull Request!
 
@@ -94,6 +94,6 @@ Hai idee o bug? Apri una Issue o una Pull Request!
 
 ---
 
-*E ora... lascia che i tuoi altoparlanti suonino... nel modo giusto!, La qualità non è un privilegio, è un diritto per tutti!*
+*E ora... lascia che i tuoi altoparlanti suonino... nel modo giusto finalmente!, La qualità non è un privilegio, è un diritto per tutti!*
 
 
