@@ -94,6 +94,6 @@ Hai idee o bug? Apri una Issue o una Pull Request!
 
 ---
 
-*E ora... lascia che i tuoi altoparlanti suonino... nel modo giusto finalmente!, La qualità non è un privilegio, è un diritto per tutti!*
+*E ora... lascia che i tuoi altoparlanti suonino... nel modo giusto, La qualità non è un privilegio, è un diritto per tutti!*
 
 
