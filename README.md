@@ -27,7 +27,7 @@ Quante volte hai dovuto smanettare con il volume per sentire correttamente i dia
 
 ## 🛠️ Tecnologie Utilizzate
 
-- **Bash, awk:** Motore di scripting e calcoli robusti.
+- **Bash, AWK:** Motore di scripting e calcoli robusti.
 - **FFmpeg (>=6.0):** Filtri avanzati (sidechaincompress, limiter, equalizer, compressor, denoise, join/split canali).
 - **SoXR:** Resampler di qualità superiore.
 - **Compatibilità totale:** Linux, macOS, Windows (WSL/GitBash). Nessuna dipendenza proprietaria.
