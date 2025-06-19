@@ -61,23 +61,19 @@ Esegui con i parametri desiderati:
 
 ## 🗺️ Schema Grafico del Flusso Audio
 
+![Schema Pipeline ClearVoice](schema_clearvoice.png)
+
 **Legenda del nuovo flowchart (da rigenerare):**
 
 1. **Input File(s)**
 2. **Validazione Layout + Canali + Codec**
 3. **Preset Selection**
-    - (Opzionale) Dry Run / Validation Only
 4. **Rilevamento Sidechaincompress**
 5. **Costruzione FilterChain**
 6. **Applica Voice EQ + Compressione + Surround Spatialization**
 7. **Applica Filter Chain**
-8. **SoXR Supported?**
-    - Sì → Applica Limiter tramite filtro
-    - No → Imposta Codec + Bitrate
+8. **SoXR se Supportato da ffmpeg**
 9. **Mux Audio in MKV + Set Metadata**
-
-**Suggerimento grafico:**
-Rigenera il diagramma seguendo la struttura sopra, usando uno stile moderno e leggibile (sfondo scuro, blocchi arrotondati, frecce chiare, evidenziazione dei rami decisionali).
 
 ---
 
@@ -97,13 +93,6 @@ Rigenera il diagramma seguendo la struttura sopra, usando uno stile moderno e le
 Hai idee o bug? Apri una Issue o una Pull Request!
 
 **Licenza:** MIT
-
----
-
-## 🗺️ Schema Grafico del Flusso Audio
-
-![Schema Pipeline ClearVoice](schema_clearvoice.png)
-**Schema pipeline:**
 
 ---
 
