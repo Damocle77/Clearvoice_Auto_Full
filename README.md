@@ -57,7 +57,7 @@ Esegui con i parametri desiderati:
 
 ---
 
-## 🗺️ Schema Grafico del Flusso Audio (sound pipeline overview)
+## 🗺️ Grafico del Flusso Audio (pipeline overview)
 
 ![Schema Pipeline ClearVoice](schema_clearvoice.png)
 
