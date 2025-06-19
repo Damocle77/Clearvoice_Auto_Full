@@ -14,13 +14,13 @@ Quante volte hai dovuto smanettare con il volume per sentire correttamente i dia
 
 ## ✨ Feature List (la tua battlestation!)
 
-- **🎙️ Voice Boost Multi-Stadio:** Denoise → Filtri → EQ → Compressore → Volume → Limiter. Ottimizzazione per voce italiana.
-- **🔊 Ducking Multicanale Ultra-Sensibile:** Sidechain su TUTTI i canali, rilevamento voce anche a bassissimo volume.
-- **🎚️ LFE Processing Avanzato:** Crossover configurabile, ducking LFE sensibile, equalizzazione subwoofer specifica.
+- **🎙️ Voice Boost Multi-Stadio:** Denoise → Filtri → EQ → Compressore → Volume → Limiter. Ottimizzazione voce italiana.
+- **🔊 Ducking Multicanale Ultra-Sensibile:** Sidechain su TUTTI i canali, rilevamento voce a basso volume.
+- **🎚️ LFE Processing Avanzato:** Crossover configurabile, ducking LFE sensibile, equalizzazione subwoofer.
 - **🎛️ Preset Specializzati:** Film, Serie, TV, Cartoni. Parametri calibrati per ogni scenario.
 - **⚙️ Codec Multipli:** EAC3, AC3, DTS con parametri ottimizzati e gestione automatica layout.
 - **🌠 SoXR Resampling:** Precisione adattiva (28/20/15-bit), fallback automatico a SWR.
-- **🧠 Gestione Robusta:** Validazione multi-formato, batch processing, logging dettagliato, resume capability.
+- **🧠 Gestione Robusta:** Validazione multi-formato, batch processing, logging.
 - **🛡️ Protezione Anti-Clipping Doppia:** Limiter + softclip programmabile.
 
 ---
