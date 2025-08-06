@@ -1,4 +1,4 @@
-# 🎙️ ClearVoice Auto Full – "Tuffati nel Suono" – v3.0
+# 🎙️ ClearVoice_Auto_Full – "Tuffati nel Suono" – v3.0
 
 > "Porta la voce in primo piano come un vero Jedi del suono!"  
 > "Dialoghi cristallini, bassi controllati e un mix che conquista la galassia."  
