@@ -422,14 +422,14 @@ DEFAULT_VOICE_BOOST=3.5         # Voice boost incrementato leggermente per maggi
 DEFAULT_LFE_REDUCTION=0.77      # LFE ridotto equilibrato per bilanciamento ottimale
 DEFAULT_SURROUND_BOOST=2.7      # boost incrementato per maggiore immersività (aumentato)
 DEFAULT_MAKEUP_GAIN=1.3         # Makeup gain ottimizzato (+0.3dB incremento conservativo)
-DEFAULT_FRONT_REDUCTION=0.77    # Riduzione front ottimizzata per chiarezza vocale
+DEFAULT_FRONT_REDUCTION=0.86    # Riduzione front leggermente meno aggressiva per più scena stereo
 
 # Inizializza i parametri di lavoro con i valori di default
 VOICE_BOOST=$DEFAULT_VOICE_BOOST
 LFE_REDUCTION=$DEFAULT_LFE_REDUCTION
 SURROUND_BOOST=$DEFAULT_SURROUND_BOOST
 MAKEUP_GAIN=$DEFAULT_MAKEUP_GAIN
-FRONT_REDUCTION=$DEFAULT_FRONT_REDUCTION
+FRONT_REDUCTION=0.86
 
 # Logica adattiva basata sui risultati dell'analisi - usando awk per compatibilità
 
@@ -437,21 +437,21 @@ FRONT_REDUCTION=$DEFAULT_FRONT_REDUCTION
 if [ "$CONTENT_TYPE" = "series" ]; then
     echo "OTTIMIZZAZIONE SERIE TV: Parametri ottimizzati per episodi TV"
     # Serie TV tendono ad avere dialoghi più importanti e meno effetti
-    VOICE_BOOST=3.8               # Voice boost incrementato per serie TV (dialoghi cruciali)
-    FRONT_REDUCTION=0.74          # Riduzione front più aggressiva per dare massimo spazio ai dialoghi
+    VOICE_BOOST=3.7               # Voice boost incrementato per serie TV (dialoghi cruciali)
+    FRONT_REDUCTION=0.86          # Riduzione front meno aggressiva (range 0.80-0.90)
     SURROUND_BOOST=2.6            # Surround boost aumentato per maggiore immersività
     echo "Parametri serie TV: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
 elif [ "$CONTENT_TYPE" = "movie" ]; then
     echo "OTTIMIZZAZIONE FILM: Parametri ottimizzati per contenuti cinematografici"
     # Film mantengono valori default per bilanciamento cinematografico ottimale
     VOICE_BOOST=$DEFAULT_VOICE_BOOST      # Voice boost cinematografico standard
-    FRONT_REDUCTION=$DEFAULT_FRONT_REDUCTION    # Riduzione front cinematografica
+    FRONT_REDUCTION=0.86                  # Riduzione front cinematografica (range 0.80-0.90)
     SURROUND_BOOST=2.7      # Surround boost cinematografico aumentato
     echo "Parametri film: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
 elif [ "$CONTENT_TYPE" = "short" ]; then
     echo "OTTIMIZZAZIONE CONTENUTO BREVE: Parametri per clip/trailer"
     VOICE_BOOST=3.4               # Voice boost moderato per contenuti brevi
-    FRONT_REDUCTION=0.76          # Riduzione front bilanciata per clip
+    FRONT_REDUCTION=0.86          # Riduzione front bilanciata per clip (range 0.80-0.90)
     SURROUND_BOOST=2.5            # Surround boost aumentato per contenuti brevi
     MAKEUP_GAIN=1.1               # Makeup gain ottimizzato per contenuti brevi (+0.3dB incremento)
     echo "Parametri contenuto breve: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
@@ -472,7 +472,7 @@ if [ $(awk "BEGIN {print ($LRA > 15) ? 1 : 0}") -eq 1 ] && [ $(awk "BEGIN {print
     echo "PROFILO RILEVATO: Film ad alta dinamica (action/thriller/sci-fi)"
     LFE_REDUCTION=0.74        # Riduzione precisa per film d'azione (-2.3dB)
     VOICE_BOOST=3.6           # Voice boost ottimizzato per contenuti cinematografici di qualità
-    FRONT_REDUCTION=0.76      # Riduzione front aggressiva per dare massimo spazio alla voce (-2.5dB)
+    FRONT_REDUCTION=0.86      # Riduzione front equilibrata (range 0.80-0.90)
     SURROUND_BOOST=2.9        # +9.2dB per mantenere l'immersività cinematografica incrementata (aumentato)
     MAKEUP_GAIN=1.3           # Makeup gain ottimizzato per contenuti dinamici (+0.3dB incremento)
     echo "LFE ottimizzato per impatto dinamico controllato: ${LFE_REDUCTION}x"
@@ -483,7 +483,7 @@ elif [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ] && [ $(awk "BEGIN {prin
     echo "PROFILO RILEVATO: Contenuto musicale/musical compresso (Disney, Broadway style)"
     LFE_REDUCTION=0.76        # Riduzione bilanciata per preservare musicalità (-2.1dB)
     VOICE_BOOST=3.4           # Voice boost ottimizzato per dialoghi/canto sopra orchestrazione
-    FRONT_REDUCTION=0.77      # Front ridotti per dare spazio alla voce nei contenuti musicali (-1.4dB)
+    FRONT_REDUCTION=0.86      # Front ridotti per dare spazio alla voce nei contenuti musicali (range 0.80-0.90)
     SURROUND_BOOST=2.8        # +9.0dB surround potenziato per atmosfera musicale (aumentato)
     MAKEUP_GAIN=1.1           # Makeup gain ottimizzato per contenuti già compressi (+0.3dB incremento)
     echo "LFE ottimizzato per contenuti musicali controllati: ${LFE_REDUCTION}x"
@@ -498,13 +498,13 @@ elif echo "$(basename "$INPUT_FILE")" | grep -qi -E "(musical|wicked|frozen|moan
         echo "APPLICAZIONE: Sicurezza musical per True Peak critico"
         LFE_REDUCTION=0.76        # LFE più conservativo per musical con peak critici
         VOICE_BOOST=3.5           # Voice boost ridotto per sicurezza ma efficace per musical
-        FRONT_REDUCTION=0.75      # Front ridotti con maggiore sicurezza
+        FRONT_REDUCTION=0.86      # Front ridotti con maggiore sicurezza (range 0.80-0.90)
         SURROUND_BOOST=2.8        # Surround boost aumentato per musical con peak critici
         MAKEUP_GAIN=1.0           # Makeup gain conservativo per sicurezza (+0.3dB incremento)
     else
         LFE_REDUCTION=0.78        # LFE più presente per orchestrazioni musicali (-1.9dB)
         VOICE_BOOST=3.7           # Voice boost incrementato per dialoghi/canti sopra orchestrazione
-        FRONT_REDUCTION=0.77      # Front leggermente ridotti per bilanciare voce e musica (-2.0dB)
+    FRONT_REDUCTION=0.86      # Front leggermente ridotti per bilanciare voce e musica (range 0.80-0.90)
         SURROUND_BOOST=3.0        # +9.5dB surround incrementato per atmosfera musicale immersiva (aumentato)
         MAKEUP_GAIN=1.2           # Makeup gain ottimizzato per musical cinematografici (+0.3dB incremento)
     fi
@@ -516,7 +516,7 @@ elif [ $(awk "BEGIN {print ($PEAK > -0.5) ? 1 : 0}") -eq 1 ]; then
     echo "PROFILO RILEVATO: Contenuto con picchi critici - modalità sicurezza bilanciata"
     LFE_REDUCTION=0.75        # Riduzione moderata per mantenere corpo audio (-1.9dB)
     VOICE_BOOST=3.6           # Voice boost sicuro e bilanciato
-    FRONT_REDUCTION=0.79      # Riduzione front moderata per mantenere bilanciamento (-1.9dB)
+    FRONT_REDUCTION=0.86      # Riduzione front moderata per mantenere bilanciamento (range 0.80-0.90)
     SURROUND_BOOST=2.8        # +9.0dB surround mantenuto per immersività (aumentato)
     MAKEUP_GAIN=1.3           # Makeup gain incrementato per compensare picchi critici (+1.1dB)
     echo "LFE bilanciato per sicurezza: ${LFE_REDUCTION}x"
@@ -526,8 +526,8 @@ elif [ $(awk "BEGIN {print ($PEAK > -0.5) ? 1 : 0}") -eq 1 ]; then
 elif [ $(awk "BEGIN {print ($PEAK > -2) ? 1 : 0}") -eq 1 ]; then
     echo "PROFILO RILEVATO: Contenuto con picchi moderati - modalità bilanciata protetta"
     LFE_REDUCTION=0.77        # Riduzione leggera per mantenere corpo audio (-1.6dB)
-    VOICE_BOOST=3.8           # Voice boost efficace ma sicuro
-    FRONT_REDUCTION=0.78      # Riduzione front leggera per mantenere bilanciamento (-1.6dB)
+    VOICE_BOOST=3.7           # Voice boost efficace ma sicuro
+    FRONT_REDUCTION=0.86      # Riduzione front leggera per mantenere bilanciamento (range 0.80-0.90)
     SURROUND_BOOST=2.9        # +9.2dB surround per immersività (aumentato)
     MAKEUP_GAIN=1.2           # Makeup gain bilanciato per sicurezza (+1.0dB)
     echo "LFE bilanciato per contenuti moderni: ${LFE_REDUCTION}x"
@@ -543,13 +543,16 @@ fi
 
 # Microvariazione Subwoofer: abbassa LFE_REDUCTION di 0.03 per sicurezza
 LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" 'BEGIN {printf "%.2f", x-0.03}')
+# Patch anti-vibrazioni: riduzione subwoofer più energica
+LFE_PATCH=-0.06
+LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" -v p="$LFE_PATCH" 'BEGIN {printf "%.2f", x+p}')
 
 
 # ==================== VALIDAZIONE PARAMETRI FINALI ====================
-# Limita voice boost a massimo 3.8 (accetta anche 3.8)
-if ! awk -v v="$VOICE_BOOST" 'BEGIN {exit (v<=3.8) ? 0 : 1}'; then
-    echo "Voice boost troppo alto (${VOICE_BOOST}), imposto a 3.8dB per sicurezza."
-    VOICE_BOOST=3.8
+ # Limita voice boost a massimo 3.7 (accetta anche 3.7)
+if ! awk -v v="$VOICE_BOOST" 'BEGIN {exit (v<=3.7) ? 0 : 1}'; then
+    echo "Voice boost troppo alto (${VOICE_BOOST}), imposto a 3.7dB per sicurezza."
+    VOICE_BOOST=3.7
 fi
 # Difesa parametri non numerici (compatibile con virgola decimale)
 for var in VOICE_BOOST LFE_REDUCTION FRONT_REDUCTION SURROUND_BOOST MAKEUP_GAIN; do
@@ -561,10 +564,14 @@ for var in VOICE_BOOST LFE_REDUCTION FRONT_REDUCTION SURROUND_BOOST MAKEUP_GAIN;
       eval $var=$val
   fi
 done
-# Validazione parametri: accetta valori tra 0.5 e 3.8 (compatibile con awk -v)
+# Validazione parametri: accetta valori tra 0.5 e 3.7 (compatibile con awk -v)
 for param in VOICE_BOOST LFE_REDUCTION FRONT_REDUCTION SURROUND_BOOST MAKEUP_GAIN; do
     value=$(eval echo \$$param | sed 's/,/./')
-    if ! awk -v v="$value" 'BEGIN {exit (v>=0.5 && v<=3.8) ? 0 : 1}'; then
+    # Limita VOICE_BOOST a massimo 3.7
+    if [ "$param" = "VOICE_BOOST" ] && ! awk -v v="$value" 'BEGIN {exit (v<=3.7) ? 0 : 1}'; then
+        echo "Parametro $param fuori range sicuro ($value), imposto valore massimo sicuro 3.7."
+        eval $param=3.7
+    elif ! awk -v v="$value" 'BEGIN {exit (v>=0.5 && v<=3.7) ? 0 : 1}'; then
         echo "Parametro $param fuori range sicuro ($value), imposto valore minimo sicuro 1.0."
         eval $param=1.0
     else
@@ -582,8 +589,9 @@ echo "MAKEUP_GAIN: $MAKEUP_GAIN"
 echo "-----------------------------------"
 
 # --- Preparazione filtri FFmpeg ottimizzati per DSP moderni ---
-# Filtro vocale pulito per evitare artefatti
-FC_FILTER="volume=${VOICE_BOOST}"
+# Filtro vocale con passa-alto per eliminare vibrazioni (anti-vibrazioni)
+FC_FILTER="highpass=f=85,volume=${VOICE_BOOST},alimiter=attack=1:release=50"
+
 
 # Filtro LFE con SOLO subsonico essenziale (come richiesto) + volume
 LFE_FILTER="highpass=f=25:poles=2,volume=${LFE_REDUCTION}"
@@ -739,7 +747,7 @@ if [ $ffmpeg_exit_code -eq 0 ]; then
     # Mostra i parametri finali applicati
     echo
     echo "PARAMETRI CLEARVOICE AUTO APPLICATI:"
-    echo "Tipo Contenuto: $CONTENT_TYPE | Voice Enhancement: ${VOICE_BOOST}dB (adattivo, senza deesser) | Front Control: ${FRONT_REDUCTION}x (FL/FR bilanciati)"
+    echo "Tipo Contenuto: $CONTENT_TYPE | Voice Enhancement: ${VOICE_BOOST}dB (adattivo) | Front Control: ${FRONT_REDUCTION}x (FL/FR bilanciati)"
     echo "LFE Control: Adattivo (HPF Subsonico 25Hz / Reduction ${LFE_REDUCTION}x)"
     echo "Surround Boost: +$(awk -v s="$SURROUND_BOOST" 'BEGIN {printf "%.1f", 20*log(s)/log(10)}')dB (${SURROUND_BOOST}x) | Makeup Gain: $MAKEUP_GAIN dB"
     echo "CONFIGURAZIONE: Architettura adattiva con controlli di volume intelligenti per $CONTENT_TYPE."
