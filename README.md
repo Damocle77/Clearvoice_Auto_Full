@@ -32,7 +32,8 @@ ClearVoice Auto Full è uno script Bash che trasforma la traccia audio dei tuoi 
 
 ### Analisi Spettrale & Logica Adattiva
 
-ClearVoice Auto Full effettua una **analisi spettrale avanzata** del file audio tramite FFmpeg, misurando parametri come Loudness Integrato (LUFS), True Peak e Range Dinamico (LRA). Questi dati vengono utilizzati per:
+ClearVoice Auto Full effettua una **analisi spettrale avanzata** del file audio tramite FFmpeg, misurando parametri come Loudness Integrato (LUFS), True Peak e Range Dinamico (LRA). 
+Questi dati vengono utilizzati per:
 
 - Rilevare automaticamente il tipo di contenuto (film, serie, corto, musical) tramite analisi del nome file e durata.
 - Adattare dinamicamente i parametri di processing: il boost della voce, la riduzione dei bassi (LFE), il bilanciamento dei canali frontali e surround, e il makeup gain.
