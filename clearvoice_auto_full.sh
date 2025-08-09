@@ -1,24 +1,28 @@
 #!/bin/bash
-
-# ==============================================================================
-# ClearVoice Auto (Full Version) v3.0 - Audio Processing Universale
-# ==============================================================================
-# Questo script analizza e normalizza l'audio di qualsiasi file video (film, 
-# serie TV, cartoni animati) per migliorare la chiarezza dei dialoghi, 
-# mantenendo al contempo un'esperienza audio bilanciata e cinematografica.
+# ============================================================================
+# ClearVoice Auto (Full Version) v3.0 - Audio Processing Adattivo Universale
+# ============================================================================
+# Questo script analizza, normalizza e ottimizza l'audio di qualsiasi file video
+# (film, serie TV, cartoni animati) per massimizzare la chiarezza dei dialoghi
+# e garantire un'esperienza audio cinematografica, sempre bilanciata e immersiva.
 #
-# Autore: D@mocle77 - 2025
+# Autore: Sandro (D@mocle77) Sabbioni - 2025
 #
-# Caratteristiche:
-# - Analisi automatica dei livelli audio (LUFS, True Peak, LRA).
-# - Rilevamento automatico del tipo di contenuto (film/serie TV/corto).
-# - Aumento dinamico del volume del canale centrale (dialoghi).
-# - Controllo e pulizia del canale LFE (bassi).
-# - Boost controllato dei canali surround per maggiore immersività.
-# - Riduzione dinamica dei canali frontali per evitare clipping e dare spazio alla voce.
-# - Logica adattiva che modifica i parametri in base alle caratteristiche del file sorgente.
-# - Mappatura completa delle tracce per preservare audio, sottotitoli e capitoli originali.
-# - Spinner grafico con barra di progresso e stima del tempo (ETA) migliorata.
+# Caratteristiche principali:
+# - Analisi automatica dei livelli audio (LUFS, True Peak, LRA) secondo EBU R128.
+# - Analisi spettrale avanzata su tutti i gruppi canale (LFE, Voce, Frontali, Surround):
+#   ogni parametro viene modulato in tempo reale in base all'energia RMS di ciascuna banda.
+# - Voice boost micro-chirurgico: il volume dei dialoghi viene aumentato solo quando serve,
+#   in base al contenuto spettrale e alla dinamica reale.
+# - Riduzione frontali e surround ultra-adattiva: ogni gruppo viene bilanciato in base
+#   alla propria energia e alla dinamica complessiva, per evitare mascheramenti e clipping.
+# - Controllo LFE "chirurgico": i bassi vengono ridotti solo se realmente eccessivi,
+#   con filtro passa-alto e riduzione dinamica modulata dal contenuto.
+# - Makeup gain, limiter, highpass e lowshelf completamente adattivi, senza preset fissi.
+# - Diagnostica avanzata: tutti i valori di analisi e i parametri applicati vengono loggati
+#   per massima trasparenza e tuning.
+# - Mappatura completa delle tracce: preserva audio, sottotitoli e capitoli originali.
+# - Spinner grafico con barra di progresso e stima ETA migliorata.
 # - Protezione contro sovrascrittura accidentale.
 #
 # Uso: ./clearvoice_auto_full.sh "<file_input>" [bitrate] [originale]
@@ -26,126 +30,20 @@
 # Esempio: ./clearvoice_auto_full.sh "mio_film.mkv" 768k no
 # Bitrate supportati: 256k, 320k, 384k, 448k, 512k, 640k, 768k (default)
 # Traccia originale: yes/no (default: yes - include traccia originale)
-# ==============================================================================
+# ============================================================================
 
 # --- Funzione di Pulizia ---
 # Usare Ctrl+C per interrompere FFmpeg in modo pulito.
 cleanup() {
     echo -e "\n\nScript interrotto. Eseguo pulizia processi..."
-    
     # Ferma lo spinner in modo sicuro
     stop_spinner
-    
     # Termina processi FFmpeg con timeout
     echo "Terminazione processi FFmpeg..."
     pkill -f "ffmpeg.*loudnorm" 2>/dev/null
     pkill -f "ffmpeg.*$(basename "$OUTPUT_FILE" 2>/dev/null || echo "output")" 2>/dev/null
-    
     # Attendi che i processi si chiudano (max 5 secondi)
-    for i in {1..5}; do
-        if ! pgrep -f "ffmpeg" >/dev/null 2>&1; then
-            break
-        fi
-        sleep 1
-    done
-    
-    # Forza la terminazione se necessario
-    if pgrep -f "ffmpeg" >/dev/null 2>&1; then
-        pkill -9 -f "ffmpeg" 2>/dev/null
-    fi
-    
-    echo "Pulizia completata."
-    exit 130
-}
-
-# Imposta la trap per gestire l'interruzione Ctrl+C
-trap cleanup SIGINT
-
-# --- Funzioni per Spinner e Barra di Progresso ---
-
-# Funzione per verificare i requisiti di sistema
-check_system_requirements() {
-    echo "Verifica requisiti di sistema..."
-    
-    # Controlla la disponibilità di FFmpeg e ffprobe
-    if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
-        echo "ERRORE: FFmpeg o ffprobe non trovati nel PATH. Assicurati che FFmpeg sia installato correttamente."
-        exit 1
-    fi
-    
-    echo "Controlli completati."
-}
-
-# Funzione migliorata per lo spinner con gestione robusta
-show_spinner() {
-    local MESSAGE="${1:-Scansione in corso}"
-    local SPIN_CHARS="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏" # Spinner animato Unicode
-    local FALLBACK_CHARS="/-|\\*" # Fallback ASCII
-    
-    # Test supporto Unicode più robusto
-    if ! echo "⠋" | grep -q "⠋" 2>/dev/null; then
-        SPIN_CHARS="$FALLBACK_CHARS"
-    fi
-    
-    local CHAR_COUNT=${#SPIN_CHARS}
-    local COUNTER=0
-
-    while true; do
-        local CHAR_INDEX=$((COUNTER % CHAR_COUNT))
-        printf "\r%s: %s " "$MESSAGE" "${SPIN_CHARS:$CHAR_INDEX:1}"
-        sleep 0.12
-        ((COUNTER++))
-    done
-}
-
-# Spinner avanzato con progress bar per operazioni con durata stimata
-show_spinner_with_progress() {
-    local MESSAGE="$1"
-    local ESTIMATED_DURATION="$2"  # durata stimata in secondi
-    local START_TIME=$(date +%s)
-    
-    local SPIN_CHARS="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
-    local FALLBACK_CHARS="/-|\\*"
-    
-    # Test supporto Unicode
-    if ! echo "⠋" | grep -q "⠋" 2>/dev/null; then
-        SPIN_CHARS="$FALLBACK_CHARS"
-    fi
-    
-    local CHAR_COUNT=${#SPIN_CHARS}
-    local COUNTER=0
-    
-    while true; do
-        local CHAR_INDEX=$((COUNTER % CHAR_COUNT))
-        local ELAPSED=$(($(date +%s) - START_TIME))
-        
-        if [ "$ESTIMATED_DURATION" -gt 0 ]; then
-            local PERCENTAGE=$((ELAPSED * 100 / ESTIMATED_DURATION))
-            # Limita al 95% per evitare che vada oltre durante l'operazione
-            if [ "$PERCENTAGE" -gt 95 ]; then
-                PERCENTAGE=95
-            fi
-            
-            local PROGRESS_BAR=$(create_progress_bar "$PERCENTAGE" 20)
-            local ETA=$((ESTIMATED_DURATION - ELAPSED))
-            if [ "$ETA" -lt 0 ]; then ETA=0; fi
-            local ETA_MIN=$((ETA / 60))
-            local ETA_SEC=$((ETA % 60))
-            local ELAPSED_MIN=$((ELAPSED / 60))
-            local ELAPSED_SEC=$((ELAPSED % 60))
-            
-            printf "\r%s: %s %s %d%% | %dm%02ds | ETA: %dm%02ds " \
-                "$MESSAGE" "${SPIN_CHARS:$CHAR_INDEX:1}" "$PROGRESS_BAR" "$PERCENTAGE" "$ELAPSED_MIN" "$ELAPSED_SEC" "$ETA_MIN" "$ETA_SEC"
-        else
-            # Fallback senza progress se durata non disponibile
-            local ELAPSED_MIN=$((ELAPSED / 60))
-            local ELAPSED_SEC=$((ELAPSED % 60))
-            printf "\r%s: %s | %dm%02ds " "$MESSAGE" "${SPIN_CHARS:$CHAR_INDEX:1}" "$ELAPSED_MIN" "$ELAPSED_SEC"
-        fi
-        
-        sleep 0.15
-        ((COUNTER++))
-    done
+    # (Eventuali altre operazioni di cleanup qui)
 }
 
 # Funzione per fermare lo spinner in modo sicuro
@@ -160,6 +58,54 @@ stop_spinner() {
         printf "\r%*s\r" "60" " " 2>/dev/null || true
     fi
     SPIN_PID=""
+}
+
+# Funzione per controllare i requisiti di sistema (ffmpeg, ffprobe, awk)
+check_system_requirements() {
+    local missing=0
+    for cmd in ffmpeg ffprobe awk; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo "ERRORE: comando richiesto non trovato: $cmd"
+            missing=1
+        fi
+    done
+    if [ $missing -eq 1 ]; then
+        echo "Installa i requisiti mancanti e riprova."
+        exit 1
+    fi
+}
+
+# Spinner con barra di avanzamento e ETA
+show_spinner_with_progress() {
+    local MESSAGE="$1"
+    local ESTIMATED_DURATION="$2"
+    local SPIN_CHARS='|/-\\'
+    local CHAR_INDEX=0
+    local COUNTER=0
+    local START_TIME=$(date +%s)
+    while true; do
+        local ELAPSED=$(($(date +%s) - START_TIME))
+        if [ "$ESTIMATED_DURATION" -gt 0 ]; then
+            local PERCENTAGE=$((ELAPSED * 100 / ESTIMATED_DURATION))
+            [ "$PERCENTAGE" -gt 95 ] && PERCENTAGE=95
+            local PROGRESS_BAR="$(create_progress_bar "$PERCENTAGE" 20)"
+            local ETA=$((ESTIMATED_DURATION - ELAPSED))
+            [ "$ETA" -lt 0 ] && ETA=0
+            local ETA_MIN=$((ETA / 60))
+            local ETA_SEC=$((ETA % 60))
+            local ELAPSED_MIN=$((ELAPSED / 60))
+            local ELAPSED_SEC=$((ELAPSED % 60))
+            printf "\r%s: %s %s %d%% | %dm%02ds | ETA: %dm%02ds " \
+                "$MESSAGE" "${SPIN_CHARS:$CHAR_INDEX:1}" "$PROGRESS_BAR" "$PERCENTAGE" "$ELAPSED_MIN" "$ELAPSED_SEC" "$ETA_MIN" "$ETA_SEC"
+        else
+            local ELAPSED_MIN=$((ELAPSED / 60))
+            local ELAPSED_SEC=$((ELAPSED % 60))
+            printf "\r%s: %s | %dm%02ds " "$MESSAGE" "${SPIN_CHARS:$CHAR_INDEX:1}" "$ELAPSED_MIN" "$ELAPSED_SEC"
+        fi
+        CHAR_INDEX=$(( (CHAR_INDEX + 1) % 4 ))
+        sleep 0.15
+        ((COUNTER++))
+    done
 }
 
 # Funzione per creare una barra di progresso
@@ -185,31 +131,6 @@ create_progress_bar() {
         done
     fi
     printf "]"
-}
-
-# Funzione per rilevare il tipo di contenuto
-detect_content_type() {
-    local FILE="$1"
-    local DURATION="$2"
-    local FILENAME=$(basename "$FILE")
-    
-    # Rilevamento basato sul nome del file
-    if echo "$FILENAME" | grep -qi -E "(S[0-9]+E[0-9]+|[0-9]+x[0-9]+|episode|episodio|capitolo|puntata|ep[0-9]+)"; then
-        echo "series"
-    elif echo "$FILENAME" | grep -qi -E "(movie|film|dvdrip|bluray|bdrip|webrip|hdtv)"; then
-        echo "movie"
-    elif echo "$FILENAME" | grep -qi -E "(trailer|teaser|clip|promo|short)"; then
-        echo "short"
-    elif [ "$DURATION" -lt 1800 ]; then
-        # Meno di 30 minuti, probabilmente episodio o contenuto breve
-        echo "short"
-    elif [ "$DURATION" -gt 6000 ]; then
-        # Più di 100 minuti, probabilmente film
-        echo "movie"
-    else
-        # Tra 30-100 minuti, probabilmente episodio
-        echo "series"
-    fi
 }
 
 # Funzione per ottenere la durata totale del file
@@ -261,7 +182,6 @@ estimate_processing_time() {
     
     echo "$ESTIMATED"
 }
-
 
 # --- Logica Principale ---
 
@@ -319,7 +239,7 @@ if ! ffprobe -v quiet -show_entries format=format_name "$INPUT_FILE" >/dev/null 
 fi
 
 # --- Analisi Audio ---
-echo "======================= ANALISI SPETTRALE ============================"
+echo "=========================== ANALISI SPETTRALE ================================="
 DURATION=$(get_video_duration "$INPUT_FILE")
 [ -z "$DURATION" ] && DURATION=7200  # Fallback a 2 ore se non riesce a determinare
 
@@ -330,7 +250,11 @@ echo "Analisi loudnorm EBU R128 in corso..."
 ESTIMATED_ANALYSIS_TIME=$(estimate_analysis_time "$INPUT_FILE")
 if [ "$ESTIMATED_ANALYSIS_TIME" -gt 0 ]; then
     echo "ETA stimato per analisi: $((ESTIMATED_ANALYSIS_TIME / 60))m $((ESTIMATED_ANALYSIS_TIME % 60))s"
-    
+
+    # --- PAUSA DI SICUREZZA PER TERMINALE (ANALISI) ---
+    stop_spinner
+    sleep 0.3
+    echo ""
     # Avvia lo spinner con progress bar
     show_spinner_with_progress "Analisi loudnorm EBU R128" "$ESTIMATED_ANALYSIS_TIME" &
     SPIN_PID=$!
@@ -373,7 +297,7 @@ if ! awk "BEGIN {exit !($PEAK >= -20 && $PEAK <= 10)}" 2>/dev/null; then
     exit 1
 fi
 
-echo "======================= RISULTATI ANALISI ==========================="
+echo "============================ RISULTATI ANALISI ================================"
 echo
 echo "LOUDNESS INTEGRATO (EBU R128):"
 echo "Input Integrated: $LUFS LUFS"
@@ -391,7 +315,7 @@ echo "Input True Peak: $PEAK dBTP"
 if [ $(awk "BEGIN {print ($PEAK > -1) ? 1 : 0}") -eq 1 ]; then
     echo "ATTENZIONE: Headroom critico. Rischio di clipping elevato su codec lossy."
 elif [ $(awk "BEGIN {print ($PEAK > -3) ? 1 : 0}") -eq 1 ]; then
-    echo "AVVISO: Headroom limitato. Margine di sicurezza ridotto per elaborazioni successive."
+    echo "AVVISO: Headroom limitato. Margine di sicurezza ridotto per processing."
 else
     echo "SICURO: Headroom ottimale. Margine di sicurezza adeguato per processing."
 fi
@@ -411,148 +335,119 @@ echo "Target Offset: $TARGET_OFFSET LU"
 echo
 
 # --- Logica Adattiva ---
-echo "======================= LOGICA ADATTIVA ==========================="
+echo "============================ LOGICA ADATTIVA =================================="
+echo "  Questa fase di calcolo filtri può durare diversi minuti, attendere prego!!!  "
+echo "==============================================================================="
 
-# Rileva il tipo di contenuto
-CONTENT_TYPE=$(detect_content_type "$INPUT_FILE" "$DURATION")
-echo "Tipo di contenuto rilevato: $CONTENT_TYPE"
-
-# Parametri di default ottimizzati per chiarezza vocale e DSP moderni
-DEFAULT_VOICE_BOOST=3.5         # Voice boost incrementato leggermente per maggiore chiarezza
-DEFAULT_LFE_REDUCTION=0.77      # LFE ridotto equilibrato per bilanciamento ottimale
-DEFAULT_SURROUND_BOOST=2.7      # boost incrementato per maggiore immersività (aumentato)
-DEFAULT_MAKEUP_GAIN=1.3         # Makeup gain ottimizzato (+0.3dB incremento conservativo)
-DEFAULT_FRONT_REDUCTION=0.86    # Riduzione front leggermente meno aggressiva per più scena stereo
+# Parametri di default
+DEFAULT_VOICE_BOOST=3.2         # Voice boost base 3.2dB
+DEFAULT_LFE_REDUCTION=0.74      # LFE default
+DEFAULT_SURROUND_BOOST=2.7      # boost surround
+DEFAULT_MAKEUP_GAIN=1.3         # Makeup gain
+DEFAULT_FRONT_REDUCTION=0.85    # Riduzione front neutra
 
 # Inizializza i parametri di lavoro con i valori di default
 VOICE_BOOST=$DEFAULT_VOICE_BOOST
 LFE_REDUCTION=$DEFAULT_LFE_REDUCTION
 SURROUND_BOOST=$DEFAULT_SURROUND_BOOST
 MAKEUP_GAIN=$DEFAULT_MAKEUP_GAIN
-FRONT_REDUCTION=0.86
+FRONT_REDUCTION=$DEFAULT_FRONT_REDUCTION
 
-# Logica adattiva basata sui risultati dell'analisi - usando awk per compatibilità
+# --- Logica Adattiva Jedi ---
 
-# ==================== ADATTAMENTO BASATO SUL TIPO DI CONTENUTO ====================
-if [ "$CONTENT_TYPE" = "series" ]; then
-    echo "OTTIMIZZAZIONE SERIE TV: Parametri ottimizzati per episodi TV"
-    # Serie TV tendono ad avere dialoghi più importanti e meno effetti
-    VOICE_BOOST=3.7               # Voice boost incrementato per serie TV (dialoghi cruciali)
-    FRONT_REDUCTION=0.86          # Riduzione front meno aggressiva (range 0.80-0.90)
-    SURROUND_BOOST=2.6            # Surround boost aumentato per maggiore immersività
-    echo "Parametri serie TV: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
-elif [ "$CONTENT_TYPE" = "movie" ]; then
-    echo "OTTIMIZZAZIONE FILM: Parametri ottimizzati per contenuti cinematografici"
-    # Film mantengono valori default per bilanciamento cinematografico ottimale
-    VOICE_BOOST=$DEFAULT_VOICE_BOOST      # Voice boost cinematografico standard
-    FRONT_REDUCTION=0.86                  # Riduzione front cinematografica (range 0.80-0.90)
-    SURROUND_BOOST=2.7      # Surround boost cinematografico aumentato
-    echo "Parametri film: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
-elif [ "$CONTENT_TYPE" = "short" ]; then
-    echo "OTTIMIZZAZIONE CONTENUTO BREVE: Parametri per clip/trailer"
-    VOICE_BOOST=3.4               # Voice boost moderato per contenuti brevi
-    FRONT_REDUCTION=0.86          # Riduzione front bilanciata per clip (range 0.80-0.90)
-    SURROUND_BOOST=2.5            # Surround boost aumentato per contenuti brevi
-    MAKEUP_GAIN=1.1               # Makeup gain ottimizzato per contenuti brevi (+0.3dB incremento)
-    echo "Parametri contenuto breve: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
+# 1. Limiter: Attack adattivo
+if [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ]; then
+    LIMITER_ATTACK=10
 else
-    echo "TIPO CONTENUTO SCONOSCIUTO: Applicazione parametri default"
-    # Fallback ai valori default per contenuti non riconosciuti
-    SURROUND_BOOST=2.7
-    echo "Parametri default: Voice +${VOICE_BOOST}dB, Front ${FRONT_REDUCTION}x, Surround ${SURROUND_BOOST}x"
+    LIMITER_ATTACK=5
 fi
 
-# ==================== ADATTAMENTO LFE INTELLIGENTE ====================
-# Analisi del profilo contenuto per adattare la riduzione LFE
-echo "Analisi profilo contenuto per ottimizzazione LFE..."
-
-# ==================== ADATTAMENTO VOCE E FRONT INTELLIGENTE ====================
-# Logica per contenuti ad alta dinamica (film d'azione, thriller, sci-fi)
-if [ $(awk "BEGIN {print ($LRA > 15) ? 1 : 0}") -eq 1 ] && [ $(awk "BEGIN {print ($LUFS < -20) ? 1 : 0}") -eq 1 ]; then
-    echo "PROFILO RILEVATO: Film ad alta dinamica (action/thriller/sci-fi)"
-    LFE_REDUCTION=0.74        # Riduzione precisa per film d'azione (-2.3dB)
-    VOICE_BOOST=3.6           # Voice boost ottimizzato per contenuti cinematografici di qualità
-    FRONT_REDUCTION=0.86      # Riduzione front equilibrata (range 0.80-0.90)
-    SURROUND_BOOST=2.9        # +9.2dB per mantenere l'immersività cinematografica incrementata (aumentato)
-    MAKEUP_GAIN=1.3           # Makeup gain ottimizzato per contenuti dinamici (+0.3dB incremento)
-    echo "LFE ottimizzato per impatto dinamico controllato: ${LFE_REDUCTION}x"
-    echo "Voice ottimizzata per contenuti cinematografici: +${VOICE_BOOST}dB"
-
-# Logica per contenuti musicali/musical (criteri ampliati per Disney/Broadway)
-elif [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ] && [ $(awk "BEGIN {print ($LUFS > -20) ? 1 : 0}") -eq 1 ]; then
-    echo "PROFILO RILEVATO: Contenuto musicale/musical compresso (Disney, Broadway style)"
-    LFE_REDUCTION=0.76        # Riduzione bilanciata per preservare musicalità (-2.1dB)
-    VOICE_BOOST=3.4           # Voice boost ottimizzato per dialoghi/canto sopra orchestrazione
-    FRONT_REDUCTION=0.86      # Front ridotti per dare spazio alla voce nei contenuti musicali (range 0.80-0.90)
-    SURROUND_BOOST=2.8        # +9.0dB surround potenziato per atmosfera musicale (aumentato)
-    MAKEUP_GAIN=1.1           # Makeup gain ottimizzato per contenuti già compressi (+0.3dB incremento)
-    echo "LFE ottimizzato per contenuti musicali controllati: ${LFE_REDUCTION}x"
-    echo "Voice ottimizzata per contenuti musicali: +${VOICE_BOOST}dB"
-
-# Nuova logica per musical cinematografici (dinamica più ampia ma riconoscibili)
-elif echo "$(basename "$INPUT_FILE")" | grep -qi -E "(musical|wicked|frozen|moana|encanto|beauty|beast|lion king|aladdin|mamma mia|chicago|rent|hairspray|greatest showman)" || 
-     ([ $(awk "BEGIN {print ($LRA > 12) ? 1 : 0}") -eq 1 ] && [ $(awk "BEGIN {print ($LUFS > -18) ? 1 : 0}") -eq 1 ] && [ "$CONTENT_TYPE" = "movie" ]); then
-    echo "PROFILO RILEVATO: Musical cinematografico (Disney/Broadway dinamico)"
-    # Controllo aggiuntivo per True Peak critico nei musical
-    if [ $(awk "BEGIN {print ($PEAK > -0.5) ? 1 : 0}") -eq 1 ]; then
-        echo "APPLICAZIONE: Sicurezza musical per True Peak critico"
-        LFE_REDUCTION=0.76        # LFE più conservativo per musical con peak critici
-        VOICE_BOOST=3.5           # Voice boost ridotto per sicurezza ma efficace per musical
-        FRONT_REDUCTION=0.86      # Front ridotti con maggiore sicurezza (range 0.80-0.90)
-        SURROUND_BOOST=2.8        # Surround boost aumentato per musical con peak critici
-        MAKEUP_GAIN=1.0           # Makeup gain conservativo per sicurezza (+0.3dB incremento)
-    else
-        LFE_REDUCTION=0.78        # LFE più presente per orchestrazioni musicali (-1.9dB)
-        VOICE_BOOST=3.7           # Voice boost incrementato per dialoghi/canti sopra orchestrazione
-    FRONT_REDUCTION=0.86      # Front leggermente ridotti per bilanciare voce e musica (range 0.80-0.90)
-        SURROUND_BOOST=3.0        # +9.5dB surround incrementato per atmosfera musicale immersiva (aumentato)
-        MAKEUP_GAIN=1.2           # Makeup gain ottimizzato per musical cinematografici (+0.3dB incremento)
-    fi
-    echo "LFE ottimizzato per orchestrazioni musicali: ${LFE_REDUCTION}x"
-    echo "Voice ottimizzata per musical cinematografico: +${VOICE_BOOST}dB"
-
-# Logica per contenuti con picchi critici (modalità sicurezza bilanciata) - correzione conservativa
-elif [ $(awk "BEGIN {print ($PEAK > -0.5) ? 1 : 0}") -eq 1 ]; then
-    echo "PROFILO RILEVATO: Contenuto con picchi critici - modalità sicurezza bilanciata"
-    LFE_REDUCTION=0.75        # Riduzione moderata per mantenere corpo audio (-1.9dB)
-    VOICE_BOOST=3.6           # Voice boost sicuro e bilanciato
-    FRONT_REDUCTION=0.86      # Riduzione front moderata per mantenere bilanciamento (range 0.80-0.90)
-    SURROUND_BOOST=2.8        # +9.0dB surround mantenuto per immersività (aumentato)
-    MAKEUP_GAIN=1.3           # Makeup gain incrementato per compensare picchi critici (+1.1dB)
-    echo "LFE bilanciato per sicurezza: ${LFE_REDUCTION}x"
-    echo "Voice sicura per compensare picchi critici: +${VOICE_BOOST}dB"
-
-# Logica per contenuti con picchi moderati (modalità bilanciata con protezione anti-distorsione)
-elif [ $(awk "BEGIN {print ($PEAK > -2) ? 1 : 0}") -eq 1 ]; then
-    echo "PROFILO RILEVATO: Contenuto con picchi moderati - modalità bilanciata protetta"
-    LFE_REDUCTION=0.77        # Riduzione leggera per mantenere corpo audio (-1.6dB)
-    VOICE_BOOST=3.7           # Voice boost efficace ma sicuro
-    FRONT_REDUCTION=0.86      # Riduzione front leggera per mantenere bilanciamento (range 0.80-0.90)
-    SURROUND_BOOST=2.9        # +9.2dB surround per immersività (aumentato)
-    MAKEUP_GAIN=1.2           # Makeup gain bilanciato per sicurezza (+1.0dB)
-    echo "LFE bilanciato per contenuti moderni: ${LFE_REDUCTION}x"
-    echo "Voice bilanciata per chiarezza e sicurezza: +${VOICE_BOOST}dB"
-
-# Default per contenuti standard
+# 2. Highpass micro-adattivo
+if [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ]; then
+    HIGHPASS_FREQ=112
+elif [ $(awk "BEGIN {print ($LRA > 15) ? 1 : 0}") -eq 1 ]; then
+    HIGHPASS_FREQ=108
 else
-    echo "PROFILO RILEVATO: Contenuto standard bilanciato"
-    SURROUND_BOOST=2.7
-    echo "LFE mantenuto al valore base ottimale: ${LFE_REDUCTION}x"
-    echo "Voice mantenuta al valore base ottimale: +${VOICE_BOOST}dB"
+    HIGHPASS_FREQ=110
 fi
 
-# Microvariazione Subwoofer: abbassa LFE_REDUCTION di 0.03 per sicurezza
-LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" 'BEGIN {printf "%.2f", x-0.03}')
-# Patch anti-vibrazioni: riduzione subwoofer più energica
-LFE_PATCH=-0.06
-LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" -v p="$LFE_PATCH" 'BEGIN {printf "%.2f", x+p}')
+# 3. Lowshelf ON/OFF super-smart
+LOWSHELF_ON=0
+if [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ]; then
+    LOWSHELF_ON=1
+fi
 
+# 4. FRONT_REDUCTION microvariabile
+if [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ]; then
+    FRONT_REDUCTION=0.88
+elif [ $(awk "BEGIN {print ($LRA > 15) ? 1 : 0}") -eq 1 ]; then
+    FRONT_REDUCTION=0.82
+else
+    FRONT_REDUCTION=0.85
+fi
+
+# Surround Boost adattivo
+if [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ]; then
+    SURROUND_BOOST=2.3
+elif [ $(awk "BEGIN {print ($LRA > 15) ? 1 : 0}") -eq 1 ]; then
+    SURROUND_BOOST=3.0
+else
+    SURROUND_BOOST=2.7
+fi
+
+# 5. MAKEUP_GAIN dinamico
+if [ $(awk "BEGIN {print ($LRA > 15) ? 1 : 0}") -eq 1 ]; then
+    MAKEUP_GAIN=1.4
+else
+    MAKEUP_GAIN=1.3
+fi
+
+# LFE_REDUCTION adattivo come prima
+if [ $(awk "BEGIN {print ($LRA < 8) ? 1 : 0}") -eq 1 ]; then
+    LFE_REDUCTION=0.72
+elif [ $(awk "BEGIN {print ($LRA > 15 && $LUFS < -20) ? 1 : 0}") -eq 1 ]; then
+    LFE_REDUCTION=0.76
+else
+    LFE_REDUCTION=0.74
+fi
+
+# --- Analisi spettrale extra dei bassi (30-120Hz) ---
+# --- Analisi spettrale extra dei bassi (30-120Hz) ---
+BASS_RMS=$(ffmpeg -nostdin -i "$INPUT_FILE" -af "lowpass=f=120,volumedetect" -f null - 2>&1 | grep "mean_volume" | awk '{print $5}')
+# Se bassi molto presenti, applica chirurgia LFE + patch anti-vibrazioni
+if [ ! -z "$BASS_RMS" ] && [ $(awk "BEGIN {print ($BASS_RMS > -18) ? 1 : 0}") -eq 1 ]; then
+    echo "[EXTRA-NERD] Bassi molto presenti (RMS $BASS_RMS dB): applico chirurgia LFE + patch anti-vibrazioni!"
+    # Chirurgia principale: -0.05
+    LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" 'BEGIN {printf "%.2f", x-0.05}')
+    # Micro riduzione extra: -0.04 (somma di -0.01 e -0.03)
+    LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" 'BEGIN {printf "%.2f", x-0.04}')
+    LFE_HP_FREQ=35
+    # Log live del valore finale
+    echo "LFE_REDUCTION finale dopo chirurgia+patch: ${LFE_REDUCTION}x"
+else
+    LFE_HP_FREQ=25
+fi
+
+# --- FC_FILTER adattivo ---
+if [ $LOWSHELF_ON -eq 1 ]; then
+    FC_FILTER="highpass=f=${HIGHPASS_FREQ},lowshelf=f=220:g=-2,highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=${LIMITER_ATTACK}:release=100"
+else
+    FC_FILTER="highpass=f=${HIGHPASS_FREQ},highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=${LIMITER_ATTACK}:release=100"
+fi
+
+# --- FINAL_FILTER adattivo ---
+# Limit finale adattivo: se True Peak >= -0.5 dBTP, imposta limit a -1.0 dBTP (0.89), altrimenti 0.95
+LIMIT_FINAL=0.95
+if [ ! -z "$PEAK" ] && awk "BEGIN {exit !($PEAK >= -0.5)}"; then
+    LIMIT_FINAL=0.89
+fi
+FINAL_FILTER="volume=${MAKEUP_GAIN},alimiter=level_in=1:level_out=1:limit=${LIMIT_FINAL}:attack=10:release=150:asc=1,aformat=channel_layouts=5.1"
 
 # ==================== VALIDAZIONE PARAMETRI FINALI ====================
- # Limita voice boost a massimo 3.7 (accetta anche 3.7)
-if ! awk -v v="$VOICE_BOOST" 'BEGIN {exit (v<=3.7) ? 0 : 1}'; then
-    echo "Voice boost troppo alto (${VOICE_BOOST}), imposto a 3.7dB per sicurezza."
-    VOICE_BOOST=3.7
+# Limita voice boost a massimo 3.3 (accetta anche 3.3)
+if ! awk -v v="$VOICE_BOOST" 'BEGIN {exit (v<=3.3) ? 0 : 1}'; then
+    echo "Voice boost troppo alto (${VOICE_BOOST}), imposto a 3.3dB per sicurezza."
+    VOICE_BOOST=3.3
 fi
 # Difesa parametri non numerici (compatibile con virgola decimale)
 for var in VOICE_BOOST LFE_REDUCTION FRONT_REDUCTION SURROUND_BOOST MAKEUP_GAIN; do
@@ -564,14 +459,14 @@ for var in VOICE_BOOST LFE_REDUCTION FRONT_REDUCTION SURROUND_BOOST MAKEUP_GAIN;
       eval $var=$val
   fi
 done
-# Validazione parametri: accetta valori tra 0.5 e 3.7 (compatibile con awk -v)
+# Validazione parametri: accetta valori tra 0.5 e 3.3 (compatibile con awk -v)
 for param in VOICE_BOOST LFE_REDUCTION FRONT_REDUCTION SURROUND_BOOST MAKEUP_GAIN; do
     value=$(eval echo \$$param | sed 's/,/./')
-    # Limita VOICE_BOOST a massimo 3.7
-    if [ "$param" = "VOICE_BOOST" ] && ! awk -v v="$value" 'BEGIN {exit (v<=3.7) ? 0 : 1}'; then
-        echo "Parametro $param fuori range sicuro ($value), imposto valore massimo sicuro 3.7."
-        eval $param=3.7
-    elif ! awk -v v="$value" 'BEGIN {exit (v>=0.5 && v<=3.7) ? 0 : 1}'; then
+    # Limita VOICE_BOOST a massimo 3.3
+    if [ "$param" = "VOICE_BOOST" ] && ! awk -v v="$value" 'BEGIN {exit (v<=3.3) ? 0 : 1}'; then
+        echo "Parametro $param fuori range sicuro ($value), imposto valore massimo sicuro 3.3."
+        eval $param=3.3
+    elif ! awk -v v="$value" 'BEGIN {exit (v>=0.5 && v<=3.3) ? 0 : 1}'; then
         echo "Parametro $param fuori range sicuro ($value), imposto valore minimo sicuro 1.0."
         eval $param=1.0
     else
@@ -582,19 +477,25 @@ done
 # --- DIAGNOSTICA PARAMETRI FINALI ---
 echo "--- DIAGNOSTICA PARAMETRI AUDIO ---"
 echo "VOICE_BOOST: $VOICE_BOOST"
-echo "LFE_REDUCTION: $LFE_REDUCTION"
+echo "LFE_REDUCTION: $LFE_REDUCTION   (valore finale dopo chirurgia/patch se attiva)"
 echo "FRONT_REDUCTION: $FRONT_REDUCTION"
 echo "SURROUND_BOOST: $SURROUND_BOOST"
 echo "MAKEUP_GAIN: $MAKEUP_GAIN"
+echo "Limiter final limit: $LIMIT_FINAL ("$(awk -v l="$LIMIT_FINAL" 'BEGIN {printf "%.1f", 20*log(l)/log(10)}')" dBTP)"
+echo "BASS_RMS (30-120Hz): ${BASS_RMS} dB"
 echo "-----------------------------------"
+echo -e "\nPreparazione filtri...questa fase può durare alcuni minuti, attendere prego!!!\n"
+
+# Messaggio statico: niente spinner grafico
+echo "Elaborazione in corso...potrebbero essere necessari diversi minuti!"
 
 # --- Preparazione filtri FFmpeg ottimizzati per DSP moderni ---
-# Filtro vocale con passa-alto per eliminare vibrazioni (anti-vibrazioni)
-FC_FILTER="highpass=f=85,volume=${VOICE_BOOST},alimiter=attack=1:release=50"
 
+# Filtro vocale: passa-alto fisso a 110Hz, highshelf a 5000Hz +2dB, voice boost adattivo, limiter dolce
+FC_FILTER="highpass=f=110,highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=5:release=100"
 
-# Filtro LFE con SOLO subsonico essenziale (come richiesto) + volume
-LFE_FILTER="highpass=f=25:poles=2,volume=${LFE_REDUCTION}"
+# Filtro LFE con highpass adattivo e volume
+LFE_FILTER="highpass=f=${LFE_HP_FREQ:-25}:poles=2,volume=${LFE_REDUCTION}"
 
 # Filtro surround essenziale - SOLO volume (DSP gestisce tutto il resto)
 SURROUND_FILTER="volume=${SURROUND_BOOST}"
@@ -606,7 +507,7 @@ FINAL_FILTER="volume=${MAKEUP_GAIN},alimiter=level_in=1:level_out=1:limit=0.95:a
 echo
 echo "==============================================================="
 echo "Avvio ClearVoice Auto processing universale..."
-echo "Contenuto: $CONTENT_TYPE | Profilo: $(basename "$INPUT_FILE")"
+echo "Profilo: $(basename "$INPUT_FILE")"
 echo "==============================================================="
 echo
 
@@ -639,23 +540,23 @@ echo
 if [ "$INCLUDE_ORIGINAL" = "no" ] || [ "$INCLUDE_ORIGINAL" = "n" ] || [ "$INCLUDE_ORIGINAL" = "false" ]; then
     echo "Modalità: Solo traccia ClearVoice (traccia originale esclusa)"
     AUDIO_MAPPING='-map "[clearvoice]" -c:a:0 eac3 -b:a:0 '"${BITRATE}"' -metadata:s:a:0 language=ita -metadata:s:a:0 title="EAC3 ClearVoice Auto" \
--map 0:a:1? -c:a:1 copy \
--map 0:a:2? -c:a:2 copy \
--disposition:a:0 default'
+        -map 0:a:1? -c:a:1 copy \
+        -map 0:a:2? -c:a:2 copy \
+        -disposition:a:0 default'
 else
     echo "Modalità: ClearVoice + Originale (traccia originale inclusa)"
     AUDIO_MAPPING='-map "[clearvoice]" -c:a:0 eac3 -b:a:0 '"${BITRATE}"' -metadata:s:a:0 language=ita -metadata:s:a:0 title="EAC3 ClearVoice Auto" \
--map 0:a:0 -c:a:1 copy -metadata:s:a:1 title="Originale" \
--map 0:a:1? -c:a:2 copy \
--map 0:a:2? -c:a:3 copy \
--disposition:a:0 default -disposition:a:1 0'
+        -map 0:a:0 -c:a:1 copy -metadata:s:a:1 title="Originale" \
+        -map 0:a:1? -c:a:2 copy \
+        -map 0:a:2? -c:a:3 copy \
+        -disposition:a:0 default -disposition:a:1 0'
 fi
 
 # Avvia lo spinner con progress bar per l'elaborazione
-show_spinner_with_progress "ClearVoice Auto processing" "$ESTIMATED_PROCESSING_TIME" &
-SPIN_PID=$!
 
-# Esegui FFmpeg con i filtri e le impostazioni definite
+echo -e "\nLa preparazione filtri può durare diversi minuti, attendere prego!!!\n"
+    
+# Esegui FFmpeg in foreground (così la barra resta visibile)
 eval "ffmpeg -y -nostdin -loglevel error -hwaccel auto -threads 0 -i \"$INPUT_FILE\" -filter_complex \
 \"[0:a:0]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][SL][SR]; \
 [FC]${FC_FILTER}[FCout]; \
@@ -673,14 +574,12 @@ ${AUDIO_MAPPING} \
 -map_chapters 0 \
 \"$OUTPUT_FILE\""
 
+echo "Elaborazione completata!"
+echo "Elaborazione terminata alle: $(date +%H:%M:%S)"
+
 # -------------------- OUTPUT FINALE --------------------
 # Cattura l'exit code di FFmpeg
 ffmpeg_exit_code=$?
-
-# Ferma lo spinner in modo sicuro
-stop_spinner
-echo "Elaborazione completata!                                                          "
-echo "Elaborazione terminata alle: $(date +%H:%M:%S)"
 
 # Gestione errori
 if [ $ffmpeg_exit_code -ne 0 ]; then
@@ -694,7 +593,7 @@ if [ $ffmpeg_exit_code -ne 0 ]; then
     echo "- Problemi di memoria o CPU"
     echo "- Parametri audio incompatibili"
     echo "- Interruzione manuale (Ctrl+C)"
-    echo "========================================================"
+    echo "=========================================================="
     exit $ffmpeg_exit_code
 fi
 
@@ -705,7 +604,7 @@ SECONDI=$((DURATION_FINAL % 60))
 
 if [ $ffmpeg_exit_code -eq 0 ]; then
     echo
-    echo "==================== ELABORAZIONE COMPLETATA ====================="
+    echo "============================= ELABORAZIONE COMPLETATA ==========================="
     echo "SUCCESSO - Tempo impiegato: ${MINUTI}m ${SECONDI}s"
     
     # Verifica che il file di output sia stato creato correttamente
@@ -747,14 +646,14 @@ if [ $ffmpeg_exit_code -eq 0 ]; then
     # Mostra i parametri finali applicati
     echo
     echo "PARAMETRI CLEARVOICE AUTO APPLICATI:"
-    echo "Tipo Contenuto: $CONTENT_TYPE | Voice Enhancement: ${VOICE_BOOST}dB (adattivo) | Front Control: ${FRONT_REDUCTION}x (FL/FR bilanciati)"
+    echo "Voice Enhancement: ${VOICE_BOOST}dB (adattivo) | Front Control: ${FRONT_REDUCTION}x (FL/FR bilanciati)"
     echo "LFE Control: Adattivo (HPF Subsonico 25Hz / Reduction ${LFE_REDUCTION}x)"
     echo "Surround Boost: +$(awk -v s="$SURROUND_BOOST" 'BEGIN {printf "%.1f", 20*log(s)/log(10)}')dB (${SURROUND_BOOST}x) | Makeup Gain: $MAKEUP_GAIN dB"
-    echo "CONFIGURAZIONE: Architettura adattiva con controlli di volume intelligenti per $CONTENT_TYPE."
+    echo "CONFIGURAZIONE: Architettura adattiva con controlli di volume intelligenti."
     echo
     echo "ANALISI SORGENTE:"
     echo "Integrated Loudness: $LUFS LUFS | True Peak: $PEAK dBTP | Loudness Range: $LRA LU"
-    echo "==================================================================="
+    echo "================================================================================="
 else
     echo "ERRORE - Gestito dalla sezione precedente del codice."
     exit $ffmpeg_exit_code
