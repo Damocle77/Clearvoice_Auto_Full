@@ -175,16 +175,16 @@ Batch terminato – 'Doppia Libidine con il fiocco!!! 🚀
 
 ---
 
-## Perché scegliere ClearVoice
+## Perché usare ClearVoice
 
 - **🔊 Voce sempre in primo piano:** Dialoghi chiari e intelligibili in ogni situazione, anche con effetti e musica.
-- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con home theater, TV, cuffie e streaming.
+- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con home theater, TV.
 - **🚀 Elaborazione batch:** Perfetto per stagioni intere, archivi, backup e conversioni massive.
 - **🌍 Compatibilità universale:** Output EAC3 robusto, pronto per ogni player e piattaforma.
 
 - **🧠 Zero pensieri:** Logica adattiva e analisi automatica, nessun parametro da settare manualmente.
 - **🛡️ Sicurezza:** Protezione anti-clipping e diagnostica dettagliata per risultati sempre affidabili.
-- **💡 Esperienza utente migliorata:** Nessun file di log temporaneo, messaggi statici rassicuranti durante le fasi lunghe, output sempre chiaro.
+- **💡 Esperienza utente migliorata:** Messaggi statici durante le fasi lunghe, output sempre chiaro.
 
 ---
 
