@@ -4,7 +4,7 @@
 # ============================================================================
 # Questo script analizza, normalizza e ottimizza l'audio di qualsiasi file video
 # (film, serie TV, cartoni animati) per massimizzare la chiarezza dei dialoghi
-# e garantire un'esperienza audio cinematografica sempre bilanciata, immersiva e senza salti percepibili.
+# e garantire un'esperienza audio cinematografica sempre bilanciata.
 #
 # Autore: Sandro (D@mocle77) Sabbioni - 2025
 #
@@ -17,9 +17,10 @@
 # - Riduzione frontali e surround ultra-adattiva: ogni gruppo viene bilanciato in base
 #   alla propria energia e alla dinamica complessiva, per evitare mascheramenti e clipping.
 # - Controllo LFE "chirurgico" e profilato: i bassi vengono ridotti solo se realmente eccessivi,
-#   con filtro passa-alto e riduzione dinamica modulata dal contenuto, con etichetta di profilo attivato nei log.
-# - Abbassamento graduale del filtro LFE: la frequenza di taglio viene ridotta in due step (50→45→35) per evitare salti sonori percepibili tra contenuti consecutivi.
-# - Logica simmetrica: log extra anche per il caso neutro (nessuna regolazione LFE), per massima trasparenza.
+#   con filtro passa-alto e riduzione dinamica modulata dal contenuto, con etichetta di profilo.
+# - Abbassamento graduale del filtro LFE: la frequenza di taglio viene ridotta in due step 
+#   (50→45→35) per evitare salti sonori percepibili tra contenuti consecutivi.
+# - Logica simmetrica: log extra anche per il caso neutro (nessuna regolazione LFE).
 # - Makeup gain, limiter, highpass e lowshelf completamente adattivi, senza preset fissi.
 # - Diagnostica avanzata: tutti i valori di analisi e i parametri applicati vengono loggati
 #   per massima trasparenza e tuning, inclusi i profili LFE attivati.
@@ -462,7 +463,7 @@ elif [ -n "$MIDBASS_RMS" ] && [ "$(awk "BEGIN {print ($MIDBASS_RMS > -11)}")" -e
     LFE_REDUCTION=0.68
 else
     echo "[SPECTRAL] LFE in range normale, nessuna attenuazione extra. (Profilo Normale)"
-    echo "[LFE_LOGIC] Nessuna regolazione, uso default"
+    echo "[LFE_LOGIC] Nessuna modifica applicata – LFE default"
 fi
 
 # Safety fallback per BASS_RMS mancante
