@@ -223,9 +223,7 @@ Batch terminato – 'Doppia Libidine con il fiocco!!! 🚀
 
 - **🧠 Zero pensieri:** Logica adattiva e analisi automatica, nessun parametro da settare manualmente.
 - **🛡️ Sicurezza:** Protezione anti-clipping e diagnostica dettagliata per risultati sempre affidabili.
-- **💡 Esperienza utente migliorata:** Nessun file di log temporaneo, messaggi statici rassicuranti durante le fasi lunghe, output sempre chiaro.
-
----
+- **💡 Esperienza utente migliorata:** Nessun file di log temporaneo, messaggi rassicuranti durante le fasi lunghe, output sempre chiaro.
 
 ---
 
