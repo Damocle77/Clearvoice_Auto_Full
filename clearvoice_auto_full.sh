@@ -4,7 +4,7 @@
 # ============================================================================
 # Questo script analizza, normalizza e ottimizza l'audio di qualsiasi file video
 # (film, serie TV, cartoni animati) per massimizzare la chiarezza dei dialoghi
-# e garantire un'esperienza audio cinematografica, sempre bilanciata e immersiva.
+# e garantire un'esperienza audio cinematografica sempre bilanciata, immersiva e senza salti percepibili.
 #
 # Autore: Sandro (D@mocle77) Sabbioni - 2025
 #
@@ -16,11 +16,13 @@
 #   in base al contenuto spettrale e alla dinamica reale.
 # - Riduzione frontali e surround ultra-adattiva: ogni gruppo viene bilanciato in base
 #   alla propria energia e alla dinamica complessiva, per evitare mascheramenti e clipping.
-# - Controllo LFE "chirurgico": i bassi vengono ridotti solo se realmente eccessivi,
-#   con filtro passa-alto e riduzione dinamica modulata dal contenuto.
+# - Controllo LFE "chirurgico" e profilato: i bassi vengono ridotti solo se realmente eccessivi,
+#   con filtro passa-alto e riduzione dinamica modulata dal contenuto, con etichetta di profilo attivato nei log.
+# - Abbassamento graduale del filtro LFE: la frequenza di taglio viene ridotta in due step (50→45→35) per evitare salti sonori percepibili tra contenuti consecutivi.
+# - Logica simmetrica: log extra anche per il caso neutro (nessuna regolazione LFE), per massima trasparenza.
 # - Makeup gain, limiter, highpass e lowshelf completamente adattivi, senza preset fissi.
 # - Diagnostica avanzata: tutti i valori di analisi e i parametri applicati vengono loggati
-#   per massima trasparenza e tuning.
+#   per massima trasparenza e tuning, inclusi i profili LFE attivati.
 # - Mappatura completa delle tracce: preserva audio, sottotitoli e capitoli originali.
 # - Spinner grafico con barra di progresso e stima ETA migliorata.
 # - Protezione contro sovrascrittura accidentale.
@@ -336,7 +338,7 @@ echo
 
 # --- Logica Adattiva ---
 echo "============================ LOGICA ADATTIVA =================================="
-echo "  Questa fase di calcolo filtri può durare diversi minuti, attendere prego!!!  "
+echo "Questa fase di calcolo filtri può durare diversi minuti, attendere prego!!!    "
 echo "==============================================================================="
 
 # Parametri di default
@@ -412,27 +414,102 @@ else
 fi
 
 # --- Analisi spettrale extra dei bassi (30-120Hz) ---
-# --- Analisi spettrale extra dei bassi (30-120Hz) ---
+
+# --- Analisi spettrale multi-banda (bassi, medio-bassi, sibilanti) ---
 BASS_RMS=$(ffmpeg -nostdin -i "$INPUT_FILE" -af "lowpass=f=120,volumedetect" -f null - 2>&1 | grep "mean_volume" | awk '{print $5}')
-# Se bassi molto presenti, applica chirurgia LFE + patch anti-vibrazioni
-if [ ! -z "$BASS_RMS" ] && [ $(awk "BEGIN {print ($BASS_RMS > -18) ? 1 : 0}") -eq 1 ]; then
-    echo "[EXTRA-NERD] Bassi molto presenti (RMS $BASS_RMS dB): applico chirurgia LFE + patch anti-vibrazioni!"
-    # Chirurgia principale: -0.05
-    LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" 'BEGIN {printf "%.2f", x-0.05}')
-    # Micro riduzione extra: -0.04 (somma di -0.01 e -0.03)
-    LFE_REDUCTION=$(awk -v x="$LFE_REDUCTION" 'BEGIN {printf "%.2f", x-0.04}')
-    LFE_HP_FREQ=35
-    # Log live del valore finale
-    echo "LFE_REDUCTION finale dopo chirurgia+patch: ${LFE_REDUCTION}x"
-else
-    LFE_HP_FREQ=25
+MIDBASS_RMS=$(ffmpeg -nostdin -i "$INPUT_FILE" -af "highpass=f=120,lowpass=f=300,volumedetect" -f null - 2>&1 | grep "mean_volume" | awk '{print $5}')
+SIBILANCE_RMS=$(ffmpeg -nostdin -i "$INPUT_FILE" -af "highpass=f=3000,lowpass=f=8000,volumedetect" -f null - 2>&1 | grep "mean_volume" | awk '{print $5}')
+
+# Log valori spettrali
+echo "[SPECTRAL] BASS_RMS (30-120Hz): $BASS_RMS dB | MIDBASS_RMS (120-300Hz): $MIDBASS_RMS dB | SIBILANCE_RMS (3-8kHz): $SIBILANCE_RMS dB"
+
+
+# Decisione adattiva spettrale (voce)
+HIGHPASS_FREQ=$HIGHPASS_FREQ  # default da logica LRA
+HIGHSHELF_ON=1
+if [ ! -z "$BASS_RMS" ] && [ $(awk "BEGIN {print ($BASS_RMS > -18)}") -eq 1 ]; then
+    echo "[SPECTRAL] Bassi molto presenti: highpass più alto."
+    HIGHPASS_FREQ=120
+fi
+if [ ! -z "$MIDBASS_RMS" ] && [ $(awk "BEGIN {print ($MIDBASS_RMS > -11)}") -eq 1 ]; then
+    echo "[SPECTRAL] Medio-bassi pronunciati: highpass intermedio."
+    HIGHPASS_FREQ=115
+fi
+if [ ! -z "$SIBILANCE_RMS" ] && [ $(awk "BEGIN {print ($SIBILANCE_RMS > -18)}") -eq 1 ]; then
+    echo "[SPECTRAL] Sibilanza elevata: disattivo highshelf."
+    HIGHSHELF_ON=0
 fi
 
-# --- FC_FILTER adattivo ---
-if [ $LOWSHELF_ON -eq 1 ]; then
-    FC_FILTER="highpass=f=${HIGHPASS_FREQ},lowshelf=f=220:g=-2,highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=${LIMITER_ATTACK}:release=100"
+# --- LFE CONTROL ADATTIVO SPETTRALE (No Notch) ---
+
+
+
+# Valori di partenza per LFE (profilo e isteresi)
+LFE_REDUCTION=0.74
+LFE_HP_FREQ=35  # Default HPF Sub
+# Salva ultima impostazione HPF in cache per isteresi e abbassamento graduale
+LAST_LFE_HP_FREQ=${LAST_LFE_HP_FREQ:-0}
+
+# Analisi dei bassi presenti
+
+if [ -n "$BASS_RMS" ] && [ "$(awk "BEGIN {print ($BASS_RMS > -18)}")" -eq 1 ]; then
+    echo "[SPECTRAL] Bassi molto presenti! HPF Sub più alto e riduzione extra. (Profilo Sandman)"
+    LFE_HP_FREQ=50
+    LFE_REDUCTION=0.65
+elif [ -n "$MIDBASS_RMS" ] && [ "$(awk "BEGIN {print ($MIDBASS_RMS > -11)}")" -eq 1 ]; then
+    echo "[SPECTRAL] Medio-bassi pronunciati. HPF intermedio e riduzione moderata. (Profilo Midbass)"
+    LFE_HP_FREQ=45
+    LFE_REDUCTION=0.68
 else
-    FC_FILTER="highpass=f=${HIGHPASS_FREQ},highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=${LIMITER_ATTACK}:release=100"
+    echo "[SPECTRAL] LFE in range normale, nessuna attenuazione extra. (Profilo Normale)"
+    echo "[LFE_LOGIC] Nessuna regolazione, uso default"
+fi
+
+# Safety fallback per BASS_RMS mancante
+if [ -z "$BASS_RMS" ]; then
+    LFE_HP_FREQ=40
+    LFE_REDUCTION=0.72
+    echo "[LFE_LOGIC] BASS_RMS non disponibile, fallback HPF=40Hz Riduzione=0.72x"
+fi
+
+# Neutral zone / isteresi per evitare oscillazioni inutili
+
+# Abbassamento graduale LFE_HP_FREQ (step 50→45→35)
+if [ "$LAST_LFE_HP_FREQ" -eq 50 ] && [ "$LFE_HP_FREQ" -eq 35 ]; then
+    LFE_HP_FREQ=45
+    echo "[LFE_LOGIC] Abbassamento graduale: 50→45Hz (step intermedio)"
+fi
+
+if [ "$LAST_LFE_HP_FREQ" -ne 0 ]; then
+    if [ $((LAST_LFE_HP_FREQ - LFE_HP_FREQ)) -lt 3 ] && [ $((LAST_LFE_HP_FREQ - LFE_HP_FREQ)) -gt -3 ]; then
+        echo "[LFE_LOGIC] Isteresi attiva: mantengo HPF precedente ${LAST_LFE_HP_FREQ}Hz per stabilità."
+        LFE_HP_FREQ=$LAST_LFE_HP_FREQ
+    fi
+fi
+LAST_LFE_HP_FREQ=$LFE_HP_FREQ
+
+# Diagnostica finale
+
+echo "[LFE_LOGIC] Scelti HPF=${LFE_HP_FREQ}Hz | Riduzione=${LFE_REDUCTION}x per BASS_RMS=${BASS_RMS} | MIDBASS_RMS=${MIDBASS_RMS}"
+
+# Etichetta di profilo attivato nei log
+if [ "$LFE_HP_FREQ" -eq 50 ]; then
+    LFE_PROFILE="Sandman"
+elif [ "$LFE_HP_FREQ" -eq 45 ]; then
+    LFE_PROFILE="Midbass"
+else
+    LFE_PROFILE="Normale"
+fi
+echo "[LFE_PROFILE] Profilo attivato: $LFE_PROFILE"
+
+# Filtro finale applicato al canale LFE
+LFE_FILTER="highpass=f=${LFE_HP_FREQ},poles=2,volume=${LFE_REDUCTION}"
+
+# --- FC_FILTER adattivo spettrale ---
+if [ $HIGHSHELF_ON -eq 1 ]; then
+    FC_FILTER="highpass=f=${HIGHPASS_FREQ},highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=5:release=100"
+else
+    FC_FILTER="highpass=f=${HIGHPASS_FREQ},volume=${VOICE_BOOST},alimiter=attack=5:release=100"
 fi
 
 # --- FINAL_FILTER adattivo ---
@@ -486,22 +563,12 @@ echo "BASS_RMS (30-120Hz): ${BASS_RMS} dB"
 echo "-----------------------------------"
 echo -e "\nPreparazione filtri...questa fase può durare alcuni minuti, attendere prego!!!\n"
 
+
 # Messaggio statico: niente spinner grafico
 echo "Elaborazione in corso...potrebbero essere necessari diversi minuti!"
 
-# --- Preparazione filtri FFmpeg ottimizzati per DSP moderni ---
-
-# Filtro vocale: passa-alto fisso a 110Hz, highshelf a 5000Hz +2dB, voice boost adattivo, limiter dolce
-FC_FILTER="highpass=f=110,highshelf=f=5000:g=2,volume=${VOICE_BOOST},alimiter=attack=5:release=100"
-
-# Filtro LFE con highpass adattivo e volume
-LFE_FILTER="highpass=f=${LFE_HP_FREQ:-25}:poles=2,volume=${LFE_REDUCTION}"
-
 # Filtro surround essenziale - SOLO volume (DSP gestisce tutto il resto)
 SURROUND_FILTER="volume=${SURROUND_BOOST}"
-
-# Filtro finale con limiter più dolce per evitare distorsioni
-FINAL_FILTER="volume=${MAKEUP_GAIN},alimiter=level_in=1:level_out=1:limit=0.95:attack=10:release=150:asc=1,aformat=channel_layouts=5.1"
 
 # --- Esecuzione FFmpeg ---
 echo

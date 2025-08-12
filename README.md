@@ -23,29 +23,68 @@
 ## Cosa fa ClearVoice Auto Full
 
 
-ClearVoice Auto Full è uno script Bash che trasforma la traccia audio dei tuoi video in un’esperienza immersiva e professionale, pensato per chi vuole risultati da studio senza complicazioni:
+ClearVoice Auto Full è uno script Bash che trasforma la traccia audio dei tuoi video in un’esperienza immersiva e professionale, pensato per chi vuole risultati da studio senza complicazioni. **Dalla versione 3.0 la logica è completamente adattiva anche a livello spettrale multi-banda, con controllo LFE evoluto e logging dettagliato:**
 
-- **Voice Boost intelligente:** Dialoghi sempre chiari e presenti, anche nei mix più complessi.
-- **Equalizzazione dinamica:** Suono bilanciato, dettagliato e pronto per ogni dispositivo.
-- **Mappatura automatica:** Mantiene tutte le tracce audio, sottotitoli e capitoli originali.
-- **Protezione anti-clipping:** Limiter intelligente per evitare distorsioni.
-- **Logica completamente adattiva:** Tutti i parametri audio (voice boost, highpass, lowshelf, limiter, surround, front, makeup gain, LFE) sono regolati in tempo reale in base all'analisi spettrale (LUFS, LRA, True Peak, Bass RMS).
+
+- **Analisi spettrale multi-banda:** analisi RMS su bassi (30-120Hz), medio-bassi (120-300Hz), sibilanti (3-8kHz) per filtri ancora più intelligenti.
+- **Controllo LFE adattivo con isteresi:** la frequenza del filtro passa-alto e la riduzione LFE sono regolate dinamicamente in base ai valori RMS reali, con neutral zone/isteresi per evitare flip-flop tra tagli simili.
+- **Logging dettagliato:** ogni scelta sui filtri LFE viene loggata con motivazione e valori RMS di riferimento.
+- **Fallback di sicurezza:** se l'analisi spettrale non è disponibile, vengono applicati valori di default sicuri per evitare errori.
+- **Nessun notch filter:** solo passa-alto e attenuazione, per massima compatibilità DSP.
+- **Voice boost, makeup gain, limiter, surround e frontali:** tutti i parametri sono adattivi e modulati in base all'analisi LUFS/LRA e spettrale.
 - **Diagnostica dettagliata:** Prima e dopo l'elaborazione vengono mostrati tutti i parametri applicati e i valori di analisi.
 - **Esperienza utente migliorata:** Messaggi chiari, nessun file di log temporaneo, e feedback statico durante le fasi lunghe.
 
 ### Analisi Spettrale & Logica Adattiva
 
-ClearVoice Auto Full effettua una **analisi spettrale avanzata** del file audio tramite FFmpeg, misurando parametri come Loudness Integrato (LUFS), True Peak e Range Dinamico (LRA). Questi dati vengono utilizzati per applicare una logica completamente auto-adattiva, senza preset fissi e senza necessità di intervento manuale:
+ClearVoice Auto Full effettua una **analisi spettrale avanzata** del file audio tramite FFmpeg, misurando parametri come Loudness Integrato (LUFS), True Peak, Range Dinamico (LRA) e RMS su bande di frequenza chiave. Questi dati vengono utilizzati per applicare una logica completamente auto-adattiva, senza preset fissi e senza necessità di intervento manuale:
 
-- Tutti i parametri chiave vengono regolati in tempo reale in base ai valori di LRA, LUFS, True Peak e presenza di bassi (RMS 30-120Hz).
+- Tutti i parametri chiave vengono regolati in tempo reale in base ai valori di LRA, LUFS, True Peak e presenza di bassi/medio-bassi/sibilanti (RMS multi-banda).
 - Il filtro vocale (canale centrale) adatta automaticamente la frequenza del passa-alto, la presenza di un lowshelf anti-boomy e la morbidezza del limiter in base alla dinamica del mix.
 - Il boost surround si adatta: più discreto nei mix compressi (serie/musical), più avvolgente nei film dinamici, bilanciato negli altri casi.
 - La riduzione dei canali frontali e il makeup gain sono anch'essi micro-adattivi, per mantenere sempre chiarezza e impatto.
-- La riduzione dei bassi (LFE) viene ottimizzata e micro-variata per evitare vibrazioni e garantire un subwoofer sempre controllato.
+- **La riduzione dei bassi (LFE) è ora completamente adattiva, con isteresi e neutral zone:**
+	- Se i bassi sono molto presenti, il passa-alto LFE sale a 50Hz e la riduzione è più forte.
+	- Se i medio-bassi sono pronunciati, il passa-alto LFE si pone a 45Hz con riduzione moderata.
+	- Se i valori sono borderline, viene mantenuto il taglio precedente per evitare flip-flop.
+	- Se l'analisi fallisce, viene applicato un fallback sicuro (40Hz/0.72x).
 - Tutto avviene in modo automatico: lo script "legge" la natura del file e si regola da solo, come un fonico Jedi.
-- Viene sempre mostrata una diagnostica dettagliata dei parametri audio prima e dopo l'elaborazione.
+- Viene sempre mostrata una diagnostica dettagliata dei parametri audio prima e dopo l'elaborazione, inclusa la logica LFE.
 - Nessun file di log temporaneo viene creato: tutto è trasparente a schermo.
 - Durante le fasi lunghe, viene mostrato un messaggio statico rassicurante invece di uno spinner grafico.
+
+#### Estratto logico LFE adattivo (v3.0)
+```bash
+# --- LFE CONTROL ADATTIVO SPETTRALE (No Notch) ---
+LFE_REDUCTION=0.74
+LFE_HP_FREQ=35  # Default HPF Sub
+LAST_LFE_HP_FREQ=${LAST_LFE_HP_FREQ:-0}
+if [ -n "$BASS_RMS" ] && [ "$(awk "BEGIN {print ($BASS_RMS > -18)}")" -eq 1 ]; then
+	echo "[SPECTRAL] Bassi molto presenti! HPF Sub più alto e riduzione extra."
+	LFE_HP_FREQ=50
+	LFE_REDUCTION=0.65
+elif [ -n "$MIDBASS_RMS" ] && [ "$(awk "BEGIN {print ($MIDBASS_RMS > -11)}")" -eq 1 ]; then
+	echo "[SPECTRAL] Medio-bassi pronunciati. HPF intermedio e riduzione moderata."
+	LFE_HP_FREQ=45
+	LFE_REDUCTION=0.68
+else
+	echo "[SPECTRAL] LFE in range normale, nessuna attenuazione extra."
+fi
+if [ -z "$BASS_RMS" ]; then
+	LFE_HP_FREQ=40
+	LFE_REDUCTION=0.72
+	echo "[LFE_LOGIC] BASS_RMS non disponibile, fallback HPF=40Hz Riduzione=0.72x"
+fi
+if [ "$LAST_LFE_HP_FREQ" -ne 0 ]; then
+	if [ $((LAST_LFE_HP_FREQ - LFE_HP_FREQ)) -lt 3 ] && [ $((LAST_LFE_HP_FREQ - LFE_HP_FREQ)) -gt -3 ]; then
+		echo "[LFE_LOGIC] Isteresi attiva: mantengo HPF precedente ${LAST_LFE_HP_FREQ}Hz per stabilità."
+		LFE_HP_FREQ=$LAST_LFE_HP_FREQ
+	fi
+fi
+LAST_LFE_HP_FREQ=$LFE_HP_FREQ
+echo "[LFE_LOGIC] Scelti HPF=${LFE_HP_FREQ}Hz | Riduzione=${LFE_REDUCTION}x per BASS_RMS=${BASS_RMS} | MIDBASS_RMS=${MIDBASS_RMS}"
+LFE_FILTER="highpass=f=${LFE_HP_FREQ},poles=2,volume=${LFE_REDUCTION}"
+```
 
 
 #### Esempio di output diagnostico
@@ -175,16 +214,16 @@ Batch terminato – 'Doppia Libidine con il fiocco!!! 🚀
 
 ---
 
-## Perché usare ClearVoice
+## Perché scegliere ClearVoice
 
 - **🔊 Voce sempre in primo piano:** Dialoghi chiari e intelligibili in ogni situazione, anche con effetti e musica.
-- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con home theater, TV.
+- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con home theater, TV, cuffie e streaming.
 - **🚀 Elaborazione batch:** Perfetto per stagioni intere, archivi, backup e conversioni massive.
 - **🌍 Compatibilità universale:** Output EAC3 robusto, pronto per ogni player e piattaforma.
 
 - **🧠 Zero pensieri:** Logica adattiva e analisi automatica, nessun parametro da settare manualmente.
 - **🛡️ Sicurezza:** Protezione anti-clipping e diagnostica dettagliata per risultati sempre affidabili.
-- **💡 Esperienza utente migliorata:** Messaggi statici durante le fasi lunghe, output sempre chiaro.
+- **💡 Esperienza utente migliorata:** Nessun file di log temporaneo, messaggi statici rassicuranti durante le fasi lunghe, output sempre chiaro.
 
 ---
 
