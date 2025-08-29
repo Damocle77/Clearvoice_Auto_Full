@@ -19,7 +19,7 @@ Compatibile con Linux, macOS, WSL-Win/GitBash.
 - [Utilizzo](#utilizzo)
 - [Output](#output)
 - [Script-batch](#script-batch)
-- [Perché scegliere ClearVoice v4.0](#perché-scegliere-clearvoice-v40)
+- [Perché scegliere ClearVoice](#perché-scegliere-clearvoice)
 
 ---
 
@@ -133,7 +133,7 @@ Esempi:
 
 Il batch esclude i file già processati e mostra report finale con tempo totale e file processati.
 
-## Perché scegliere ClearVoice v4.0
+## Perché scegliere ClearVoice
 
 - **🔊 Voce sempre in primo piano:** Dialoghi chiari e intelligibili in ogni situazione, anche con effetti e musica.
 - **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con AVR, TV e cuffie.
