@@ -145,4 +145,4 @@ Il batch esclude i file già processati e mostra report finale con tempo totale 
 
 ---
 
-> "Per riportare equilibrio nella Forza sonora ti servono solo un terminale bash e questo script...Questa è la via!"
+> "Per riportare equilibrio nella Forza sonora ti servono solo un terminale bash e ClearVoice...Questa è la via!"
