@@ -136,10 +136,10 @@ Il batch esclude i file già processati e mostra report finale con tempo totale 
 ## Perché scegliere ClearVoice v4.0
 
 - **🔊 Voce sempre in primo piano:** Dialoghi chiari e intelligibili in ogni situazione, anche con effetti e musica.
-- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con home theater, TV, cuffie e streaming.
+- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con AVR, TV e cuffie.
 - **🚀 Elaborazione batch:** Perfetto per stagioni intere, archivi, backup e conversioni massive.
 - **🌍 Compatibilità universale:** Output EAC3/AC3 robusto, pronto per ogni player e piattaforma.
-- **🧠 Zero pensieri:** Logica adattiva, analisi automatica, segmentazione loudnorm intelligente, nessun parametro da settare manualmente.
+- **🧠 Zero pensieri:** Logica adattiva, analisi automatica, segmentazione loudnorm intelligente.
 - **🛡️ Sicurezza:** Protezione anti-clipping, diagnostica dettagliata, report finale con integrità e dimensione file.
 - **💡 Esperienza utente migliorata:** Messaggi statici rassicuranti durante le fasi lunghe, output sempre chiaro.
 
