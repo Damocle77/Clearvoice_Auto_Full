@@ -12,7 +12,7 @@ Compatibile con Linux, macOS, WSL-Win/GitBash.
 ## Indice
 
 
-- [Descrizione aggiornata](#descrizione-aggiornata)
+- [Descrizione](#descrizione)
 - [Requisiti](#requisiti)
 - [Flusso di lavoro tipico](#flusso-di-lavoro-tipico)
 - [Installazione](#installazione)
