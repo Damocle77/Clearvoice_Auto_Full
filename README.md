@@ -1,4 +1,4 @@
-# 🎙️ ClearVoice Auto Full – v4.0 "Adaptive Universal"
+# 🎙️ ClearVoice Auto Full – v4.0 "Adaptive"
 
 
 Questa pipeline bash+awk avanzata ottimizza l'audio multicanale di film, serie TV e cartoon, garantendo dialoghi sempre chiari e intelligibili anche in presenza di effetti. Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive che valorizzano la scena sonora e riducono la fatica d'ascolto. Filtri automatici e analisi loudness segmentata per una resa professionale.
