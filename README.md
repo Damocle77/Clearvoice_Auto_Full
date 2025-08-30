@@ -1,4 +1,3 @@
-
 # 🎙️ ClearVoice Auto Full – v4.0 "Adaptive Universal"
 
 
@@ -32,7 +31,7 @@ ClearVoice Auto Full v4.0 è uno script Bash avanzato per l'ottimizzazione audio
 - Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive.
 - Filtri automatici (highpass, equalizer, volume boost) e regolazioni intelligenti per ogni canale.
 - Analisi loudness (LUFS), True Peak e Loudness Range (LRA) su segmenti rappresentativi, calcolati in modo adattivo in base alla durata e tipologia del video.
-- Segmentazione adattiva per analisi loudnorm: 3 segmenti per serie TV (<60min), 5 per film standard (60-120min), 6 per film lunghi (>120min).
+- Segmentazione adattiva per analisi loudnorm: 4 segmenti per video ≤ 60 min (90s ciascuno), 6 segmenti per video ≤ 120 min (60s ciascuno), 7 segmenti per video ≤ 150 min (60s ciascuno), 8 segmenti per video ≤ 180 min (60s ciascuno), 8 segmenti per video > 180 min (60s ciascuno).
 - Output compatto pronto per batch/report, diagnostica audio dettagliata e parametri di normalizzazione ottimizzati.
 - Gestione robusta di errori e report automatico al termine.
 

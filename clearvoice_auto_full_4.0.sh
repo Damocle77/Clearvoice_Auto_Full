@@ -49,7 +49,7 @@ export LC_ALL=C
 set -euo pipefail
 IFS=$'\n\t'
 
-# Misurazione tempo totale script
+# Misurazione tempo esecuzione
 SCRIPT_START_TIME=$(date +%s)
 
 # ---> Inizio Pipeline
@@ -59,6 +59,7 @@ SCRIPT_START_TIME=$(date +%s)
 
 
 # Controllo requisiti di sistema
+VOLUME_BOOST=0
 check_system_requirements() {
     local missing=0
     for cmd in ffmpeg ffprobe awk; do
@@ -159,7 +160,7 @@ if [ -f "$OUTPUT_FILE" ]; then
 fi
 # Inizio elaborazione
 echo ""
-echo -e "\033[1;5;32mClearVoice\033[0m\033[1;5;37m Auto Gain - \033[0m\033[1;5;31mEsecuzione Pipeline\033[0m"
+echo -e "\033[1;32mClearVoice\033[0m\033[1;37m Auto Gain\033[0m\033[1;31m Pipeline\033[0m"
 echo ""
 echo -e "\033[1;34m[Info]\033[0m Controllo requisiti di sistema e parsing argomenti..."
 
@@ -171,10 +172,10 @@ LAYOUT=$(run_ffprobe -v error -select_streams a:0 -show_entries stream=channel_l
 # Controllo layout audio
 if [ "$CHANNELS" = "6" ]; then
     if [ "$LAYOUT" != "5.1" ] && [ "$LAYOUT" != "5.1(side)" ] && [ "$LAYOUT" != "unknown" ] && [ -n "$LAYOUT" ]; then
-    echo -e "\033[1;34m▲ Info:\033[0m Layout audio non standard ($LAYOUT) rilevato, ma a 6 canali: continuo..."
+    echo -e "\033[1;34m[Info]\033[0m Layout audio non standard ($LAYOUT) rilevato, ma a 6 canali: continuo..."
     fi
     if [ -z "$LAYOUT" ] || [ "$LAYOUT" = "unknown" ]; then
-    echo -e "\033[1;31m▲ Info:\033[0m Layout unknown. Uso mapping 5.1 standard...Attendere"
+    echo -e "\033[1;31m[Info]\033[0m Layout unknown. Uso mapping 5.1 standard...Attendere"
         LAYOUT="5.1"
     fi
 else
@@ -188,26 +189,35 @@ DURATION=$(get_video_duration "$INPUT_FILE")
 # =================== SEGMENTAZIONE ADATTIVA PER ANALISI LOUDNORM ===================
 
 
-# Imposta numero e durata segmenti in base alla durata
+# Logica segmentazione adattiva loudnorm
 if [ "$DURATION" -le 3600 ]; then
-    NUM_SEGMENTS=3
+    NUM_SEGMENTS=4
     SEGMENT_DUR=90
 elif [ "$DURATION" -le 7200 ]; then
-    NUM_SEGMENTS=5
+    NUM_SEGMENTS=6
+    SEGMENT_DUR=60
+elif [ "$DURATION" -le 9000 ]; then
+    NUM_SEGMENTS=7
+    SEGMENT_DUR=60
+elif [ "$DURATION" -le 10800 ]; then
+    NUM_SEGMENTS=8
     SEGMENT_DUR=60
 else
-    NUM_SEGMENTS=6
+    NUM_SEGMENTS=8
     SEGMENT_DUR=60
 fi
 
-# Calcola le posizioni di partenza dei segmenti (distribuiti uniformemente)
+# Calcola le posizioni di partenza dei segmenti (escludendo primi/ultimi 2 minuti)
 declare -a SEGMENT_STARTS=()
+START_LIMIT=120
+END_LIMIT=120
+AVAILABLE_DUR=$((DURATION - START_LIMIT - END_LIMIT))
 for ((i=0; i<NUM_SEGMENTS; i++)); do
-    # Evita di campionare troppo vicino ai bordi
-    OFFSET=$((DURATION / (NUM_SEGMENTS+1) * (i+1) - SEGMENT_DUR/2))
+    # Distribuzione uniforme tra START_LIMIT e DURATION-END_LIMIT
+    OFFSET=$((START_LIMIT + (AVAILABLE_DUR / (NUM_SEGMENTS+1)) * (i+1) - SEGMENT_DUR/2))
     # Limita offset minimo e massimo
-    [ "$OFFSET" -lt 60 ] && OFFSET=60
-    MAX_START=$((DURATION-SEGMENT_DUR-60))
+    [ "$OFFSET" -lt $START_LIMIT ] && OFFSET=$START_LIMIT
+    MAX_START=$((DURATION-SEGMENT_DUR-END_LIMIT))
     [ "$OFFSET" -gt "$MAX_START" ] && OFFSET=$MAX_START
     SEGMENT_STARTS+=("$OFFSET")
 done
@@ -227,8 +237,9 @@ fi
 echo "# Modalità: $MODALITA"
 echo " -------------------------------------------------------------------------------------"
 echo ""
-echo -e "\033[1;33m[Attendere]\033[0m Analisi audio loudnorm:"
-echo -e "\033[1;36mAnalisi rappresentativa su $NUM_SEGMENTS segmenti distribuiti (adattivo)...\033[0m"
+echo -e "\033[1;34m[Info]\033[0m Analisi audio loudnorm:"
+echo -e "\033[1;34m[Info]\033[0m Segmenti adattivi utilizzati: \033[1;33m${NUM_SEGMENTS}\033[0m da \033[1;33m${SEGMENT_DUR}s\033[0m"
+echo -e "\033[1;35m[Attendere]\033[0m Quest'operazione può richiedere diversi minuti..."
 
 # Funzione per ottenere statistiche loudnorm da un segmento
 get_loudnorm_stats() {
@@ -294,7 +305,7 @@ elif (( $(awk "BEGIN {print ($LUFS < -25)}") )); then
 elif (( $(awk "BEGIN {print ($LUFS < -22)}") )); then
   VOICE_BOOST=2.8
 fi
-# Limita a max 3.2
+# Limitazione massima voice boost
 VOICE_BOOST=$(awk "BEGIN {print ($VOICE_BOOST>3.2)?3.2:$VOICE_BOOST}")
 
 # Impostazioni stereo front adattivo
@@ -382,16 +393,16 @@ done
 
 # Filtro highpass centrale adattivo tra 120 e 140 Hz
 if (( $(awk "BEGIN {print ($LUFS < -26)}") )); then
-  FC_HPF=140
+    FC_HPF=140
 elif (( $(awk "BEGIN {print ($LUFS < -24)}") )); then
-  FC_HPF=135
+    FC_HPF=135
 elif (( $(awk "BEGIN {print ($LUFS < -21)}") )); then
-  FC_HPF=130
+    FC_HPF=130
 else
-  FC_HPF=120
+    FC_HPF=120
 fi
-# EQ adattivo extra sui dialoghi se Voice Boost >2dB
-FC_FILTER="highpass=f=${FC_HPF},volume=${VOICE_BOOST},equalizer=f=3000:t=q:w=2:g=2"
+# Filtro centrale adattivo
+FC_FILTER="highpass=f=${FC_HPF},volume=${VOICE_BOOST}"
 # Filtro LFE adattivo
 LFE_FILTER="highpass=f=40:p=2,volume=${LFE_REDUCTION}"
 # Filtro surround adattivo
@@ -402,7 +413,7 @@ TARGET_LUFS=-16.0  # Standard broadcast
 TARGET_PEAK=-1.5   # Sicurezza clipping
 TARGET_LRA=7.0     # Range standard
 
-# Se LUFS troppo basso, usa solo volume boost invece di loudnorm
+# Calcolo volume boost finale per raggiungere target LUFS
 VOLUME_BOOST=$(awk "BEGIN {print 10^((-16-($LUFS))/20)}")
 FILTER_COMPLEX="[0:a:0]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][SL][SR]; \
 [FC]highpass=f=${FC_HPF},volume=${VOICE_BOOST}[FCout]; \
@@ -412,14 +423,14 @@ FILTER_COMPLEX="[0:a:0]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][SL][SR];
 [SL]volume=${SURROUND_BOOST}[SLout]; \
 [SR]volume=${SURROUND_BOOST}[SRout]; \
 [FLout][FRout][FCout][LFEout][SLout][SRout]join=inputs=6:channel_layout=5.1,volume=${VOLUME_BOOST}[clearvoice]"
-echo -e "\033[1;33m[Info]\033[0m channelsplit ottimizzato sempre attivo: ${VOLUME_BOOST}x"
+echo -e "\033[1;34m[Info]\033[0m channelsplit ottimizzato sempre attivo: ${VOLUME_BOOST}x"
 
 
 # ========================= ELABORAZIONE AUDIO ==============================
 
 
 # Elaborazione audio per il file ottimizzato
-echo -e "\033[1;33m[Attendere]\033[0m\nProcessing file ottimizzato:\n\033[1;33m${OUTPUT_FILE}\033[0m\n"
+echo -e "\033[1;35m[Attendere]\033[0m \033[1;97mProcessing file ottimizzato:\033[0m\n${OUTPUT_FILE}\n"
 run_ffmpeg -y -nostdin -loglevel error -stats -hide_banner -hwaccel auto -threads 0 -i "$INPUT_FILE" \
     -filter_complex "$FILTER_COMPLEX" \
     -map 0:v -c:v copy \
@@ -429,7 +440,7 @@ run_ffmpeg -y -nostdin -loglevel error -stats -hide_banner -hwaccel auto -thread
     -map_metadata 0 -map_chapters 0 \
     "$OUTPUT_FILE"
 echo ""
-echo -e "\033[1;34m[Info]\033[0m Operazione completata. Generazione report finale..."
+echo -e "\033[1;32m[OK]\033[0m Operazione completata."
 
 # Report finale
 if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
@@ -475,7 +486,7 @@ if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
     echo " LRA Range       : ${LRA} LU"
     echo " -----------------------------------------"
     echo ""
-    echo -e "\033[1;5;33mFile finale pronto e conforme:\033[0m"
+    echo -e "\033[1;33mFile finale pronto e conforme:\033[0m"
     echo -e "\033[1;37m${OUTPUT_FILE##*/}\033[0m"
 else
     echo "✗ Output non creato o vuoto!"
