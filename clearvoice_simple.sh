@@ -107,27 +107,33 @@ echo -e "\033[1;36m[Attendere]\033[0m Analisi spettrale in corso, potrebbero ser
 # Inizializza array per i valori di LUFS e LRA
 declare -a LUFS_ARR=()
 declare -a LRA_ARR=()
+declare -a TP_ARR=()
 for START in "${SEGMENT_STARTS[@]}"; do
     STATS=$(ffmpeg -nostdin -ss $START -t $SEGMENT_DUR -i "$INPUT_FILE" -map 0:a:0 -af loudnorm=print_format=summary -f null - 2>&1)
-    LUFS_VAL=$(echo "$STATS" | grep -i 'Input Integrated' | grep -Eo '[-0-9\.]+' | head -1)
+    LUFS_VAL=$(echo "$STATS" | grep -i 'Input Integrated' | grep -Eo '[-0-9\.]+')
     [ -z "$LUFS_VAL" ] && LUFS_VAL="0"
-    LRA_VAL=$(echo "$STATS" | grep -i 'Input LRA' | grep -Eo '[-0-9\.]+' | head -1)
+    LRA_VAL=$(echo "$STATS" | grep -i 'Input LRA' | grep -Eo '[-0-9\.]+')
     [ -z "$LRA_VAL" ] && LRA_VAL="0"
+    TP_VAL=$(echo "$STATS" | grep -i 'Input True Peak' | grep -Eo '[-0-9\.]+')
+    [ -z "$TP_VAL" ] && TP_VAL="0"
     LUFS_ARR+=("$LUFS_VAL")
     LRA_ARR+=("$LRA_VAL")
+    TP_ARR+=("$TP_VAL")
 done
-
 # Calcola media LUFS e LRA
 LUFS_SUM=0
 LRA_SUM=0
+TP_SUM=0
 for ((i=0; i<${#LUFS_ARR[@]}; i++)); do
     LUFS_SUM=$(awk "BEGIN {print $LUFS_SUM+${LUFS_ARR[$i]}}")
     LRA_SUM=$(awk "BEGIN {print $LRA_SUM+${LRA_ARR[$i]}}")
+    TP_SUM=$(awk "BEGIN {print $TP_SUM+${TP_ARR[$i]}}")
 done
 LUFS=$(awk "BEGIN {print $LUFS_SUM/${#LUFS_ARR[@]}}")
 LRA=$(awk "BEGIN {print $LRA_SUM/${#LRA_ARR[@]}}")
+TP=$(awk "BEGIN {print $TP_SUM/${#TP_ARR[@]}}")
 
-echo -e "\033[1;35m[Info]\033[0m Loudnorm multi-analisi: LUFS=$LUFS | LRA=$LRA"
+echo -e "\033[1;35m[Info]\033[0m Loudnorm multi-analisi: LUFS=$LUFS | LRA=$LRA | TruPeak=$TP dBTP"
 
 # --- Logica Adattiva ---
 
@@ -200,7 +206,7 @@ else
     exit 1
 fi
 
-echo -e "\033[1;32m[OK]\033[0m Parametri voce:${VOICE_BOOST} dB | LFE:${LFE_REDUCTION} | Surround:${SURROUND_BOOST} | Front: 1.0 | Sub_Mode:${SUB_EQ_MODE}"
+echo -e "\033[1;32m[OK]\033[0m Parametri Voce:${VOICE_BOOST} dB | LFE:${LFE_REDUCTION} | Surround:${SURROUND_BOOST} | Front: 1.0 | Subwoofer:${SUB_EQ_MODE}"
 echo -e "\033[1;33m[Profilo]\033[0m ${PROFILE_DESC}"
 
 # --- Prompt sovrascrittura file ---
