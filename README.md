@@ -1,7 +1,6 @@
-# 🎙️ ClearVoice Auto Full – v4.0 "Adaptive"
+# 🎙️ ClearVoice Simple "Adaptive Universal"
 
-
-Questa pipeline bash+awk avanzata ottimizza l'audio multicanale di film, serie TV e cartoon, garantendo dialoghi sempre chiari e intelligibili anche in presenza di effetti. Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive che valorizzano la scena sonora e riducono la fatica d'ascolto. Filtri automatici e analisi loudness segmentata per una resa professionale.
+Questa pipeline bash+awk avanzata ottimizza l'audio multicanale di film, serie TV e cartoon, garantendo dialoghi sempre chiari e intelligibili anche in presenza di effetti. Bilanciamento dinamico tra canali frontali, surround e LFE, ottimizzazione della voce italiana con regolazioni adattive che valorizzano la scena sonora e riducono la fatica d'ascolto. Filtri automatici e analisi loudness segmentata per una resa professionale.
 Compatibile con Linux, macOS, WSL-Win/GitBash.
 
 ![SELECT name AS 'Sandro Sabbioni', handle AS 'D@mocle77' FROM developers](https://img.shields.io/badge/SELECT%20name%20AS%20'Sandro%20Sabbioni'%2C%20handle%20AS%20'D%40mocle77'%20FROM%20developers-blue)
@@ -25,15 +24,24 @@ Compatibile con Linux, macOS, WSL-Win/GitBash.
 
 ## Descrizione
 
+
 ClearVoice Auto Full v4.0 è uno script Bash avanzato per l'ottimizzazione audio adattiva universale:
 
-- Ottimizza l'audio multicanale (film, serie TV, cartoon), garantendo dialoghi chiari e intelligibili.
-- Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive.
-- Filtri automatici (highpass, equalizer, volume boost) e regolazioni intelligenti per ogni canale.
-- Analisi loudness (LUFS), True Peak e Loudness Range (LRA) su segmenti rappresentativi, calcolati in modo adattivo in base alla durata e tipologia del video.
-- Segmentazione adattiva per analisi loudnorm: 4 segmenti per video ≤ 60 min (90s ciascuno), 6 segmenti per video ≤ 120 min (60s ciascuno), 7 segmenti per video ≤ 150 min (60s ciascuno), 8 segmenti per video ≤ 180 min (60s ciascuno), 8 segmenti per video > 180 min (60s ciascuno).
-- Output compatto pronto per batch/report, diagnostica audio dettagliata e parametri di normalizzazione ottimizzati.
-- Gestione robusta di errori e report automatico al termine.
+	- Ottimizza l'audio multicanale (film, serie TV, cartoon), garantendo dialoghi chiari e intelligibili.
+	- Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive.
+	- Filtri automatici (highpass, equalizer, volume boost) e regolazioni intelligenti per ogni canale.
+	- Analisi loudness (LUFS), True Peak e Loudness Range (LRA) su segmenti rappresentativi, calcolati in modo adattivo in base alla durata e tipologia del video.
+	- Segmentazione adattiva per analisi loudnorm (Modalità ULTRA):
+		- 3 segmenti da 300s (5 min) per video ≤ 30 min
+		- 4 segmenti da 350s (5.83 min) per video ≤ 1 ora
+		- 6 segmenti da 400s (6.66 min) per video ≤ 2 ore
+		- 7 segmenti da 420s (7 min) per video ≤ 2.5 ore
+		- 8 segmenti da 480s (8 min) per video ≤ 3 ore
+		- 9 segmenti da 500s (8.33 min) per video > 3 ore
+	- L'analisi loudnorm richiede solo pochi minuti totali, mantenendo qualità statistica.
+	- Regola d'oro: "L'analisi loudnorm non dovrebbe mai richiedere più del 10% del tempo totale di processing".
+	- Output compatto pronto per batch/report, diagnostica audio dettagliata e parametri di normalizzazione ottimizzati.
+	- Gestione robusta di errori e report automatico al termine.
 
 
 ## Requisiti
@@ -50,7 +58,7 @@ ClearVoice Auto Full v4.0 è uno script Bash avanzato per l'ottimizzazione audio
 
 ```bash
 # Script principale (ottimizza la voce in un singolo file)
-./clearvoice_auto_full_4.0.sh "file.mkv" [bitrate] [originale] [codec]
+./clearvoice_simple.sh "file.mkv" [bitrate] [originale] [codec]
 ```
 
 ---
@@ -131,6 +139,33 @@ Esempi:
 ```
 
 Il batch esclude i file già processati e mostra report finale con tempo totale e file processati.
+
+## Script semplice
+
+Per migliorare la chiarezza delle voci in un singolo file MKV 5.1:
+
+```bash
+./clearvoice_simple.sh "video.mkv" [bitrate] [originale] [codec]
+```
+
+- `<video.mkv>`: File video di input (MKV con audio 5.1)
+- `bitrate`: Bitrate audio desiderato (default: 768k)
+- `originale`: "si"/"no" (includi traccia originale, default: si)
+- `codec`: Codec audio di output (default: eac3)
+
+Esempio:
+```bash
+./clearvoice_simple.sh "film.mkv" 768k si eac3
+```
+
+Output:
+- Crea un nuovo file "nome_file_clearvoice_simple.mkv" con traccia audio ottimizzata.
+- I file di output vengono creati nella stessa directory del file di input.
+- Richiede ffmpeg e ffprobe nel PATH.
+
+Note:
+- Scegli almeno 386k eac3 o 448k ac3 per serie TV, 640k ac3 o 758k eac3 per film.
+- Se il file di origine è 256k puoi selezionare 320k ac3/eac3.
 
 ## Perché scegliere ClearVoice
 
