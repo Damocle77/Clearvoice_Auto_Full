@@ -25,7 +25,7 @@ Compatibile con Linux, macOS, WSL-Win/GitBash.
 ## Descrizione
 
 
-ClearVoice Auto Full v4.0 è uno script Bash avanzato per l'ottimizzazione audio adattiva universale:
+ClearVoice è uno script Bash avanzato per l'ottimizzazione audio adattiva universale:
 
 	- Ottimizza l'audio multicanale (film, serie TV, cartoon), garantendo dialoghi chiari e intelligibili.
 	- Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive.
