@@ -17,7 +17,7 @@ Compatibile con Linux, macOS, WSL-Win/GitBash.
 - [Utilizzo](#utilizzo)
 - [Output](#output)
 - [Script-batch](#script-batch)
-- [Perché scegliere ClearVoice](#perché-scegliere-clearvoice)
+- [Perché ClearVoice](#perché-clearvoice)
 
 ---
 
@@ -167,7 +167,7 @@ Note:
 - Scegli almeno 386k eac3 o 448k ac3 per serie TV, 640k ac3 o 758k eac3 per film.
 - Se il file di origine è 256k puoi selezionare 320k ac3/eac3.
 
-## Perché scegliere ClearVoice
+## Perché ClearVoice
 
 - **🔊 Voce sempre in primo piano:** Dialoghi chiari e intelligibili in ogni situazione, anche con effetti e musica.
 - **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con AVR, TV e cuffie.
