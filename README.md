@@ -1,7 +1,7 @@
 # 🎙️ ClearVoice Simple "Adaptive Universal"
 
 Questa pipeline bash+awk avanzata ottimizza l'audio multicanale di film, serie TV e cartoon, garantendo dialoghi sempre chiari e intelligibili anche in presenza di effetti. Bilanciamento dinamico tra canali frontali, surround e LFE, ottimizzazione della voce italiana con regolazioni adattive che valorizzano la scena sonora e riducono la fatica d'ascolto. Filtri automatici e analisi loudness segmentata per una resa professionale.
-Compatibile con Linux, macOS, WSL-Win/GitBash.
+Compatibile con Linux, macOS, Windows (WSL/GitBash).
 
 ![SELECT name AS 'Sandro Sabbioni', handle AS 'D@mocle77' FROM developers](https://img.shields.io/badge/SELECT%20name%20AS%20'Sandro%20Sabbioni'%2C%20handle%20AS%20'D%40mocle77'%20FROM%20developers-blue)
 
