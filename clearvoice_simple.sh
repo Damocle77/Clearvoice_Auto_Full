@@ -138,19 +138,19 @@ echo -e "\033[1;35m[Info]\033[0m Loudnorm multi-analisi: LUFS=$LUFS | LRA=$LRA |
 # --- Logica Adattiva ---
 
 # Applicazione condizioni LUFS e LRA
-if (( $(awk "BEGIN {print ($LUFS < -24 && $LRA > 9)}") )); then
+if (( $(awk "BEGIN {print ($LRA > 8.5 && $LUFS < -14)}") )); then
     VOICE_BOOST=2.1
     LFE_REDUCTION=0.50
     SURROUND_BOOST=2.1
     FC_HPF=115
-    PROFILE_DESC="Action/Cinecomic/Sci-Fi/Horror"
+    PROFILE_DESC="Action/Horror/Sci-Fi/Cinecomic"
     SUB_EQ_MODE="cut"
-elif (( $(awk "BEGIN {print ($LUFS > -22 && $LRA < 8)}") )); then
+elif (( $(awk "BEGIN {print ($LUFS > -18 && $LRA < 8)}") )); then
     VOICE_BOOST=2.0
     LFE_REDUCTION=0.54
     SURROUND_BOOST=2.0
     FC_HPF=110
-    PROFILE_DESC="Cartoon/Disney/Drammedy/Anime"
+    PROFILE_DESC="Cartoon/Disney/Musical/Drammedy/Anime"
     SUB_EQ_MODE="punch"
 else
     VOICE_BOOST=2.1
@@ -172,7 +172,7 @@ if [[ "$SUB_EQ_MODE" == "punch" ]]; then
 elif [[ "$SUB_EQ_MODE" == "cut" ]]; then
     EQ_SUB="[LFE]highpass=f=40,equalizer=f=80:w=1.0:g=2,equalizer=f=120:w=1.2:g=-3,volume=${LFE_REDUCTION}[LFEout];"
 else
-    EQ_SUB="[LFE]highpass=f=40,equalizer=f=80:w=1.0:g=3,equalizer=f=120:w=1.2:g=-2,volume=${LFE_REDUCTION}[LFEout];" # binge
+    EQ_SUB="[LFE]highpass=f=40,equalizer=f=80:w=1.0:g=3,equalizer=f=120:w=1.2:g=-2,volume=${LFE_REDUCTION}[LFEout];"
 fi
 
 # Surround Equalizer (Adattivo)
@@ -217,10 +217,10 @@ if [ -f "$OUTPUT_FILE" ]; then
     read -r risposta
     case "$risposta" in
         [sS]|[sS][iI])
-            echo "Sovrascrittura confermata."
+            echo -e "\033[1;32m[OK]\033[0m Sovrascrittura confermata"
             ;;
         *)
-            echo "Operazione annullata. Il file non verrà sovrascritto."
+            echo -e "\033[1;31m[EXIT]\033[0m Sovrascrittura Annullata. "
             exit 1
             ;;
     esac
