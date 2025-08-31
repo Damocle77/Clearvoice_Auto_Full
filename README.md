@@ -28,8 +28,9 @@ Compatibile con Linux, macOS, Windows (WSL/GitBash).
 ClearVoice è uno script Bash avanzato per l'ottimizzazione audio adattiva universale:
 
 	- Ottimizza l'audio multicanale (film, serie TV, cartoon), garantendo dialoghi chiari e intelligibili.
-	- Bilanciamento dinamico tra canali frontali, surround e LFE, con regolazioni adattive.
-	- Filtri automatici (highpass, equalizer, volume boost) e regolazioni intelligenti per ogni canale.
+	- Bilanciamento dinamico tra canali centrale, frontali, surround e LFE, con regolazioni adattive.
+	- Filtri automatici (highpass, equalizer, volume boost, surround boost) e regolazioni intelligenti per ogni canale.
+    - Focus EQ particolare sull'intelligibilità della voce italiana.
 	- Analisi loudness (LUFS), True Peak e Loudness Range (LRA) su segmenti rappresentativi, calcolati in modo adattivo in base alla durata e tipologia del video.
 	- Segmentazione adattiva per analisi loudnorm (Modalità ULTRA):
 		- 3 segmenti da 300s (5 min) per video ≤ 30 min
@@ -38,10 +39,10 @@ ClearVoice è uno script Bash avanzato per l'ottimizzazione audio adattiva unive
 		- 7 segmenti da 420s (7 min) per video ≤ 2.5 ore
 		- 8 segmenti da 480s (8 min) per video ≤ 3 ore
 		- 9 segmenti da 500s (8.33 min) per video > 3 ore
-	- L'analisi loudnorm richiede solo pochi minuti totali, mantenendo qualità statistica.
-	- Regola d'oro: "L'analisi loudnorm non dovrebbe mai richiedere più del 10% del tempo totale di processing".
-	- Output compatto pronto per batch/report, diagnostica audio dettagliata e parametri di normalizzazione ottimizzati.
-	- Gestione robusta di errori e report automatico al termine.
+	- L'analisi loudnorm richiede da 2 a 6 minuti totali (in base al file), mantenendo qualità statistica.
+	- Output compatto pronto per batch/report, diagnostica audio semplificata e parametri di normalizzazione ottimizzati.
+	- Gestione robusta di errori e report automatico semplificato al termine.
+    - Ottimizzato per AVR e Soundbar Premium moderne con DSP digitali multicanale (>= 5.1).
 
 
 ## Requisiti
@@ -98,7 +99,7 @@ Assicurati che ffmpeg sia nel tuo PATH.
 ### Script principale
 
 ```bash
-./clearvoice_auto_full_4.0.sh "<file_input>" [bitrate] [originale] [codec]
+./clearvoice_simple.sh "<file_input>" [bitrate] [originale] [codec]
 ```
 
 - `<file_input>`: File video di input (obbligatorio, es. `film.mkv`)
@@ -108,8 +109,8 @@ Assicurati che ffmpeg sia nel tuo PATH.
 
 Esempi:
 ```bash
-./clearvoice_auto_full_4.0.sh "film.mkv"
-./clearvoice_auto_full_4.0.sh "film.mkv" 384k no ac3
+./clearvoice_simple.sh "film.mkv"
+./clearvoice_simple.sh "film.mkv" 384k no ac3
 ```
 
 ---
@@ -129,13 +130,12 @@ Esempi:
 Per processare più file MKV in una cartella:
 
 ```bash
-./clearvoice_batch_auto_full_4,0.sh [bitrate] [originale] [codec]
+./clearvoice_simple_batch.sh [bitrate] [originale] [codec]
 ```
 
 Esempi:
 ```bash
-./clearvoice_batch_auto_full_4,0.sh
-./clearvoice_batch_auto_full_4,0.sh 384k no ac3
+./clearvoice_simple_batch.sh 384k no ac3
 ```
 
 Il batch esclude i file già processati e mostra report finale con tempo totale e file processati.
