@@ -1,11 +1,24 @@
 
 #!/bin/bash
 # ================================================================================================
-# ClearVoice Simple - Binging ⓦ Edition (Nerd Spectral Extended)
+# ClearVoice Simple - Binging ⓦ Edition V6 (Voice Priority & Anti-Vibrato Enhanced)
 # ================================================================================================
-# Script per migliorare la chiarezza delle voci nei file audio 5.1 contenuti in video MKV.
-# Analizza il loudness (LUFS/LRA) su più segmenti e applica equalizzazione adattiva.
-# Ottimizzato per binge watching (Netflix, Disney+, Amazon Prime) e soundbar moderne.
+# Pipeline avanzata per ottimizzare la chiarezza delle voci (con focus sulla lingua italiana) 
+# e la qualità del subwoofer (LFE) nei file audio 5.1 contenuti in video mkv/mp4.
+# Analizza il loudness (LUFS/LRA) su più segmenti e applica equalizzazione adattiva e
+# compressione intelligente. Implementa la filosofia "Controlled & Airy" per un LFE presente, 
+# controllato e arioso. Tuning automatico per bassi eleganti e mai invadenti.
+# 
+# Voice Priority Strategy con boost vocale ottimizzato per volume 9 e
+# Enhanced Netflix Anti-Vibrato con doppio taglio frequenze (50Hz + 65Hz) per eliminare 
+# vibrazioni anche nei contenuti più dinamici come Stranger Things. LFE calibrato per 
+# il perfetto sweet spot tra presenza e controllo, con protezione triple-layer.
+# 
+# Riconosce il profilo audio (Action, Netflix/Binge, Cartoon/Anime, Blockbuster) e applica
+# preset specifici per ogni scenario. Ottimizzato per binge watching 
+# (Netflix, Disney+, Amazon Prime), soundbar moderne e sistemi home cinema premium.
+# Ideale per chi cerca dialoghi cristallini, bassi musicali e un'esperienza audio cinematografica
+# senza stress per lunghe sessioni di visione.
 #
 # By Sandro (D@mocle77) Sabbioni
 #
@@ -214,43 +227,38 @@ NETFLIX_PROFILE=$(safe_compare "$LUFS >= -18.5 && $LUFS <= -15.5 && $LRA >= 8 &&
 CARTOON_PROFILE=$(safe_compare "$LUFS > -18.5 && $LRA < 8")
 
 if [ "$ACTION_PROFILE" -eq 1 ]; then
-    # PROFILO: Action/Horror/Sci-Fi/Musical/Cinecomic
+    # PROFILO: Action/Horror/Sci-Fi/Musical/Cinecomic - Immersione cinematica equilibrata
     PROFILE_DESC="Action/Horror/Sci-Fi/Musical/Cinecomic"
-    EQ_VOICE="[FC]highpass=f=105,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=2,equalizer=f=5000:w=0.7:g=0.2,volume=2.15,asoftclip[FCout];"
-    EQ_SUB="[LFE]highpass=f=38,equalizer=f=60:w=0.2:g=-2.5,equalizer=f=80:w=1.0:g=2,equalizer=f=120:w=1.2:g=-3,volume=0.50[LFEout];"
-    EQ_SURROUND="[SL]volume=2.15[SLout]; [SR]volume=2.15[SRout];"
+    EQ_VOICE="[FC]highpass=f=95,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=1.2,equalizer=f=5000:w=0.7:g=0.1,agate=threshold=0.0015:ratio=2:attack=15:release=200,volume=2.25,acompressor=threshold=0.75:ratio=1.8:attack=25:release=120[FCout];"
+    EQ_SUB="[LFE]highpass=f=42,equalizer=f=48:t=q:w=1.8:g=-4.5,equalizer=f=65:t=q:w=1.4:g=-3.0,equalizer=f=85:t=q:w=1.2:g=2.2,volume=0.28,alimiter=limit=0.71[LFEout];"
+    EQ_SURROUND="[SL]volume=2.2[SLout]; [SR]volume=2.15[SRout];"
 
 elif [ "$NETFLIX_PROFILE" -eq 1 ]; then
-    # PROFILO: Amazon/Netflix/Pop/Binge
+    # PROFILO: Amazon/Netflix/Pop/Binge - Chiarezza costante per maratone
     PROFILE_DESC="Amazon/Netflix/Pop/Binge"
-    EQ_VOICE="[FC]highpass=f=105,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=2,equalizer=f=5000:w=0.7:g=0.2,volume=2.15,asoftclip[FCout];"
-    EQ_SUB="[LFE]highpass=f=38,equalizer=f=60:w=0.2:g=-2.5,equalizer=f=80:w=1.0:g=3,equalizer=f=120:w=1.2:g=-2,volume=0.51[LFEout];"
+    EQ_VOICE="[FC]highpass=f=95,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=1.2,equalizer=f=5000:w=0.7:g=0.1,agate=threshold=0.0015:ratio=2:attack=15:release=200,volume=2.25,acompressor=threshold=0.75:ratio=1.8:attack=25:release=120[FCout];"
+    EQ_SUB="[LFE]highpass=f=40,equalizer=f=50:t=q:w=1.6:g=-4.0,equalizer=f=65:t=q:w=1.3:g=-2.8,equalizer=f=85:t=q:w=1.2:g=2.8,volume=0.29,alimiter=limit=0.74[LFEout];"
     EQ_SURROUND="[SL]volume=2.1[SLout]; [SR]volume=2.1[SRout];"
 
 elif [ "$CARTOON_PROFILE" -eq 1 ]; then
-    # PROFILO: Cartoon/Disney/Musical/Drammedy/Anime
+    # PROFILO: Cartoon/Disney/Musical/Drammedy/Anime - Voci vivaci per contenuti animati
     PROFILE_DESC="Cartoon/Disney/Musical/Drammedy/Anime"
-    EQ_VOICE="[FC]highpass=f=105,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=2,equalizer=f=5000:w=0.7:g=0.2,volume=2.15,asoftclip[FCout];"
-    EQ_SUB="[LFE]highpass=f=38,equalizer=f=60:w=0.2:g=-2.5,equalizer=f=80:w=1.0:g=4,equalizer=f=120:w=1.2:g=-1,volume=0.52[LFEout];"
-    EQ_SURROUND="[SL]volume=2.05[SLout]; [SR]volume=2.05[SRout];"
+    EQ_VOICE="[FC]highpass=f=95,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=1.2,equalizer=f=5000:w=0.7:g=0.1,agate=threshold=0.0015:ratio=2:attack=15:release=200,volume=2.23,acompressor=threshold=0.75:ratio=1.8:attack=25:release=120[FCout];"
+    EQ_SUB="[LFE]highpass=f=38,equalizer=f=62:t=q:w=1.2:g=-2.5,equalizer=f=88:t=q:w=1.0:g=3.0,volume=0.32,alimiter=limit=0.76[LFEout];"
+    EQ_SURROUND="[SL]volume=1.9[SLout]; [SR]volume=1.95[SRout];"
 
 else
-    # PROFILO: Alta Dinamica/Blockbuster/Disaster
+    # PROFILO: Alta Dinamica/Blockbuster/Disaster - Immersivo ma controllato
     PROFILE_DESC="Alta Dinamica/Blockbuster/Disaster"
-    EQ_VOICE="[FC]highpass=f=110,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=2,equalizer=f=5000:w=0.7:g=0.2,volume=2.15,asoftclip[FCout];"
-    EQ_SUB="[LFE]highpass=f=38,equalizer=f=60:w=0.2:g=-2.8,equalizer=f=80:w=0.8:g=2.2,equalizer=f=120:w=1.0:g=-3.5,volume=0.47[LFEout];"
-    EQ_SURROUND="[SL]volume=2.15[SLout]; [SR]volume=2.15[SRout];"
+    EQ_VOICE="[FC]highpass=f=95,equalizer=f=1200:w=0.8:g=2.5,equalizer=f=2800:w=0.9:g=1.2,equalizer=f=5000:w=0.7:g=0.1,agate=threshold=0.0015:ratio=2:attack=15:release=200,volume=2.28,acompressor=threshold=0.75:ratio=1.8:attack=25:release=120[FCout];"
+    EQ_SUB="[LFE]highpass=f=44,equalizer=f=45:t=q:w=2.2:g=-6.0,equalizer=f=60:t=q:w=1.8:g=-4.0,equalizer=f=85:t=q:w=1.2:g=2.4,volume=0.27,alimiter=limit=0.68[LFEout];"
+    EQ_SURROUND="[SL]volume=2.1[SLout]; [SR]volume=2.05[SRout];"
 fi
 # Front Equalizer (Statico per tutti i profili)
 EQ_FRONT="[FL]volume=1.0[FLout]; [FR]volume=1.0[FRout];"
 
-# Filter Complex
-FILTER_COMPLEX="[0:a:0]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][SL][SR]; \
-${EQ_FRONT} \
-${EQ_VOICE} \
-${EQ_SUB} \
-${EQ_SURROUND} \
-[FLout][FRout][FCout][LFEout][SLout][SRout]join=inputs=6:channel_layout=5.1[clearvoice]"
+# Filter Complex (Dynamic Range Control Integrato)
+FILTER_COMPLEX="[0:a:0]channelsplit=channel_layout=5.1[FL][FR][FC][LFE][SL][SR]; ${EQ_FRONT} ${EQ_VOICE} ${EQ_SUB} ${EQ_SURROUND} [FLout][FRout][FCout][LFEout][SLout][SRout]join=inputs=6:channel_layout=5.1[premix]; [premix]acompressor=threshold=0.7:ratio=2.5:attack=8:release=150,alimiter=limit=0.95:attack=1:release=50[clearvoice]"
 
 # Dichiarazione array audio
 declare -a AUDIO_ARGS=()
@@ -271,7 +279,7 @@ else
 fi
 
 # Stampa risultati
-echo -e "\033[1;32m[OK]\033[0m ClearVoice: Voce ottimizzata | Surround intelligente | LFE chirurgico | Protezione soft-clip"
+echo -e "\033[1;32m[OK]\033[0m ClearVoice: Voce ottimizzata | Surround intelligente | LFE chirurgico | Controllo dinamico | Protezione soft-clip"
 echo -e "\033[1;33m[Profilo]\033[0m ${PROFILE_DESC}"
 
 # Calcola e mostra i valori dei parametri applicati
@@ -286,6 +294,7 @@ FRONT_BOOST=$(echo "$EQ_FRONT" | sed -n 's/.*volume=\([0-9.]*\).*/\1/p' | head -
 
 # Stampa parametri applicati
 echo -e "\033[1;35m[Parametri]\033[0m Voice Boost: \033[1;33m${VOICE_BOOST}\033[0m dB | LFE Factor: \033[1;33m${LFE_FACTOR}\033[0m | Surround Boost: \033[1;33m${SURROUND_BOOST}\033[0m dB | Front: \033[1;33m${FRONT_BOOST}\033[0m dB"
+echo -e "\033[1;35m[Parametri]\033[0m Dynamic Compressor: \033[1;33m0.7\033[0m threshold | Limiter: \033[1;33m0.95\033[0m ceiling"
 
 # --- Prompt sovrascrittura file -----------------------------------------------------------------
 
@@ -307,12 +316,15 @@ echo -e "\033[1;36m[Attendere]\033[0m Elaborazione in corso..."
 
 # Esecuzione ffmpeg
 ffmpeg -y -nostdin -loglevel warning -stats -hide_banner -hwaccel auto -threads 0 \
-    -i "$INPUT_FILE" -filter_complex "$FILTER_COMPLEX" \
-    -map 0:v -c:v copy "${AUDIO_ARGS[@]}" \
+    -i "$INPUT_FILE" \
+    -filter_complex "$FILTER_COMPLEX" \
+    -map 0:v -c:v copy \
+    "${AUDIO_ARGS[@]}" \
     -map 0:s? -c:s copy \
-    -map 0:t? -c:t copy "$OUTPUT_FILE" 2>&1 | grep -v -E '^\[.*\]'
+    -map 0:t? -c:t copy \
+    "$OUTPUT_FILE" 2>&1 | grep -v -E '^\[.*@.*\]'
 
 # Stampa messaggio di completamento
-echo -e "\033[1;32m[OK]\033[0m Fatto! Il file è pronto, tuning completato."
+echo -e "\033[1;32m[OK]\033[0m Il file è pronto, tuning audio completato."
 echo -e "\033[1;33mFile creato:\033[0m"
 echo "${OUTPUT_FILE#./}"
