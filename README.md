@@ -1,4 +1,4 @@
-# 🎙️ ClearVoice Simple - Binging ⓦ Edition
+# 🎙️ ClearVoice Simple - Binging ⓦ Edition V6
 
 Questa pipeline bash+awk avanzata ottimizza l'audio multicanale di film, serie TV e cartoon, garantendo dialoghi sempre chiari e intelligibili anche in presenza di effetti. Bilanciamento dinamico tra canali frontali, surround e LFE, ottimizzazione della voce italiana con regolazioni adattive che valorizzano la scena sonora e riducono la fatica d'ascolto. Analisi LUFS/LRA intelligente per selezione automatica del profilo ottimale.
 Compatibile con Linux, macOS, Windows (WSL/GitBash).
