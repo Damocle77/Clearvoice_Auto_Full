@@ -51,8 +51,6 @@ ClearVoice è uno script Bash avanzato per l'ottimizzazione audio adattiva unive
 - **FFmpeg** (>= 7.x con supporto E-AC3, Filtercomplex)
 - **ffprobe**
 - **awk**
-- **bc** (basic calculator per confronti floating-point)
-
 
 ## Profili Audio
 
