@@ -97,7 +97,7 @@ Assicurati che ffmpeg sia nel tuo PATH.
 ```
 
 - `<file_input>`: File video di input (obbligatorio, es. `film.mkv`)
-- `bitrate`: Bitrate audio di output (opzionale, default: 768k). Valori supportati: 256k, 320k, 384k, 448k, 512k, 640k, 768k
+- `bitrate`: Bitrate audio di output (default 768k). Valori supportati: 256k, 320k, 384k, 448k, 512k, 640k, 768k
 - `originale`: yes/no (includi traccia originale, default: yes)
 - `codec`: eac3/ac3 (default: eac3)
 
