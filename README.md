@@ -169,9 +169,6 @@ Output:
 - **🧠 Zero pensieri:** Logica adattiva basata su LUFS/LRA, analisi automatica, selezione profilo intelligente.
 - **🛡️ Sicurezza:** Protezione anti-clipping, diagnostica dettagliata, visualizzazione parametri colorata.
 - **💡 Esperienza utente migliorata:** Visualizzazione chiara dei parametri applicati, output sempre comprensibile.
-
-## Novità della versione "Binging ⓦ Edition"
-
 - **🎭 Profili multipli:** Selezione automatica tra Action/Horror, Netflix/Binge, Cartoon/Disney, Alta Dinamica
 - **📊 Range ottimizzati:** Soglie LUFS/LRA ottimizzate per lo "Spider-Verse dell'audio"
 - **🎛️ Visualizzazione parametri:** Output colorato dei parametri applicati
