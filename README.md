@@ -124,9 +124,7 @@ Lo script si adatta automaticamente al contenuto, ottimizzando dialoghi, subwoof
 
 ---
 
-## Calibrazione Parametri Avanzata
-
-### Novità V8: Parametri Dinamici per Profilo
+## Calibrazione Parametri Avanzata per Profilo
 
 Ogni profilo ora utilizza parametri specificamente calibrati per ottimizzare l'esperienza audio:
 
