@@ -1,67 +1,79 @@
-# 🎙️ ClearVoice Simple - Binging ⓦ Edition - V6
+# 🎙️ ClearVoice V8 - Final Edition
 
-Questa pipeline bash+awk avanzata ottimizza l'audio multicanale di film, serie TV e cartoon, garantendo dialoghi sempre chiari e intelligibili anche in presenza di effetti. Bilanciamento dinamico tra canali frontali, surround e LFE, ottimizzazione della voce italiana con regolazioni adattive che valorizzano la scena sonora e riducono la fatica d'ascolto. Analisi LUFS/LRA intelligente per selezione automatica del profilo ottimale.
-Compatibile con Linux, macOS, Windows (WSL/GitBash).
+Pipeline audio avanzata per ottimizzare i dialoghi in contenuti 5.1, con tecnologia anti-vibrazione e oversampling 2× per eliminare micro-artefatti nei passaggi sussurrati. Boost vocale calibrato per profilo specifico con parametri ottimizzati e compressione RMS per un audio cinematografico naturale.
 
-![Version](https://img.shields.io/badge/Versione-2.0-blue) ![Audio](https://img.shields.io/badge/Audio-5.1-green) ![FFmpeg](https://img.shields.io/badge/FFmpeg-Required-orange) ![SELECT name AS 'Sandro Sabbioni', handle AS 'D@mocle77' FROM developers](https://img.shields.io/badge/SELECT%20name%20AS%20'Sandro%20Sabbioni'%2C%20handle%20AS%20'D%40mocle77'%20FROM%20developers-blue)
+![Version](https://img.shields.io/badge/Versione-8.0-blue) ![Audio](https://img.shields.io/badge/Audio-5.1-green) ![FFmpeg](https://img.shields.io/badge/FFmpeg-Required-orange) ![SELECT name AS 'Sandro Sabbioni', handle AS 'D@mocle77' FROM developers](https://img.shields.io/badge/SELECT%20name%20AS%20'Sandro%20Sabbioni'%2C%20handle%20AS%20'D%40mocle77'%20FROM%20developers-blue)
 
 ---
 
 ## Indice
 
-
-- [Descrizione](#descrizione)
-- [Requisiti](#requisiti)
+- [Caratteristiche principali](#caratteristiche-principali)
+- [Tecnologia Anti-Vibrazione](#tecnologia-anti-vibrazione)
 - [Profili Audio](#profili-audio)
+- [Requisiti](#requisiti)
 - [Installazione](#installazione)
 - [Utilizzo](#utilizzo)
-- [Output](#output)
-- [Script-batch](#script-batch)
+- [Guida Bitrate](#guida-bitrate---la-regola-doro)
 - [Parametri di Elaborazione](#parametri-di-elaborazione)
 - [Perché ClearVoice](#perché-clearvoice)
 
 ---
 
 
-## Descrizione
+## Caratteristiche principali
 
-ClearVoice è uno script Bash avanzato per l'ottimizzazione audio adattiva universale:
+ClearVoice Anti-Vibration è uno script bash avanzato che eleva l'esperienza audio a nuovi livelli:
 
-	- Ottimizza l'audio multicanale (film, serie TV, cartoon), garantendo dialoghi chiari e intelligibili.
-	- Bilanciamento dinamico tra canali centrale, frontali, surround e LFE, con regolazioni adattive.
-	- Filtri automatici (highpass, equalizer, volume boost, surround boost) e regolazioni intelligenti per ogni canale.
-    - Focus EQ particolare sull'intelligibilità della voce italiana.
-	- Analisi loudness (LUFS), True Peak e Loudness Range (LRA) su segmenti rappresentativi, calcolati in modo adattivo.
-	- Selezione automatica del profilo audio in base ai valori LUFS/LRA rilevati (Action, Netflix, Cartoon o Alta Dinamica).
-	- Segmentazione adattiva ottimizzata:
-		- 3 segmenti da 210s per video ≤ 30 min
-		- 4 segmenti da 240s per video ≤ 60 min
-		- 5 segmenti da 270s per video ≤ 90 min
-		- 6 segmenti da 300s per video ≤ 120 min
-		- 7 segmenti da 330s per video > 120 min
-	- Visualizzazione colorata dei parametri applicati: Voice Boost, LFE Factor, Surround Boost, Front.
-	- Output compatto pronto per batch/report e diagnostica audio semplificata.
-	- Gestione robusta di errori e report automatico semplificato al termine.
-    - Ottimizzato per AVR e Soundbar Premium moderne con DSP digitali multicanale (>= 5.1).
+- **🔊 Pipeline audio di nuova generazione**: Elaborazione 48kHz → 96kHz → Processing → 48kHz con SoXR 28-bit
+- **🧠 Sistema anti-vibrazione avanzato**: Elimina il "buzz da droidi" nei sussurri e le micro-vibrazioni
+- **🎯 Boost vocale calibrato per profilo**: Parametri ottimizzati specifici (2.28-2.33) senza artefatti
+- **🎛️ Profili audio adattivi**: Riconoscimento automatico tra Action, Serie TV, Cartoon e Blockbuster
+- **🎚️ Equalizzazione frequenziale calibrata**: EQ e parametri dinamici specifici per ogni contenuto
+- **📊 Analisi multi-segmento**: Analisi LUFS/LRA/TruePeak intelligente su segmenti rappresentativi
+- **👑 Oversampling professionale**: Elaborazione a 96kHz (2× standard) con resampler SoXR di alta precisione
+- **🔧 Front L/R dinamici**: Bilanciamento stereo ottimizzato (0.98-1.00) per ogni profilo
+- **📱 Ottimizzato per ogni piattaforma**: Perfetto per binge watching e cinema domestico
 
+## Tecnologia Anti-Vibrazione
+
+La tecnologia anti-vibrazione elimina i fastidiosi artefatti nei passaggi sussurrati:
+
+| Componente | Tecnologia Anti-Vibrazione | Beneficio |
+|------------|---------------------------|-----------|
+| **Gate vocale** | Threshold ultra-basso (0.001), ratio soft (1.2:1), detection RMS | Sussurri fluidi e naturali, zero effetto "droide" |
+| **Knee processing** | 4-5dB knee su compressori e gate | Transizioni morbide tra parlato e silenzio |
+| **Auto-level** | Disattivato (level=disabled) con ASC attivo | Elimina micro-pumping e vibrazione artificiale |
+| **Oversampling** | Pipeline 48kHz → 96kHz → 48kHz con SoXR 28-bit | Audio ultra-clean senza aliasing o artefatti digitali |
+| **Attack/Release** | Ottimizzati per transizioni naturali (attack 7ms, release 100-350ms) | Conserva l'espressività vocale naturale |
 
 ## Requisiti
 
-- **Bash** (Linux, macOS, WSL, o Windows con Git Bash)
-- **FFmpeg** (>= 7.x con supporto E-AC3, Filtercomplex)
+- **FFmpeg** >= 7.0 (con supporto filtergraph avanzato e codec E-AC3)
+- **Bash** (Linux, macOS, WSL2 o Windows con Git Bash)
 - **ffprobe**
 - **awk**
 
+
 ## Profili Audio
 
-Lo script analizza i valori LUFS (Loudness Units Full Scale) e LRA (Loudness Range) per selezionare automaticamente il profilo audio più adatto:
+Lo script analizza automaticamente LUFS, LRA e TruePeak per selezionare e adattare il profilo ottimale:
 
-| Profilo | Condizione LUFS | Condizione LRA | Tipo di Contenuto |
-|---------|----------------|---------------|-------------------|
-| Action/Horror/Sci-Fi | < -18.5 | > 12 | Film d'azione, horror, fantascienza |
-| Amazon/Netflix/Pop/Binge | -18.5 a -15.5 | 8 a 12 | Serie TV streaming, film mainstream |
-| Cartoon/Disney/Musical | > -18.5 | < 8 | Cartoni animati, musical, anime |
-| Alta Dinamica/Blockbuster/Disaster | Altri casi | Altri casi | Film ad alta dinamica, blockbuster |
+| Profilo                        | Condizione                        | Tipo di Contenuto           | Parametri Calibrati                    |
+|-------------------------------|-----------------------------------|-----------------------------|----------------------------------------|
+| **Blockbuster/Alta Dinamica** | Fallback o alta dinamica         | Film epici, disaster, IMAX | Front 0.98 \| FC 100Hz/2.33 \| LFE 45Hz/0.24/0.62 \| Surr 2.10 |
+| **Action/Horror/Sci-Fi**      | LUFS < -18.5, LRA > 12           | Film d'azione, horror       | Front 0.99 \| FC 100Hz/2.30 \| LFE 45Hz/0.26/0.62 \| Surr 2.15 |
+| **Serie TV Standard**         | LUFS -18.5 a -15.5, LRA 8-12     | Netflix/Amazon standard     | Front 1.00 \| FC 105Hz/2.30 \| LFE 45Hz/0.26/0.63 \| Surr 2.05 |
+| **Serie TV Alta Dinamica**    | Serie TV + (LRA ≥ 10 o TP ≥ -1.0) | Netflix premium, HBO        | Front 0.99 \| FC 105Hz/2.32 \| LFE 45Hz/0.24/0.62 \| Surr 2.10 |
+| **Cartoon/Disney/Musical**    | LUFS > -18.5, LRA < 8            | Animazione, film family     | Front 1.00 \| FC 105Hz/2.28 \| LFE 45Hz/0.28/0.66 \| Surr 2.00 |
+
+### Legenda Parametri:
+- **Front**: Volume canali frontali L/R
+- **FC**: Highpass/Volume canale centrale (voce)
+- **LFE**: Highpass/Volume/Limiter subwoofer
+- **Surr**: Volume canali surround
+
+Lo script effettua automaticamente il rilevamento "Stranger Things Effect" per Serie TV ad alta dinamica, attivando protezione LFE avanzata e parametri ottimizzati per content premium con picchi improvvisi.
 
 ---
 
@@ -87,7 +99,6 @@ Assicurati che ffmpeg sia nel tuo PATH.
 
 ---
 
-
 ## Utilizzo
 
 ### Script principale
@@ -96,83 +107,107 @@ Assicurati che ffmpeg sia nel tuo PATH.
 ./clearvoice_simple.sh "<file_input>" [bitrate] [originale] [codec]
 ```
 
-- `<file_input>`: File video di input (obbligatorio, es. `film.mkv`)
-- `bitrate`: Bitrate audio di output (default 768k). Valori supportati: 256k, 320k, 384k, 448k, 512k, 640k, 768k
-- `originale`: yes/no (includi traccia originale, default: yes)
+Parametri:
+- `<file_input>`: File video di input con audio 5.1 (obbligatorio, es. `film.mkv`)
+- `bitrate`: Bitrate audio di output (opzionale, default: 768k)
+- `originale`: si/no (includi traccia originale, default: si)
 - `codec`: eac3/ac3 (default: eac3)
 
 Esempi:
 ```bash
 ./clearvoice_simple.sh "film.mkv"
-./clearvoice_simple.sh "film.mkv" 384k no ac3
+./clearvoice_simple.sh "film.mkv" 640k no ac3
+./clearvoice_simple.sh "alienearth.mkv" 768k si eac3
 ```
+
+Lo script si adatta automaticamente al contenuto, ottimizzando dialoghi, subwoofer e surround per ogni scenario, inclusi i casi in cui le Serie TV si trasformano in veri Blockbuster. Nessuna configurazione manuale necessaria: il tuning è sempre ottimale, anche per sessioni prolungate e mix dinamici.
 
 ---
 
+## Calibrazione Parametri Avanzata
 
-## Output
+### Novità V8: Parametri Dinamici per Profilo
 
-- Il file ottimizzato avrà il suffisso `_clearvoice.mkv`.
-- Se `originale` è `yes`, il file conterrà sia la traccia originale che quella ottimizzata (ClearVoice).
-- Diagnostica dettagliata in console: loudness, true peak, gamma dinamica, parametri applicati, report finale con integrità e dimensione file.
+Ogni profilo ora utilizza parametri specificamente calibrati per ottimizzare l'esperienza audio:
+
+#### **Front L/R (0.98-1.00)**
+- **Blockbuster**: 0.98 - Riduzione leggera per enfatizzare dialoghi centrali
+- **Action/Series High**: 0.99 - Bilanciamento ottimale per contenuti dinamici  
+- **Series/Cartoon**: 1.00 - Mantenimento naturale per contenuti TV
+
+#### **FC (Canale Centrale) - Highpass/Volume**
+- **100Hz**: Action e Blockbuster - Preserva corpo vocale in mix complessi
+- **105Hz**: Serie TV e Cartoon - Maggiore pulizia per dialoghi TV
+
+#### **LFE (Subwoofer) - Highpass/Volume/Limiter**
+- **Tutti i profili**: Highpass a 45Hz per controllo preciso bassi
+- **Volume**: 0.24-0.28 calibrato per intensità contenuto
+- **Limiter**: 0.62-0.66 adattivo per protezione dinamica
+
+#### **Surround (2.00-2.15)**
+- **Cartoon**: 2.00 - Bilanciato per contenuti family
+- **Series Standard**: 2.05 - Ottimizzato per binge watching
+- **Action/Blockbuster**: 2.10-2.15 - Immersione cinematografica
 
 ---
 
+## Guida Bitrate - La Regola d'Oro
 
-## Script batch
+Per risultati ottimali, segui la regola aurea del bitrate ClearVoice:
 
-Per processare più file MKV in una cartella:
+### E-AC-3 (raccomandato): Originale +192k
+- 256k → 448k
+- 384k → 576k
+- 640k+ → 768k (cap)
 
-```bash
-./clearvoice_simple_batch.sh [bitrate] [originale] [codec]
-```
+### AC-3 (compatibilità): Originale +256k
+- 256k → 512k
+- 384k → 640k (cap)
+- 640k+ → 640k (limite massimo)
 
-Esempi:
-```bash
-./clearvoice_simple_batch.sh 384k no ac3
-```
+### Regola rapida
+- Input basso (≤256k): raddoppia il bitrate
+- Input medio (384-512k): +50% del bitrate
+- Input alto (≥640k): usa il cap del codec
 
-Il batch esclude i file già processati e mostra report finale con tempo totale e file processati.
+> Perché +192k/+256k? Compensa perdite da reprocessing, artefatti lossy-to-lossy, headroom per transitori vocali e spazio per dettagli EQ recuperati.
 
 ## Parametri di Elaborazione
 
-Per ogni profilo, lo script applica parametri ottimizzati:
+Per ogni profilo, lo script applica parametri calibrati specifici e anti-vibrazione:
 
-- **Voice Boost**: Potenziamento del canale centrale (2.1-2.15 dB)
-- **LFE Factor**: Fattore di riduzione del subwoofer (0.48-0.54)
-- **Surround Boost**: Potenziamento dei canali surround (2.05-2.15 dB)
-- **Front**: Regolazione dei canali frontali (1.0 dB)
+### Calibrazione Dinamica per Profilo:
+- **Blockbuster/Alta Dinamica**: Front 0.98 | FC 100Hz/2.33 | LFE 45Hz/0.24/0.62 | Surr 2.10
+- **Action/Horror/Sci-Fi**: Front 0.99 | FC 100Hz/2.30 | LFE 45Hz/0.26/0.62 | Surr 2.15  
+- **Serie TV Standard**: Front 1.00 | FC 105Hz/2.30 | LFE 45Hz/0.26/0.63 | Surr 2.05
+- **Serie TV Alta Dinamica**: Front 0.99 | FC 105Hz/2.32 | LFE 45Hz/0.24/0.62 | Surr 2.10
+- **Cartoon/Disney**: Front 1.00 | FC 105Hz/2.28 | LFE 45Hz/0.28/0.66 | Surr 2.00
 
-Questi parametri vengono visualizzati a schermo con una formattazione colorata per una facile lettura:
+### Tecnologia Anti-Vibrazione:
+- **Compressori RMS**: knee=4, detection=rms, link=average (ottimizzati per profilo)
+- **Limiter anti-vibrazione**: attack=8-14, release=120-210, level=disabled, asc=1
+- **Oversampling**: processing a 96kHz con precisione SoXR 28-bit
+- **Highpass ottimizzato**: 100-105Hz adattivo per preservare corpo vocale
+- **Front L/R dinamici**: Bilanciamento stereo ottimizzato (0.98-1.00) per ogni scenario
+
+Lo script mostra a schermo i parametri attivi e segnala con un alert quando viene attivata la protezione LFE avanzata per contenuti ad alta dinamica:
 
 ```
-[Parametri] Voice Boost: 2.15 dB | LFE Factor: 0.52 | Surround Boost: 2.1 dB | Front: 1.0 dB
+[Info] Rilevato "Stranger Things Effect" - Attivata protezione LFE avanzata!
 ```
-
-Note:
-- Scegli almeno 386k eac3 o 448k ac3 per serie TV, 640k ac3 o 758k eac3 per film.
-- Se il file di origine è 256k puoi selezionare 320k ac3/eac3.
-
-Output:
-- Crea un nuovo file "nome_file_clearvoice_simple.mkv" con traccia audio ottimizzata.
-- I file di output vengono creati nella stessa directory del file di input.
-- Richiede ffmpeg e ffprobe nel PATH.
 
 ## Perché ClearVoice
 
-- **🔊 Voce sempre in primo piano:** Dialoghi chiari e intelligibili in ogni situazione, anche con effetti e musica.
-- **🎵 Qualità audio HD:** Equalizzazione avanzata, processing professionale e compatibilità con AVR, TV e cuffie.
-- **🚀 Elaborazione batch:** Perfetto per stagioni intere, archivi, backup e conversioni massive.
-- **🌍 Compatibilità universale:** Output EAC3/AC3 robusto, pronto per ogni player e piattaforma.
-- **🧠 Zero pensieri:** Logica adattiva basata su LUFS/LRA, analisi automatica, selezione profilo intelligente.
-- **🛡️ Sicurezza:** Protezione anti-clipping, diagnostica dettagliata, visualizzazione parametri colorata.
-- **💡 Esperienza utente migliorata:** Visualizzazione chiara dei parametri applicati, output sempre comprensibile.
-- **🎭 Profili multipli:** Selezione automatica tra Action/Horror, Netflix/Binge, Cartoon/Disney, Alta Dinamica
-- **📊 Range ottimizzati:** Soglie LUFS/LRA ottimizzate per lo "Spider-Verse dell'audio"
-- **🎛️ Visualizzazione parametri:** Output colorato dei parametri applicati
-- **🧪 Segmentazione efficiente:** Analisi ridotta da 9 a 7 segmenti massimi per ottimizzare i tempi
-- **🔧 Calcoli floating-point:** Confronti più affidabili tramite awk per sistemi senza bc
+- **🎭 Dialoghi sempre perfetti**: Zero vibrazione nei sussurri, perfetta intelligibilità anche a volume basso
+- **🚀 Tecnologia avanzata**: Oversampling 2× e processing SoXR 28-bit di livello professionale
+- **🧠 Zero pensieri**: Selezione profilo automatica, parametri calibrati, tutto senza configurazione
+- **⚡ Compatibilità universale**: Output compatibile con ogni sistema, dalle soundbar premium ai sistemi hi-end
+- **🎬 Ottimizzato per contenuti critici**: Calibrato per film problematici e content streaming moderni
+- **🔧 Parametri dinamici**: Front L/R, FC, LFE e Surround calibrati specificamente per ogni scenario
+- **🛠️ Facile da usare**: Una semplice riga di comando per un audio cinematografico perfetto
+
+> "Per riportare equilibrio nella forza audio basta un terminale bash...questa è la via"
 
 ---
 
-> "Per riportare equilibrio nella Forza sonora ti servono solo un terminale bash e ClearVoice...Questa è la via!"
+*Developed by Sandro Sabbioni (Audio Processing Engineer)*
