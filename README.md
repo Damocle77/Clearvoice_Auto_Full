@@ -23,7 +23,7 @@ Pipeline audio avanzata per ottimizzare i dialoghi in contenuti 5.1, con tecnolo
 
 ## Caratteristiche principali
 
-ClearVoice Anti-Vibration è uno script bash avanzato che eleva l'esperienza audio a nuovi livelli:
+ClearVoice è uno script bash avanzato che eleva l'esperienza audio a nuovi livelli:
 
 - **🔊 Pipeline audio di nuova generazione**: Elaborazione 48kHz → 96kHz → Processing → 48kHz con SoXR 28-bit
 - **🧠 Sistema anti-vibrazione avanzato**: Elimina il "buzz da droidi" nei sussurri e le micro-vibrazioni
