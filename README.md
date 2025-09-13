@@ -1,6 +1,6 @@
 # 🎙️ ClearVoice V8 - Final Edition
 
-Pipeline audio avanzata per ottimizzare i dialoghi in contenuti 5.1, con tecnologia anti-vibrazione e oversampling 2× per eliminare micro-artefatti nei passaggi sussurrati. Boost vocale calibrato per profilo specifico con parametri ottimizzati e compressione RMS per un audio cinematografico intellegibile.
+Pipeline audio avanzata per ottimizzare i dialoghi in contenuti 5.1, con tecnologia anti-vibrazione e oversampling 2× per eliminare micro-artefatti nei passaggi sussurrati. Boost vocale calibrato per profilo specifico con parametri ottimizzati e compressione RMS per un audio cinematografico bilanciato ed intellegibile.
 
 ![Version](https://img.shields.io/badge/Versione-8.0-blue) ![Audio](https://img.shields.io/badge/Audio-5.1-green) ![FFmpeg](https://img.shields.io/badge/FFmpeg-Required-orange) ![SELECT name AS 'Sandro Sabbioni', handle AS 'D@mocle77' FROM developers](https://img.shields.io/badge/SELECT%20name%20AS%20'Sandro%20Sabbioni'%2C%20handle%20AS%20'D%40mocle77'%20FROM%20developers-blue)
 
