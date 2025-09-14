@@ -40,12 +40,12 @@
 # - Controllo dinamico adattivo per ogni profilo senza gate fisso
 # - Limiter avanzato con ASC e level=disabled per evitare pumping
 #
-# CALIBRAZIONE PARAMETRI PER PROFILO:
-# • Blockbuster/Alta Dinamica: Front 0.98 | FC 100Hz/2.33 | LFE 45Hz/0.24/0.62 | Surr 2.10
-# • Action/Horror/Sci-Fi: Front 0.99 | FC 100Hz/2.30 | LFE 45Hz/0.26/0.62 | Surr 2.15  
-# • Serie TV Standard: Front 1.00 | FC 105Hz/2.30 | LFE 45Hz/0.26/0.63 | Surr 2.05
-# • Serie TV Alta Dinamica: Front 0.99 | FC 105Hz/2.32 | LFE 45Hz/0.24/0.62 | Surr 2.10
-# • Cartoon/Disney: Front 1.00 | FC 105Hz/2.28 | LFE 45Hz/0.28/0.66 | Surr 2.00
+# CALIBRAZIONE PARAMETRI PER PROFILO (Valori reali applicati dallo script):
+# • Blockbuster/Alta Dinamica: Front 0.98 | FC 90Hz/2.33 | LFE 45Hz/0.22/0.60 | Surr 2.10 | Comp 2.1:1/14/210
+# • Action/Horror/Sci-Fi:     Front 0.99 | FC 88Hz/2.30 | LFE 45Hz/0.24/0.60 | Surr 2.15 | Comp 1.7:1/30/140
+# • Serie TV Standard:         Front 1.00 | FC 92Hz/2.30 | LFE 45Hz/0.26/0.60 | Surr 2.05 | Comp 1.6:1/30/120
+# • Serie TV Alta Dinamica:    Front 0.99 | FC 95Hz/2.32 | LFE 45Hz/0.24/0.60 | Surr 2.10 | Comp 1.6:1/30/180
+# • Cartoon/Disney:            Front 1.00 | FC 92Hz/2.28 | LFE 45Hz/0.28/0.60 | Surr 2.00 | Comp 1.7:1/30/140
 #
 # USO:
 #   ./clearvoice_simple.sh "video.mkv" [bitrate] [originale] [codec]
@@ -318,11 +318,10 @@ fi
 
 # Selezione profilo specifico
 if [ "$ACTION_PROFILE" -eq 1 ]; then
-
     # PROFILO: Action/Horror/Sci-Fi/Musical/Cinecomic - Immersione cinematica equilibrata
     PROFILE_DESC="Action/Horror/Sci-Fi/Musical/Cinecomic"
-    EQ_VOICE="[FC]highpass=f=100,equalizer=f=720:w=0.8:g=-0.5,equalizer=f=1350:w=0.7:g=2.2,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.30,acompressor=threshold=0.76:ratio=1.7:attack=28:release=140:knee=4:detection=rms:link=average[FCout];"
-    EQ_SUB="[LFE]highpass=f=45,equalizer=f=48:t=q:w=1.8:g=-4.3,equalizer=f=65:t=q:w=1.4:g=-2.5,equalizer=f=82:t=q:w=1.1:g=2.3,volume=0.26,alimiter=limit=0.62[LFEout];"
+    EQ_VOICE="[FC]highpass=f=88,equalizer=f=720:w=0.8:g=-0.5,equalizer=f=1350:w=0.7:g=2.2,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.30,acompressor=threshold=0.76:ratio=1.7:attack=30:release=140:knee=4:detection=rms:link=average[FCout];"
+    EQ_SUB="[LFE]highpass=f=45,equalizer=f=48:t=q:w=1.8:g=-4.3,equalizer=f=65:t=q:w=1.4:g=-2.5,equalizer=f=82:t=q:w=1.1:g=2.3,volume=0.24,alimiter=limit=0.60[LFEout];"
     EQ_SURROUND="[SL]volume=2.15[SLout]; [SR]volume=2.15[SRout];"
 
 elif [ "$SERIETV_PROFILE" -eq 1 ]; then
@@ -330,29 +329,29 @@ elif [ "$SERIETV_PROFILE" -eq 1 ]; then
     if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
         ## Serie TV moderne ad alta dinamica
         PROFILE_DESC="Amazon/Netflix/Pop/Binge (Alta Dinamica Rilevata)"
-        EQ_VOICE="[FC]highpass=f=105,equalizer=f=780:w=0.7:g=-0.7,equalizer=f=1350:w=0.7:g=2.1,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.32,acompressor=threshold=0.78:ratio=1.6:attack=35:release=180:knee=4:detection=rms:link=average[FCout];"
-        EQ_SUB="[LFE]highpass=f=45,equalizer=f=45:t=q:w=2.0:g=-5.5,equalizer=f=65:t=q:w=1.3:g=-3.2,equalizer=f=82:t=q:w=1.1:g=1.8,volume=0.24,alimiter=limit=0.62[LFEout];"
+        EQ_VOICE="[FC]highpass=f=92,equalizer=f=780:w=0.7:g=-0.7,equalizer=f=1350:w=0.7:g=2.1,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.32,acompressor=threshold=0.78:ratio=1.6:attack=30:release=180:knee=4:detection=rms:link=average[FCout];"
+        EQ_SUB="[LFE]highpass=f=45,equalizer=f=45:t=q:w=2.0:g=-5.5,equalizer=f=65:t=q:w=1.3:g=-3.2,equalizer=f=82:t=q:w=1.1:g=1.8,volume=0.22,alimiter=limit=0.60[LFEout];"
         EQ_SURROUND="[SL]volume=2.10[SLout]; [SR]volume=2.10[SRout];"
     else
         ## Serie TV standard a bassa dinamica
         PROFILE_DESC="Amazon/Netflix/Pop/Binge"
-        EQ_VOICE="[FC]highpass=f=105,equalizer=f=780:w=0.7:g=-0.7,equalizer=f=1350:w=0.7:g=2.1,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.30,acompressor=threshold=0.78:ratio=1.6:attack=35:release=180:knee=4:detection=rms:link=average[FCout];"
-        EQ_SUB="[LFE]highpass=f=45,equalizer=f=50:t=q:w=1.6:g=-3.8,equalizer=f=65:t=q:w=1.3:g=-2.3,equalizer=f=82:t=q:w=1.1:g=2.9,volume=0.26,alimiter=limit=0.63[LFEout];"
+        EQ_VOICE="[FC]highpass=f=95,equalizer=f=780:w=0.7:g=-0.7,equalizer=f=1350:w=0.7:g=2.1,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.30,acompressor=threshold=0.78:ratio=1.6:attack=30:release=120:knee=4:detection=rms:link=average[FCout];"
+        EQ_SUB="[LFE]highpass=f=45,equalizer=f=50:t=q:w=1.6:g=-3.8,equalizer=f=65:t=q:w=1.3:g=-2.3,equalizer=f=82:t=q:w=1.1:g=2.4,volume=0.24,alimiter=limit=0.60[LFEout];"
         EQ_SURROUND="[SL]volume=2.05[SLout]; [SR]volume=2.05[SRout];"
     fi
 
 elif [ "$CARTOON_PROFILE" -eq 1 ]; then
     # PROFILO: Cartoon/Disney/Musical/Drammedy/Anime - Voci vivaci per contenuti animati
     PROFILE_DESC="Cartoon/Disney/Musical/Drammedy/Anime"
-    EQ_VOICE="[FC]highpass=f=105,equalizer=f=820:w=0.6:g=-0.9,equalizer=f=1350:w=0.7:g=2.2,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.28,acompressor=threshold=0.76:ratio=1.7:attack=28:release=140:knee=4:detection=rms:link=average[FCout];"
-    EQ_SUB="[LFE]highpass=f=45,equalizer=f=60:t=q:w=1.3:g=-2.1,equalizer=f=82:t=q:w=1.0:g=3.0,volume=0.28,alimiter=limit=0.66[LFEout];"
+    EQ_VOICE="[FC]highpass=f=92,equalizer=f=820:w=0.6:g=-0.9,equalizer=f=1350:w=0.7:g=2.2,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.28,acompressor=threshold=0.76:ratio=1.7:attack=30:release=140:knee=4:detection=rms:link=average[FCout];"
+    EQ_SUB="[LFE]highpass=f=45,equalizer=f=60:t=q:w=1.3:g=-2.1,equalizer=f=82:t=q:w=1.0:g=2.2,volume=0.22,alimiter=limit=0.60[LFEout];"
     EQ_SURROUND="[SL]volume=2.00[SLout]; [SR]volume=2.00[SRout];"
 
 else
     # PROFILO: Alta Dinamica/Blockbuster/Disaster - Immersivo, intenso ma controllato
     PROFILE_DESC="Alta Dinamica/Blockbuster/Disaster"
-    EQ_VOICE="[FC]highpass=f=100,equalizer=f=700:w=0.9:g=-0.4,equalizer=f=1350:w=0.7:g=2.3,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.33,acompressor=threshold=0.76:ratio=1.7:attack=28:release=140:knee=4:detection=rms:link=average[FCout];"
-    EQ_SUB="[LFE]highpass=f=45,equalizer=f=45:t=q:w=2.2:g=-5.8,equalizer=f=65:t=q:w=1.8:g=-3.5,equalizer=f=82:t=q:w=1.1:g=2.5,volume=0.24,alimiter=limit=0.62[LFEout];"
+    EQ_VOICE="[FC]highpass=f=90,equalizer=f=700:w=0.9:g=-0.4,equalizer=f=1350:w=0.7:g=2.3,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.33,acompressor=threshold=0.76:ratio=1.7:attack=30:release=140:knee=4:detection=rms:link=average[FCout];"
+    EQ_SUB="[LFE]highpass=f=45,equalizer=f=45:t=q:w=2.2:g=-5.8,equalizer=f=65:t=q:w=1.8:g=-3.5,equalizer=f=82:t=q:w=1.1:g=2.5,volume=0.22,alimiter=limit=0.60[LFEout];"
     EQ_SURROUND="[SL]volume=2.10[SLout]; [SR]volume=2.10[SRout];"
 fi
 
@@ -380,10 +379,10 @@ if [ "$ACTION_PROFILE" -eq 1 ]; then
 elif [ "$SERIETV_PROFILE" -eq 1 ]; then
     if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
         ## Serie TV ad Alta Dinamica: Controllo avanzato anti-brillantezza con due stadi (RMS e limiting)
-        FINAL_DYNAMICS="acompressor=threshold=0.69:ratio=2.5:attack=8:release=150:knee=4:detection=rms:link=average,alimiter=limit=0.65:attack=8:release=120:level=disabled:asc=1"
+        FINAL_DYNAMICS="acompressor=threshold=0.69:ratio=2.5:attack=8:release=120:knee=4:detection=rms:link=average,alimiter=limit=0.65:attack=8:release=120:level=disabled:asc=1"
     else
         ## Serie TV standard: Controllo dolcissimo per binge watching, zero artefatti
-        FINAL_DYNAMICS="acompressor=threshold=0.73:ratio=2.2:attack=12:release=190:knee=4:detection=rms:link=average,alimiter=limit=0.69:attack=9:release=120:level=disabled:asc=1"
+        FINAL_DYNAMICS="acompressor=threshold=0.73:ratio=2.2:attack=12:release=120:knee=4:detection=rms:link=average,alimiter=limit=0.69:attack=9:release=120:level=disabled:asc=1"
     fi
 elif [ "$CARTOON_PROFILE" -eq 1 ]; then
 
@@ -422,7 +421,7 @@ echo -e "\033[1;33m[Profilo]\033[0m ${PROFILE_DESC}"
 
 # Mostra un avviso speciale per lo "Stranger Things Effect"
 if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
-    echo -e "\033[1;34m[Info]\033[0m Rilevato \033[1;34m\"Stranger Things Effect\"\033[0m - Attivata protezione LFE avanzata!"
+    echo -e "\033[1;34m[Info]\033[0m Rilevato \033[1;31m\"Stranger Things Effect\"\033[0m - Attivata protezione LFE avanzata!"
 fi
 
 # Calcola e mostra i valori dei parametri applicati
