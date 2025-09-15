@@ -110,7 +110,9 @@ Assicurati che ffmpeg sia nel tuo PATH.
 Parametri:
 - `<file_input>`: File video di input con audio 5.1 (obbligatorio, es. `film.mkv`)
 - `bitrate`: Bitrate audio di output (opzionale, default: 768k)
+
 - `originale`: si/no (includi traccia originale, default: si)
+
 - `codec`: eac3/ac3 (default: eac3)
 
 Esempi:
@@ -123,6 +125,34 @@ Esempi:
 Lo script si adatta automaticamente al contenuto, ottimizzando dialoghi, subwoofer e surround per ogni scenario, inclusi i casi in cui le Serie TV si trasformano in veri Blockbuster. Nessuna configurazione manuale necessaria: il tuning è sempre ottimale, anche per sessioni prolungate e mix dinamici.
 
 ---
+
+## Script Batch per Elaborazione Multipla
+
+Per elaborare più file MKV in una cartella, puoi utilizzare lo script batch `clearvoice_simple_batch.sh`. Questo script è compatibile con Windows (Git Bash) e consente di processare automaticamente tutti i file MKV presenti nella directory corrente.
+
+### Utilizzo dello Script Batch
+
+```bash
+bash clearvoice_simple_batch.sh [bitrate] [originale] [formato]
+```
+
+Parametri:
+- `bitrate`: Bitrate audio di output (opzionale, default: 768k)
+
+- `originale`: yes/no (includi traccia originale, default: yes)
+
+- `formato`: eac3/ac3 (default: eac3)
+
+
+```bash
+bash clearvoice_simple_batch.sh                     # Elabora tutti i file MKV nella cartella
+bash clearvoice_simple_batch.sh 384k no             # Con bitrate e opzione originale
+bash clearvoice_simple_batch.sh 384k no ac3         # Con bitrate, opzione originale e formato
+bash clearvoice_simple_batch.sh "nome file.mkv" 448k no eac3  # Elabora solo un file specifico
+```
+
+
+Lo script batch esegue automaticamente `clearvoice_simple.sh` su ogni file MKV trovato, escludendo quelli già processati (con suffisso `_clearvoice`). Al termine, mostra un riepilogo del tempo totale impiegato e del numero di file elaborati.
 
 ## Calibrazione Parametri Avanzata
 
@@ -183,7 +213,7 @@ Lo script mostra a schermo i parametri attivi e segnala quando viene attivata la
 - **🔧 Parametri dinamici**: Front L/R, FC, LFE e Surround calibrati specificamente per ogni scenario
 - **🛠️ Facile da usare**: Una semplice riga di comando per un audio cinematografico perfetto
 
-> "  Quando la forza audio reclama ordine, il terminale è la tua spada laser...Questa è la via"
+> "Quando la potenza audio reclama ordine, il terminale è la tua spada laser...Questa è la via"
 
 ---
 
