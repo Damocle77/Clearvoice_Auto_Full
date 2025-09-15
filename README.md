@@ -183,7 +183,7 @@ Lo script mostra a schermo i parametri attivi e segnala quando viene attivata la
 - **🔧 Parametri dinamici**: Front L/R, FC, LFE e Surround calibrati specificamente per ogni scenario
 - **🛠️ Facile da usare**: Una semplice riga di comando per un audio cinematografico perfetto
 
-> "Sistema intelligente a punteggio per audio perfetto...questa è la via"
+> "Per domare la forza audio ti server solo un terminale..questa è la via"
 
 ---
 
