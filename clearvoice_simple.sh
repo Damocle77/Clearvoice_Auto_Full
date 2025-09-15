@@ -1,84 +1,87 @@
 #!/bin/bash
-# ================================================================================================
-# ClearVoice Final V8 - Nerding Edition
-# ================================================================================================
+# ====================================================================================================
+# ClearVoice Final V8 - Smart Profile Edition  
+# ====================================================================================================
 # Developed by Sandro Sabbioni (Audio Processing Engineer)
-# ================================================================================================
-# Pipeline avanzata per ottimizzare la chiarezza delle voci (con focus sulla lingua italiana) 
-# e la qualità del subwoofer (LFE) nei file audio 5.1 contenuti in video mkv/mp4.
-# Analizza il loudness (LUFS/LRA) su più segmenti e applica equalizzazione adattiva e
-# compressione intelligente con tecnologia anti-vibrazione. Implementa la filosofia "Controlled & 
-# Airy" per un LFE presente, controllato e arioso. Tuning automatico per bassi non invadenti.
-# 
-# Voice Priority Strategy con parametri calibrati per ogni profilo e sistema anti-vibrazione:
-# - Compressione RMS intelligente per sussurri fluidi e naturali
-# - Parametri knee specifici per transizioni morbide tra parlato e silenzio
-# - Auto-level disabilitato per eliminare micro-pumping e artefatti artificiali
-# - Boost vocale per profilo (Action: 2.30, Serie TV: 2.30-2.32, Cartoon: 2.28, Blockbuster: 2.33)
+# ====================================================================================================
+# Pipeline avanzata per chiarezza voci e bassi LFE in audio 5.1 mkv/mp4.
+# Analisi loudness multi-segmento (LUFS/LRA/TruePeak), selezione profili intelligente a punteggio,
+# equalizzazione adattiva e compressione anti-vibrazione. LFE chirurgico, bassi definiti, 
+# voci cristalline e transizioni naturali.
 #
-# Riconosce il profilo audio (Action, Serie TV/Binge, Cartoon/Anime, Blockbuster) e applica
-# preset specifici calibrati. Utilizza SoXR ad alta precisione (28-bit professional) + oversampling 2×
-# (96kHz) per eliminare aliasing e artefatti, garantendo bassi ultra-definiti, voci cristalline 
-# e transizioni naturali anche nei passaggi più delicati.
-# 
-# Sistema di controllo dinamico ultra-delicato con parametri calibrati per ogni tipo di contenuto:
-# - Compressione RMS con knee 4dB per smoothing naturale
-# - Limitazione audio con ASC e level=disabled per evitare micro-vibrazioni 
-# - Highpass ottimizzato per profilo (100-105Hz) per preservare corpo vocale senza rumble
-# - Front L/R dinamici (0.98-1.00) per bilanciamento ottimale stereo
-# - LFE calibrato (0.24-0.28) con limiter adattivo (0.62-0.66) per controllo preciso
-# - Surround boost dinamico (2.00-2.15) per immersione bilanciata
+# CARATTERISTICHE PRINCIPALI:
+# - Sistema a punteggio intelligente per selezione profili automatica basata su analisi audio
+# - Analisi multi-segmento con fallback robusti e gestione errori avanzata
+# - Validazione completa parametri input (codec, bitrate, file) con messaggi dettagliati
+# - Anti-vibrazione voce: compressore ratio 2.0, knee 7, attack 20–22ms, release 200ms
+# - LFE chirurgico: boost selettivo su 80Hz con controllo dinamico per ogni profilo
+# - SoXR 28-bit + oversampling 2×: massima precisione, zero aliasing, definizione HD
+# - Compatibilità cross-platform (Linux, macOS, BSD) con gestione errori robusta
 #
-# Ottimizzato per binge watching (Netflix, Disney+, Amazon), soundbar moderne e sistemi home 
-# cinema premium. Ideale per chi cerca dialoghi cristallini, bassi musicali
-# controllati e un'esperienza audio cinematografica senza stress o artefatti.
-# Specificamente ottimizzato per contenuti critici e film con dialoghi sussurrati.
+# ALGORITMO SELEZIONE PROFILI:
+# Ogni profilo riceve un punteggio (0-6) basato su parametri audio specifici:
+# - Blockbuster: LRA > 10.0, TruePeak > -2.5, LUFS ≤ -17.5 (alta dinamica cinematografica)
+# - Action:      LRA 8.0-10.0, TruePeak -3.5/-2.5, LUFS -18.5/-15.5 (dinamica equilibrata)
+# - Cartoon:     LRA < 7.5, TruePeak ≤ -2.5, LUFS > -16.5 (compresso, voci brillanti)
+# - Serie TV:    LRA 6.5-8.0, TruePeak -4.5/-2.0, LUFS -20.0/-16.5 (standard broadcast)
+#   └─ Alta Dinamica: LRA ≥ 7.5, TruePeak > -2.5, LUFS ≤ -17.5 (Netflix/Amazon premium)
 #
-# Tecnologia anti-vibrazione:
-# - Pipeline di processamento 48kHz → 96kHz → Processing → 48kHz
-# - Compressione intelligente con detection RMS e knee ottimizzato
-# - Controllo dinamico adattivo per ogni profilo senza gate fisso
-# - Limiter avanzato con ASC e level=disabled per evitare pumping
-#
-# CALIBRAZIONE PARAMETRI PER PROFILO (Valori reali applicati dallo script):
-# • Blockbuster/Alta Dinamica: Front 0.98 | FC 90Hz/2.33 | LFE 45Hz/0.22/0.60 | Surr 2.10 | Comp 2.1:1/14/210
-# • Action/Horror/Sci-Fi:     Front 0.99 | FC 88Hz/2.30 | LFE 45Hz/0.24/0.60 | Surr 2.15 | Comp 1.7:1/30/140
-# • Serie TV Standard:         Front 1.00 | FC 92Hz/2.30 | LFE 45Hz/0.26/0.60 | Surr 2.05 | Comp 1.6:1/30/120
-# • Serie TV Alta Dinamica:    Front 0.99 | FC 95Hz/2.32 | LFE 45Hz/0.24/0.60 | Surr 2.10 | Comp 1.6:1/30/180
-# • Cartoon/Disney:            Front 1.00 | FC 92Hz/2.28 | LFE 45Hz/0.28/0.60 | Surr 2.00 | Comp 1.7:1/30/140
-#
-# USO:
+# UTILIZZO:
 #   ./clearvoice_simple.sh "video.mkv" [bitrate] [originale] [codec]
+#   1. nome_file.mkv   - File video di input (MKV/MP4 con audio 5.1)
+#   2. bitrate         - Bitrate audio: 128k-1024k (default: 768k)
+#   3. originale       - "si"/"no" per includere traccia originale (default: si)
+#                        Accetta: si/no, s/n, yes/no, y/n, true/false
+#   4. codec           - Codec audio: eac3/ac3 (default: eac3)
 #
-# PARAMETRI:
-#   1. nome_file.mkv   - File video di input (MKV con audio 5.1)
-#   2. bitrate         - Bitrate audio desiderato (default: 768k)
-#   3. originale       - "si" per includere traccia originale, "no" solo ClearVoice
-#                        (accetta anche "yes"/"no", "y"/"n", "true"/"false")
-#   4. codec           - Codec audio di output (default: eac3)
+# ESEMPI:
+#   ./clearvoice_simple.sh "film.mkv"                    # Usa tutti i default
+#   ./clearvoice_simple.sh "serie.mkv" 640k no ac3       # Custom tutto
+#   ./clearvoice_simple.sh "anime.mkv" 512k si           # Mantiene codec default
 #
-# ESEMPIO:
-#   ./clearvoice_simple.sh "film.mkv" 768k si eac3
+# CALIBRAZIONE PARAMETRI FINALI (LFE ottimizzato Q-factor 80Hz + EQ Voice chirurgico):
+# • Blockbuster:     Front 0.98 | FC 90Hz/2.35/2.0dB@1350 | LFE 55+75+80Hz/0.24/3.6dB | Surr 2.00 | Comp 2.0/22/200/K7
+# • Action:          Front 0.99 | FC 88Hz/2.33/1.9dB@1350 | LFE 55+75+80Hz/0.26/3.6dB | Surr 2.05 | Comp 2.0/22/200/K7  
+# • Serie TV (BD):   Front 1.00 | FC 95Hz/2.33/1.8dB@1350 | LFE 55+75+80Hz/0.26/3.6dB | Surr 1.95 | Comp 2.0/20/200/K7 
+# • Serie TV (AD):   Front 0.98 | FC 92Hz/2.35/1.8dB@1350 | LFE 55+75+80Hz/0.24/3.6dB | Surr 2.00 | Comp 2.0/22/200/K7  
+# • Cartoon:         Front 1.00 | FC 92Hz/2.32/1.9dB@1350 | LFE 55+75+80Hz/0.26/3.6dB | Surr 1.90 | Comp 2.0/20/200/K7
+#
+# EQUALIZZAZIONE VOCE (FC) - Profilo multi-banda per intelligibilità:
+# • Highpass adattivo: 88-95Hz per rimozione mud/rumble (varia per profilo dinamico)
+# • EQ 500Hz: -0.3dB taglio boxy/nasale (Q=0.8 preciso)
+# • EQ 1350Hz: +1.8/+2.0dB boost presenza/chiarezza (core ClearVoice, Q=0.7 musicale)
+# • EQ 2900Hz: +1.0dB definizione consonanti (Q=0.8 controllo sibilanza)  
+# • EQ 4800Hz: +0.1dB brillantezza conservativa (Q=0.6 naturale)
+# • Compressore anti-vibrazione: ratio 2.0, attack 20-22ms, knee 7.0 smooth
 #
 # OUTPUT:
-#   Crea un nuovo file "nome_file_clearvoice.mkv" con traccia audio ottimizzata.
+#   Crea "nome_file_clearvoice_simple.mkv" nella stessa directory del file di input.
+#   Include traccia ClearVoice ottimizzata e opzionalmente traccia originale.
+#   Metadati automatici con lingua e informazioni codec.
 #
-# NOTE:
-#   - I file di output verranno creati nella stessa directory del file di input.
-#   - Lo script rileva automaticamente il profilo audio ottimale per il contenuto.
+# REQUISITI:
+#   - ffmpeg/ffprobe installati e funzionanti
+#   - Audio di input: 5.1 canali (6 canali totali)
+#   - Spazio disco: ~30% della dimensione originale (per traccia aggiuntiva)
+#   - RAM: ~500MB per analisi multi-segmento
 #
-# ================================================================================================
-# GUIDA BITRATE CLEARVOICE - La Regola aurea
-# ================================================================================================
-# E-AC-3 (raccomandato): Originale +192k
-#   256k → 448k | 384k → 576k | 640k+ → 768k (cap)
+# ====================================================================================================
+# GUIDA BITRATE CLEARVOICE - Raccomandazioni ottimizzate
+# ====================================================================================================
+# Codec supportati: eac3 (raccomandato), ac3 (compatibilità).
+# Range validato: 128k - 1024k (con controllo automatico e correzione)
 #
-# AC-3 (compatibilità): Originale +256k  
-#   256k → 512k | 384k → 640k (cap) | 640k+ → 640k (limite max)
+# E-AC-3 (Dolby Digital Plus - migliore qualità):
+#   Audio sorgente → ClearVoice raccomandato
+#   256k → 448k | 384k → 576k | 512k → 704k | 640k+ → 768k (optimal)
 #
-# Perché +192k/+256k: Compensa perdite reprocessing + artefatti lossy-to-lossy + 
-#     headroom transitori vocali + spazio dettagli EQ recuperati
-# ================================================================================================
+# AC-3 (Dolby Digital - massima compatibilità):  
+#   256k → 512k | 384k → 576k | 512k+ → 640k (limite hardware standard)
+#
+# RATIONALE: L'incremento compensa perdite da reprocessing lossy-to-lossy,
+# artefatti di codifica multipla, headroom per transitori vocali intensi e
+# spazio aggiuntivo per dettagli EQ recuperati dall'elaborazione ClearVoice.
+# ====================================================================================================
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -102,6 +105,17 @@ if [[ ! "$BITRATE_NUM" =~ ^[0-9]+$ ]] || [ "$BITRATE_NUM" -lt 128 ] || [ "$BITRA
     echo -e "\033[1;31m[Errore]\033[0m Bitrate non valido: $BITRATE (deve essere tra 128k e 1024k)"
     exit 1
 fi
+
+# Validazione codec audio
+case "${AUDIO_CODEC,,}" in
+    "eac3"|"ac3") 
+        AUDIO_CODEC="${AUDIO_CODEC,,}" 
+        ;;
+    *) 
+        echo -e "\033[1;31m[Errore]\033[0m Codec non supportato: $AUDIO_CODEC (usa: eac3, ac3)"
+        exit 1
+        ;;
+esac
 
 # Controllo parametri e file di input
 if [ -z "$INPUT_FILE" ]; then
@@ -284,95 +298,189 @@ done
     [[ ! "$LRA_SUM" =~ ^-?[0-9]+(\.[0-9]+)?$ ]] && LRA_SUM=0
     [[ ! "$TP_SUM" =~ ^-?[0-9]+(\.[0-9]+)?$ ]] && TP_SUM=0
 
-    # Calcolo delle medie con protezione
-    if [ "$LUFS_COUNT" -eq 0 ]; then LUFS=-20; else LUFS=$(awk "BEGIN {print $LUFS_SUM/$LUFS_COUNT}"); fi
-    if [ "$LRA_COUNT" -eq 0 ]; then LRA=10; else LRA=$(awk "BEGIN {print $LRA_SUM/$LRA_COUNT}"); fi
-    if [ "$TP_COUNT" -eq 0 ]; then TP=-5; else TP=$(awk "BEGIN {print $TP_SUM/$TP_COUNT}"); fi
+    # Calcolo delle medie con protezione robusta
+    if [ "$LUFS_COUNT" -eq 0 ]; then 
+        LUFS=-18.0  # Valore realistico invece di -20
+        echo -e "\033[1;33m[Warning]\033[0m Nessun valore LUFS valido rilevato, usando default: $LUFS"
+    else 
+        LUFS=$(awk "BEGIN {printf \"%.1f\", $LUFS_SUM/$LUFS_COUNT}")
+    fi
+    # Calcolo LRA
+    if [ "$LRA_COUNT" -eq 0 ]; then 
+        LRA=8.0  # Valore realistico invece di 10
+        echo -e "\033[1;33m[Warning]\033[0m Nessun valore LRA valido rilevato, usando default: $LRA"
+    else 
+        LRA=$(awk "BEGIN {printf \"%.1f\", $LRA_SUM/$LRA_COUNT}")
+    fi
+    # Calcolo True Peak
+    if [ "$TP_COUNT" -eq 0 ]; then 
+        TP=-3.0  # Valore realistico invece di -5
+        echo -e "\033[1;33m[Warning]\033[0m Nessun valore True Peak valido rilevato, usando default: $TP"
+    else 
+        # Calcolo media True Peak
+        TP=$(awk "BEGIN {printf \"%.1f\", $TP_SUM/$TP_COUNT}")
+    fi
 
 # Stampa risultati
-echo -e "\033[1;35m[Info]\033[0m Loudnorm multi-analisi: LUFS=$LUFS | LRA=$LRA | TruPeak=$TP dBTP"
+echo -e "\033[1;35m[Info]\033[0m Loudnorm multi-analisi: LUFS=\033[1;33m$LUFS\033[0m | LRA=\033[1;33m$LRA\033[0m | TruPeak=\033[1;33m$TP\033[0m dBTP"
 
 # --- Logica Adattiva e Definizione Filtri per Profilo -------------------------------------------
 
-# Funzione per confronti sicuri
-safe_compare() {
-    awk "BEGIN { print ($1) ? 1 : 0 }"
-}
+# Calcolo punteggio per ogni profilo basato su caratteristiche audio
+BLOCKBUSTER_SCORE=0
+ACTION_SCORE=0
+CARTOON_SCORE=0
+SERIETV_SCORE=0
 
-# Selezione profilo con range ottimizzati
-ACTION_PROFILE=$(safe_compare "$LRA > 12 && $LUFS < -18.5")
-SERIETV_PROFILE=$(safe_compare "$LUFS >= -18.5 && $LUFS <= -15.5 && $LRA >= 8 && $LRA <= 12")
-CARTOON_PROFILE=$(safe_compare "$LUFS > -18.5 && $LRA < 8")
+# BLOCKBUSTER: Alta dinamica + picchi elevati + range ampio
+if (( $(awk "BEGIN {print ($LRA > 10.0) ? 1 : 0}") )); then BLOCKBUSTER_SCORE=$((BLOCKBUSTER_SCORE + 3)); fi
+if (( $(awk "BEGIN {print ($TP > -2.5) ? 1 : 0}") )); then BLOCKBUSTER_SCORE=$((BLOCKBUSTER_SCORE + 2)); fi
+if (( $(awk "BEGIN {print ($LUFS <= -17.5) ? 1 : 0}") )); then BLOCKBUSTER_SCORE=$((BLOCKBUSTER_SCORE + 1)); fi
 
-# Rilevamento Serie TV ad Alta Dinamica ("Stranger Things Effect")
-SERIETV_HIGH_DYNAMIC=$(safe_compare "($SERIETV_PROFILE -eq 1) && (($LRA >= 10) || ($TP >= -1.0))")
+# ACTION: Dinamica media-alta + loudness moderato + picchi medi
+if (( $(awk "BEGIN {print ($LRA >= 8.0 && $LRA <= 10.0) ? 1 : 0}") )); then ACTION_SCORE=$((ACTION_SCORE + 3)); fi
+if (( $(awk "BEGIN {print ($LUFS >= -18.5 && $LUFS <= -15.5) ? 1 : 0}") )); then ACTION_SCORE=$((ACTION_SCORE + 2)); fi
+if (( $(awk "BEGIN {print ($TP >= -3.5 && $TP <= -2.5) ? 1 : 0}") )); then ACTION_SCORE=$((ACTION_SCORE + 1)); fi
 
-# Verifica che almeno un profilo sia stato selezionato
-PROFILE_SELECTED=$((ACTION_PROFILE + SERIETV_PROFILE + CARTOON_PROFILE))
-if [ "$PROFILE_SELECTED" -eq 0 ]; then
-    # Fallback al profilo Blockbuster se nessun profilo specifico rilevato
-    ACTION_PROFILE=0
-    SERIETV_PROFILE=0
-    CARTOON_PROFILE=0
-fi
+# CARTOON: Loudness alto + dinamica bassa + picchi controllati
+if (( $(awk "BEGIN {print ($LUFS > -16.5) ? 1 : 0}") )); then CARTOON_SCORE=$((CARTOON_SCORE + 3)); fi
+if (( $(awk "BEGIN {print ($LRA < 7.5) ? 1 : 0}") )); then CARTOON_SCORE=$((CARTOON_SCORE + 2)); fi
+if (( $(awk "BEGIN {print ($TP <= -2.5) ? 1 : 0}") )); then CARTOON_SCORE=$((CARTOON_SCORE + 1)); fi
 
-# Selezione profilo specifico
-if [ "$ACTION_PROFILE" -eq 1 ]; then
-    # PROFILO: Action/Horror/Sci-Fi/Musical/Cinecomic - Immersione cinematica equilibrata
-    PROFILE_DESC="Action/Horror/Sci-Fi/Musical/Cinecomic"
-    EQ_VOICE="[FC]highpass=f=88,equalizer=f=720:w=0.8:g=-0.5,equalizer=f=1350:w=0.7:g=2.2,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.30,acompressor=threshold=0.76:ratio=1.7:attack=30:release=140:knee=4:detection=rms:link=average[FCout];"
-    EQ_SUB="[LFE]highpass=f=45,equalizer=f=48:t=q:w=1.8:g=-4.3,equalizer=f=65:t=q:w=1.4:g=-2.5,equalizer=f=82:t=q:w=1.1:g=2.3,volume=0.24,alimiter=limit=0.60[LFEout];"
-    EQ_SURROUND="[SL]volume=2.15[SLout]; [SR]volume=2.15[SRout];"
+# SERIE TV: Parametri intermedi e bilanciati (zona specifica)
+if (( $(awk "BEGIN {print ($LRA >= 6.5 && $LRA < 8.0) ? 1 : 0}") )); then SERIETV_SCORE=$((SERIETV_SCORE + 2)); fi
+if (( $(awk "BEGIN {print ($LUFS >= -20.0 && $LUFS <= -16.5) ? 1 : 0}") )); then SERIETV_SCORE=$((SERIETV_SCORE + 2)); fi
+if (( $(awk "BEGIN {print ($TP >= -4.5 && $TP <= -2.0) ? 1 : 0}") )); then SERIETV_SCORE=$((SERIETV_SCORE + 1)); fi
 
-elif [ "$SERIETV_PROFILE" -eq 1 ]; then
-    # PROFILO: Amazon/Netflix/Serie TV/Pop/Binge - Chiarezza costante per maratone TV
-    if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
-        ## Serie TV moderne ad alta dinamica
-        PROFILE_DESC="Amazon/Netflix/Pop/Binge (Alta Dinamica Rilevata)"
-        EQ_VOICE="[FC]highpass=f=92,equalizer=f=780:w=0.7:g=-0.7,equalizer=f=1350:w=0.7:g=2.1,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.32,acompressor=threshold=0.78:ratio=1.6:attack=30:release=180:knee=4:detection=rms:link=average[FCout];"
-        EQ_SUB="[LFE]highpass=f=45,equalizer=f=45:t=q:w=2.0:g=-5.5,equalizer=f=65:t=q:w=1.3:g=-3.2,equalizer=f=82:t=q:w=1.1:g=1.8,volume=0.22,alimiter=limit=0.60[LFEout];"
-        EQ_SURROUND="[SL]volume=2.10[SLout]; [SR]volume=2.10[SRout];"
+# Selezione profilo basata sul punteggio più alto con priorità in caso di parità
+MAX_SCORE=$(printf '%s\n' "$BLOCKBUSTER_SCORE" "$ACTION_SCORE" "$CARTOON_SCORE" "$SERIETV_SCORE" | sort -nr | head -1)
+
+# Gestione priorità in caso di punteggi uguali: Blockbuster > Action > Cartoon > SerieTV
+if [ "$BLOCKBUSTER_SCORE" -eq "$MAX_SCORE" ] && [ "$MAX_SCORE" -gt 0 ]; then
+    PROFILE="Blockbuster"
+    SERIETV_HIGH_DYNAMIC=0
+elif [ "$ACTION_SCORE" -eq "$MAX_SCORE" ] && [ "$MAX_SCORE" -gt 0 ]; then
+    PROFILE="Action"
+    SERIETV_HIGH_DYNAMIC=0
+elif [ "$CARTOON_SCORE" -eq "$MAX_SCORE" ] && [ "$MAX_SCORE" -gt 0 ]; then
+    PROFILE="Cartoon"
+    SERIETV_HIGH_DYNAMIC=0
+elif [ "$SERIETV_SCORE" -eq "$MAX_SCORE" ] && [ "$MAX_SCORE" -gt 0 ]; then
+    PROFILE="SerieTV"
+    # Rilevamento Serie TV ad alta dinamica (parametri più precisi e coerenti)
+    if (( $(awk "BEGIN {print ($LRA >= 7.5 && $TP > -2.5 && $LUFS <= -17.5) ? 1 : 0}") )); then
+        SERIETV_HIGH_DYNAMIC=1
     else
-        ## Serie TV standard a bassa dinamica
-        PROFILE_DESC="Amazon/Netflix/Pop/Binge"
-        EQ_VOICE="[FC]highpass=f=95,equalizer=f=780:w=0.7:g=-0.7,equalizer=f=1350:w=0.7:g=2.1,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.30,acompressor=threshold=0.78:ratio=1.6:attack=30:release=120:knee=4:detection=rms:link=average[FCout];"
-        EQ_SUB="[LFE]highpass=f=45,equalizer=f=50:t=q:w=1.6:g=-3.8,equalizer=f=65:t=q:w=1.3:g=-2.3,equalizer=f=82:t=q:w=1.1:g=2.4,volume=0.24,alimiter=limit=0.60[LFEout];"
-        EQ_SURROUND="[SL]volume=2.05[SLout]; [SR]volume=2.05[SRout];"
+        SERIETV_HIGH_DYNAMIC=0
     fi
-
-elif [ "$CARTOON_PROFILE" -eq 1 ]; then
-    # PROFILO: Cartoon/Disney/Musical/Drammedy/Anime - Voci vivaci per contenuti animati
-    PROFILE_DESC="Cartoon/Disney/Musical/Drammedy/Anime"
-    EQ_VOICE="[FC]highpass=f=92,equalizer=f=820:w=0.6:g=-0.9,equalizer=f=1350:w=0.7:g=2.2,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.28,acompressor=threshold=0.76:ratio=1.7:attack=30:release=140:knee=4:detection=rms:link=average[FCout];"
-    EQ_SUB="[LFE]highpass=f=45,equalizer=f=60:t=q:w=1.3:g=-2.1,equalizer=f=82:t=q:w=1.0:g=2.2,volume=0.22,alimiter=limit=0.60[LFEout];"
-    EQ_SURROUND="[SL]volume=2.00[SLout]; [SR]volume=2.00[SRout];"
-
 else
-    # PROFILO: Alta Dinamica/Blockbuster/Disaster - Immersivo, intenso ma controllato
-    PROFILE_DESC="Alta Dinamica/Blockbuster/Disaster"
-    EQ_VOICE="[FC]highpass=f=90,equalizer=f=700:w=0.9:g=-0.4,equalizer=f=1350:w=0.7:g=2.3,equalizer=f=2900:w=0.8:g=1.1,equalizer=f=4800:w=0.6:g=0.2,volume=2.33,acompressor=threshold=0.76:ratio=1.7:attack=30:release=140:knee=4:detection=rms:link=average[FCout];"
-    EQ_SUB="[LFE]highpass=f=45,equalizer=f=45:t=q:w=2.2:g=-5.8,equalizer=f=65:t=q:w=1.8:g=-3.5,equalizer=f=82:t=q:w=1.1:g=2.5,volume=0.22,alimiter=limit=0.60[LFEout];"
-    EQ_SURROUND="[SL]volume=2.10[SLout]; [SR]volume=2.10[SRout];"
+    # Fallback: nessun profilo ha punteggio > 0
+    PROFILE="SerieTV"
+    SERIETV_HIGH_DYNAMIC=0
+    echo -e "\033[1;33m[Warning]\033[0m Nessun profilo con punteggio valido, usando fallback: Serie TV"
 fi
+
+# Debug: mostra punteggi per troubleshooting (rimovibile in produzione)
+echo -e "\033[1;90m[Debug]\033[0m Punteggi profili - Blockbuster:$BLOCKBUSTER_SCORE | Action:$ACTION_SCORE | Cartoon:$CARTOON_SCORE | SerieTV:$SERIETV_SCORE"
+
+# Reset variabili di stato dei profili per compatibilità
+BLOCKBUSTER_PROFILE=0
+ACTION_PROFILE=0
+CARTOON_PROFILE=0
+SERIETV_PROFILE=0
+
+# Imposta la variabile corretta in base al profilo selezionato
+case "$PROFILE" in
+    "Blockbuster") BLOCKBUSTER_PROFILE=1 ;;
+    "Action")      ACTION_PROFILE=1 ;;
+    "Cartoon")     CARTOON_PROFILE=1 ;;
+    "SerieTV")     SERIETV_PROFILE=1 ;;
+esac
+
+# Selezione profilo specifico in stile "switch-case" - più pulito e diretto
+case "$PROFILE" in
+    "Blockbuster")
+        # PROFILO: Blockbuster/Disaster/Marvel/DC - Massima dinamica e controllo LFE avanzato
+        PROFILE_DESC="Blockbuster/Disaster/Marvel/DC/Alta Dinamica"
+        EQ_VOICE="[FC]highpass=f=90,equalizer=f=500:w=0.8:g=-0.3,equalizer=f=1350:w=0.7:g=2.0,equalizer=f=2900:w=0.8:g=1.0,equalizer=f=4800:w=0.6:g=0.1,volume=2.35,acompressor=threshold=0.70:ratio=2.0:attack=22:release=200:knee=7:detection=rms:link=average[FCout];"
+        EQ_SUB="[LFE]highpass=f=40,equalizer=f=55:t=q:w=1.8:g=-3.5,equalizer=f=75:t=q:w=1.4:g=-1.0,equalizer=f=80:t=q:w=0.8:g=3.6,volume=0.24,alimiter=limit=0.60[LFEout];"
+        EQ_SURROUND="[SL]volume=2.00[SLout]; [SR]volume=2.00[SRout];"
+        ;;
+        
+    "Action")
+        # PROFILO: Action/Horror/Sci-Fi/Musical/Cinecomic - Immersione cinematica equilibrata
+        PROFILE_DESC="Action/Horror/Sci-Fi/Musical/Cinecomic"
+        EQ_VOICE="[FC]highpass=f=88,equalizer=f=500:w=0.8:g=-0.3,equalizer=f=1350:w=0.7:g=1.9,equalizer=f=2900:w=0.8:g=1.0,equalizer=f=4800:w=0.6:g=0.1,volume=2.33,acompressor=threshold=0.68:ratio=2.0:attack=22:release=200:knee=7:detection=rms:link=average[FCout];"
+        EQ_SUB="[LFE]highpass=f=40,equalizer=f=55:t=q:w=1.8:g=-3.5,equalizer=f=75:t=q:w=1.4:g=-1.0,equalizer=f=80:t=q:w=0.8:g=3.6,volume=0.26,alimiter=limit=0.60[LFEout];"
+        EQ_SURROUND="[SL]volume=2.05[SLout]; [SR]volume=2.05[SRout];"
+        ;;
+        
+    "Cartoon")
+        # PROFILO: Cartoon/Disney/Musical/Drammedy/Anime - Voci vivaci per contenuti animati
+        PROFILE_DESC="Cartoon/Disney/Musical/Drammedy/Anime"
+        EQ_VOICE="[FC]highpass=f=92,equalizer=f=500:w=0.8:g=-0.3,equalizer=f=1350:w=0.7:g=1.9,equalizer=f=2900:w=0.8:g=1.0,equalizer=f=4800:w=0.6:g=0.1,volume=2.32,acompressor=threshold=0.68:ratio=2.0:attack=20:release=200:knee=7:detection=rms:link=average[FCout];"
+        EQ_SUB="[LFE]highpass=f=40,equalizer=f=55:t=q:w=1.8:g=-3.5,equalizer=f=75:t=q:w=1.4:g=-1.0,equalizer=f=80:t=q:w=0.8:g=3.6,volume=0.26,alimiter=limit=0.60[LFEout];"
+        EQ_SURROUND="[SL]volume=1.90[SLout]; [SR]volume=1.90[SRout];"
+        ;;
+        
+    "SerieTV")
+        # PROFILO: Amazon/Netflix/Serie TV/Pop/Binge
+        if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
+            # Serie TV moderne ad alta dinamica
+            PROFILE_DESC="Amazon/Netflix/Pop/Binge (Alta Dinamica)"
+            EQ_VOICE="[FC]highpass=f=92,equalizer=f=500:w=0.8:g=-0.3,equalizer=f=1350:w=0.7:g=1.8,equalizer=f=2900:w=0.8:g=1.0,equalizer=f=4800:w=0.6:g=0.1,volume=2.35,acompressor=threshold=0.70:ratio=2.0:attack=22:release=200:knee=7:detection=rms:link=average[FCout];"
+            EQ_SUB="[LFE]highpass=f=40,equalizer=f=55:t=q:w=1.8:g=-3.5,equalizer=f=75:t=q:w=1.4:g=-1.0,equalizer=f=80:t=q:w=0.8:g=3.6,volume=0.24,alimiter=limit=0.60[LFEout];"
+            EQ_SURROUND="[SL]volume=2.00[SLout]; [SR]volume=2.00[SRout];"
+        else
+            # Serie TV standard a bassa dinamica
+            PROFILE_DESC="Amazon/Netflix/Pop/Binge (Bassa Dinamica)"
+            EQ_VOICE="[FC]highpass=f=95,equalizer=f=500:w=0.8:g=-0.3,equalizer=f=1350:w=0.7:g=1.8,equalizer=f=2900:w=0.8:g=1.0,equalizer=f=4800:w=0.6:g=0.1,volume=2.33,acompressor=threshold=0.70:ratio=2.0:attack=20:release=200:knee=7:detection=rms:link=average[FCout];"
+            EQ_SUB="[LFE]highpass=f=40,equalizer=f=55:t=q:w=1.8:g=-3.5,equalizer=f=75:t=q:w=1.4:g=-1.0,equalizer=f=80:t=q:w=0.8:g=3.6,volume=0.26,alimiter=limit=0.60[LFEout];"
+            EQ_SURROUND="[SL]volume=1.95[SLout]; [SR]volume=1.95[SRout];"
+        fi
+        ;; 
+    *)
+        # PROFILO FALLBACK: Serie TV standard
+        PROFILE_DESC="Serie TV Standard (Fallback)"
+        EQ_VOICE="[FC]highpass=f=95,equalizer=f=500:w=0.8:g=-0.3,equalizer=f=1350:w=0.7:g=1.8,equalizer=f=2900:w=0.8:g=1.0,equalizer=f=4800:w=0.6:g=0.1,volume=2.33,acompressor=threshold=0.70:ratio=2.0:attack=20:release=200:knee=7:detection=rms:link=average[FCout];"
+        EQ_SUB="[LFE]highpass=f=40,equalizer=f=55:t=q:w=1.8:g=-3.5,equalizer=f=75:t=q:w=1.4:g=-1.0,equalizer=f=80:t=q:w=0.8:g=3.6,volume=0.26,alimiter=limit=0.60[LFEout];"
+        EQ_SURROUND="[SL]volume=1.95[SLout]; [SR]volume=1.95[SRout];"
+        ;;
+esac
 
 # Front Equalizer (per profilo specifico)
-if [ "$ACTION_PROFILE" -eq 1 ]; then
+if [ "$BLOCKBUSTER_PROFILE" -eq 1 ]; then
+    # Blockbuster: Controllo minimo per range estremo
+    EQ_FRONT="[FL]volume=0.98[FLout]; [FR]volume=0.98[FRout];"
+
+elif [ "$ACTION_PROFILE" -eq 1 ]; then
+    # Action: Leggero calo per evitare vibrazioni
     EQ_FRONT="[FL]volume=0.99[FLout]; [FR]volume=0.99[FRout];"
+
 elif [ "$SERIETV_PROFILE" -eq 1 ]; then
+    # Serie TV: Pieno volume per chiarezza voci
     if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
-        EQ_FRONT="[FL]volume=0.99[FLout]; [FR]volume=0.99[FRout];"
+        # Serie TV ad Alta Dinamica
+        EQ_FRONT="[FL]volume=0.98[FLout]; [FR]volume=0.98[FRout];"  
     else
-        EQ_FRONT="[FL]volume=1.00[FLout]; [FR]volume=1.00[FRout];"
+        # Serie TV standard
+        EQ_FRONT="[FL]volume=1.00[FLout]; [FR]volume=1.00[FRout];"  
     fi
+      
 elif [ "$CARTOON_PROFILE" -eq 1 ]; then
+    # Cartoon: Pieno volume per voci brillanti
     EQ_FRONT="[FL]volume=1.00[FLout]; [FR]volume=1.00[FRout];"
 else
+    # Fallback: Leggero calo per sicurezza
     EQ_FRONT="[FL]volume=0.98[FLout]; [FR]volume=0.98[FRout];"
 fi
 
 # Controllo dinamico finale (adattivo per profilo)
-if [ "$ACTION_PROFILE" -eq 1 ]; then
+if [ "$BLOCKBUSTER_PROFILE" -eq 1 ]; then
+    # Blockbuster: Controllo massimo per preservare range dinamico estremo
+    FINAL_DYNAMICS="acompressor=threshold=0.76:ratio=2.1:attack=14:release=210:knee=4:detection=rms:link=average,alimiter=limit=0.91:attack=9:release=120:level=disabled:asc=1"
 
+elif [ "$ACTION_PROFILE" -eq 1 ]; then
     # Action: Controllo aggressivo ma naturale per esplosioni, zero vibrazioni 
     FINAL_DYNAMICS="acompressor=threshold=0.69:ratio=2.6:attack=8:release=140:knee=4:detection=rms:link=average,alimiter=limit=0.92:attack=9:release=120:level=disabled:asc=1"
 
@@ -385,12 +493,11 @@ elif [ "$SERIETV_PROFILE" -eq 1 ]; then
         FINAL_DYNAMICS="acompressor=threshold=0.73:ratio=2.2:attack=12:release=120:knee=4:detection=rms:link=average,alimiter=limit=0.69:attack=9:release=120:level=disabled:asc=1"
     fi
 elif [ "$CARTOON_PROFILE" -eq 1 ]; then
-
     # Cartoon: Bilanciato per voci animate, controllo effetti senza perdere vivacità
     FINAL_DYNAMICS="acompressor=threshold=0.71:ratio=2.3:attack=10:release=160:knee=4:detection=rms:link=average,alimiter=limit=0.93:attack=9:release=120:level=disabled:asc=1"
 else
-    # Alta Dinamica: Preserva range dinamico, controllo chirurgico rumble blockbuster
-    FINAL_DYNAMICS="acompressor=threshold=0.76:ratio=2.1:attack=14:release=210:knee=4:detection=rms:link=average,alimiter=limit=0.91:attack=9:release=120:level=disabled:asc=1"
+    # Fallback: Controllo standard
+    FINAL_DYNAMICS="acompressor=threshold=0.73:ratio=2.2:attack=12:release=160:knee=4:detection=rms:link=average,alimiter=limit=0.88:attack=9:release=120:level=disabled:asc=1"
 fi
 
 # Filter Complex (Dynamic Range Control Integrato con SoXR Resampler 28-Bit +Oversampling 2×)
@@ -416,12 +523,15 @@ fi
 
 # Stampa risultati
 echo -e "\033[1;32m[OK]\033[0m ClearVoice: Voce ottimizzata | Surround intelligente | LFE chirurgico | Controllo volume dinamico | Anti-Vibrazione"
-echo -e "\033[1;32m[OK]\033[0m SoXR High-End (28-bit precision) | Oversampling 2× | Minimizzazione aliasing/ringing | Audio ultra-definito"
+echo -e "\033[1;32m[OK]\033[0m SoXR High-End (28-bit precision) | Oversampling 2× | Minimizzazione aliasing/ringing | Audio ultra-definito HD"
 echo -e "\033[1;33m[Profilo]\033[0m ${PROFILE_DESC}"
 
-# Mostra un avviso speciale per lo "Stranger Things Effect"
+# Mostra informazioni sul profilo selezionato
+echo -e "\033[1;34m[Engine]\033[0m Profilo selezionato: \033[1;36m${PROFILE}\033[0m con algoritmo \033[1;32m\"Adaptive Audio\"\033[0m"
+
+# Mostra un avviso speciale per il profilo Serie TV ad Alta Dinamica
 if [ "$SERIETV_HIGH_DYNAMIC" -eq 1 ]; then
-    echo -e "\033[1;34m[Info]\033[0m Rilevato \033[1;31m\"Stranger Things Effect\"\033[0m - Attivata protezione LFE avanzata!"
+    echo -e "\033[1;34m[Info]\033[0m Rilevato \033[1;31m\"Alta Dinamica\"\033[0m - Attivata protezione LFE avanzata!"
 fi
 
 # Calcola e mostra i valori dei parametri applicati
@@ -444,7 +554,7 @@ COMPRESSOR_THRESHOLD=$(echo "$FINAL_DYNAMICS" | grep -o 'threshold=[0-9.]*' | se
 # Estrai il limite del limiter
 LIMITER_LIMIT=$(echo "$FINAL_DYNAMICS" | grep -o 'limit=[0-9.]*' | sed 's/limit=//' | head -n1)
 [ -z "$LIMITER_LIMIT" ] || [[ ! "$LIMITER_LIMIT" =~ ^[0-9]+(\.[0-9]+)?$ ]] && LIMITER_LIMIT="0.9"
-echo -e "\033[1;35m[Parametri]\033[0m Dynamic Compressor: \033[1;33m${COMPRESSOR_THRESHOLD}\033[0m threshold | Limiter: \033[1;33m${LIMITER_LIMIT}\033[0m ceiling | SoXR: \033[1;33m28-bit + 2× OS\033[0m precision"
+echo -e "\033[1;35m[Parametri]\033[0m Dynamic Compressor: \033[1;33m${COMPRESSOR_THRESHOLD}\033[0m threshold | Limiter: \033[1;33m${LIMITER_LIMIT}\033[0m ceiling | SoXR: \033[1;33m28-bit + 2×OS\033[0m precision"
 
 # --- Prompt sovrascrittura file -----------------------------------------------------------------
 
@@ -462,7 +572,7 @@ if [ -f "$OUTPUT_FILE" ]; then
             ;;
     esac
 fi
-echo -e "\033[1;36m[Attendere]\033[0m Elaborazione in corso..."
+echo -e "\033[1;36m[Attendere]\033[0m Elaborazione in corso, potrebbero essere necessari alcuni minuti..."
 
 # Esecuzione ffmpeg con gestione errori migliorata
 if ! ffmpeg -y -nostdin -loglevel warning -stats -hide_banner -hwaccel auto -threads 0 \
@@ -473,7 +583,7 @@ if ! ffmpeg -y -nostdin -loglevel warning -stats -hide_banner -hwaccel auto -thr
     "${AUDIO_ARGS[@]}" \
     -map 0:s? -c:s copy \
     -map 0:t? -c:t copy \
-    "$OUTPUT_FILE" 2>&1 | grep -v -E '^\[.*@.*\]'; then
+    "$OUTPUT_FILE" 2>/dev/null; then
     echo -e "\033[1;31m[Errore]\033[0m Elaborazione FFmpeg fallita"
     exit 1
 fi
@@ -484,8 +594,15 @@ if [ ! -f "$OUTPUT_FILE" ]; then
     exit 1
 fi
 
-# Verifica che il file di output abbia una dimensione minima
-OUTPUT_SIZE=$(stat -f%z "$OUTPUT_FILE" 2>/dev/null || stat -c%s "$OUTPUT_FILE" 2>/dev/null || echo "0")
+# Verifica che il file di output abbia una dimensione minima (compatibilità cross-platform)
+if command -v stat >/dev/null 2>&1; then
+    # Prova sintassi BSD prima (macOS), poi GNU (Linux)
+    OUTPUT_SIZE=$(stat -f%z "$OUTPUT_FILE" 2>/dev/null || stat -c%s "$OUTPUT_FILE" 2>/dev/null || echo "0")
+else
+    # Fallback usando ls (universale ma meno preciso)
+    OUTPUT_SIZE=$(ls -l "$OUTPUT_FILE" 2>/dev/null | awk '{print $5}' || echo "0")
+fi
+
 if [ "$OUTPUT_SIZE" -lt 1000000 ]; then  # Minimo 1MB
     echo -e "\033[1;31m[Errore]\033[0m File di output troppo piccolo (${OUTPUT_SIZE} bytes). Elaborazione probabilmente fallita."
     exit 1
