@@ -1,5 +1,5 @@
 
-# 🎙️ ClearVoice V10 - Intelligent Audio Processing System
+# 🎙️ ClearVoice V10 - Intelligent Processing System
 
 Pipeline avanzata per chiarezza voci e bassi LFE in audio 5.1 mkv/mp4. Analisi loudness multi-segmento (LUFS/LRA/TP), 3 profili dinamici automatici, processing adattivo, True Peak Analysis, Conservative Mode, Voice Protection Plus, Multi-Segment Analysis, Headroom Management, SoXR 28-bit Precision, LFE Chirurgico.
 
