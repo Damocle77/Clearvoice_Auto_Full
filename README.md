@@ -144,7 +144,7 @@ Lo script batch esegue automaticamente `clearvoice_simple.sh` su ogni file MKV t
 
 Ogni profilo utilizza parametri calibrati dal sistema adattivo V10:
 
-- **Alta Dinamica**: Highpass 88Hz, Voice boost 2.36, LFE 2.2dB, Limiter adattivo, Conservative Mode
+- **Alta Dinamica**: Highpass 88Hz, Voice boost 2.36, LFE 2.2dB, Limiter adattivo
 - **Media Dinamica**: Highpass 92Hz, Voice boost 2.34, LFE 2.3dB, Limiter adattivo
 - **Bassa Dinamica**: Highpass 95Hz, Voice boost 2.32, LFE 2.4dB, Limiter adattivo
 
@@ -152,7 +152,7 @@ Tecnologie:
 - **True Peak Analysis**: Limiter dinamico, Conservative Mode, Voice Protection Plus
 - **SoXR 28-bit**: Oversampling 2×, audio ultra-clean
 - **LFE chirurgico**: Boost bilanciato, cut selettivi
-- **Processing pulito**: Highpass progressivo, eliminazione artifacts
+- **Highpass progressivo**: Eliminazione artifacts
 
 ---
 
