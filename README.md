@@ -29,7 +29,7 @@ ClearVoice è uno script bash avanzato che porta l'audio a nuovi livelli:
 - **📊 Analisi loudness multi-segmento**: LUFS/LRA/TP su 3-7 segmenti per precisione massima
 - **✅ True Peak Analysis Engine**: Limiter dinamico, Conservative Mode, Voice Protection Plus
 - **🔊 Voice boost adattivo**: Riduzione automatica per contenuti HOT/WARM
-- **🎯 Headroom Management 2.0**: Limiti sicuri e ceiling dinamico
+- **🎯 Headroom Management**: Limiti sicuri e ceiling dinamico
 - **⚡ SoXR 28-bit + oversampling 2×**: Precisione massima, audio ultra-clean
 - **🔬 LFE chirurgico**: Boost bilanciato, cut selettivi, anti sub-bomba
 - **🛡️ Processing pulito**: Highpass progressivo, eliminazione artifacts
