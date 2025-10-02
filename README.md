@@ -1,5 +1,5 @@
 
-# 🎙️ ClearVoice Simple - Audio Enhancement System
+# 🎙️ ClearVoice - Audio Enhancement System
 
 Sistema di ottimizzazione audio per file MKV/MP4 5.1. Migliora la chiarezza dei dialoghi e bilancia l'audio per un'esperienza ottimale su soundbar e TV. Utilizza processing audio di alta qualità con SoXR 28-bit e gestione intelligente di voci, bassi e surround.
 
