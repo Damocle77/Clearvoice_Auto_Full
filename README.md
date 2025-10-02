@@ -13,8 +13,6 @@ Sistema di ottimizzazione audio per file MKV/MP4 5.1. Migliora la chiarezza dei 
 ## Indice
 
 - [Caratteristiche principali](#caratteristiche-principali)
-- [Tecnologia Anti-Vibrazione](#tecnologia-anti-vibrazione)
-- [Profili Audio](#profili-audio)
 - [Requisiti](#requisiti)
 - [Installazione](#installazione)
 - [Utilizzo](#utilizzo)
@@ -38,18 +36,7 @@ ClearVoice è uno script bash che ottimizza l'audio dei tuoi contenuti multimedi
 - **🛡️ Processing pulito**: Highpass progressivo, eliminazione artifacts
 - **🌍 Compatibilità cross-platform**: Linux, macOS, Windows (Git Bash)
 
-## Tecnologia Anti-Vibrazione & True Peak
-
-La tecnologia V10 elimina artefatti vocali e gestisce dinamica e headroom:
-
-| Componente | Tecnologia V10 | Beneficio |
-|------------|----------------|-----------|
-| **True Peak Analysis** | Conservative Mode, Limiter adattivo | Protezione da clipping, compliance broadcast |
-| **Voice Protection Plus** | Voice boost adattivo (-0.1/-0.2dB) | Voci naturali anche su contenuti "caldi" |
-| **Multi-Segment Analysis** | LUFS/LRA/TP su 3-7 segmenti | Profilo dinamico sempre ottimale |
-| **SoXR 28-bit** | Oversampling 2× | Audio ultra-clean, zero aliasing |
-| **LFE chirurgico** | Boost 2.2-2.4dB, cut selettivi | Bassi definiti, niente sub-bomba |
-| **Processing pulito** | Highpass progressivo 88-95Hz | Eliminazione rumble/artifacts |
+---
 
 ## Requisiti
 
@@ -57,18 +44,6 @@ La tecnologia V10 elimina artefatti vocali e gestisce dinamica e headroom:
 - **Bash** (Linux, macOS, WSL2 o Windows con Git Bash)
 - **ffprobe**
 - **awk**
-
-## Profili Audio V10
-
-Lo script analizza LUFS, LRA e True Peak per selezionare il profilo ottimale:
-
-| Profilo         | Algoritmo di Selezione                | Tipo di Contenuto           | Parametri Calibrati |
-|-----------------|---------------------------------------|-----------------------------|---------------------|
-| **Alta Dinamica** | LRA > 12 & LUFS < -17                | Cinema/Premium/HD           | Highpass 88Hz, Voice boost 2.36, LFE 2.2dB |
-| **Media Dinamica** | 7 < LRA < 12 & LUFS -16/-17         | Streaming/Standard          | Highpass 92Hz, Voice boost 2.34, LFE 2.3dB |
-| **Bassa Dinamica** | LRA < 7 OR LUFS > -16               | Broadcast/Compresso         | Highpass 95Hz, Voice boost 2.32, LFE 2.4dB |
-
-Lo script effettua analisi multi-segmento e adatta dinamica, limiter e voice boost in base al contenuto. Attiva protezione LFE avanzata per Serie TV ad alta dinamica.
 
 ---
 
@@ -143,20 +118,6 @@ bash clearvoice_simple_batch.sh "nome file.mkv" 448k no eac3  # Elabora solo un 
 ```
 
 Lo script batch esegue automaticamente `clearvoice_simple.sh` su ogni file MKV trovato, escludendo quelli già processati (con suffisso `_clearvoice`). Al termine, mostra un riepilogo del tempo totale impiegato e del numero di file elaborati.
-
-## Calibrazione Parametri Avanzati
-
-Ogni profilo utilizza parametri calibrati dal sistema adattivo V10:
-
-- **Alta Dinamica**: Highpass 88Hz, Voice boost 2.36, LFE 2.2dB, Limiter adattivo, Conservative Mode
-- **Media Dinamica**: Highpass 92Hz, Voice boost 2.34, LFE 2.3dB, Limiter adattivo
-- **Bassa Dinamica**: Highpass 95Hz, Voice boost 2.32, LFE 2.4dB, Limiter adattivo
-
-Tecnologie:
-- **True Peak Analysis**: Limiter dinamico, Conservative Mode, Voice Protection Plus
-- **SoXR 28-bit**: Oversampling 2×, audio ultra-clean
-- **LFE chirurgico**: Boost bilanciato, cut selettivi
-- **Processing pulito**: Highpass progressivo, eliminazione artifacts
 
 ---
 
