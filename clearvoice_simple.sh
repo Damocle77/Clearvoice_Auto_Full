@@ -1,24 +1,26 @@
 #!/bin/bash
-#------------------------------------------------------------------------------------------------
-# Script Bash per rendere i dialoghi cristallini, potenti e mai fastidiosi su soundbar.
-# Ottimizza tracce 5.1 (film, serie, anime, podcast) con:
-#   - Voce centrale chiara e naturale (EQ e limiter dedicati)
-#   - Bassi controllati, niente rimbombi
-#   - Surround immersivo ma mai invadente
-#   - Compatibilità massima con mux moderni e doppiaggio italiano
+#-----------------------------------------------------------------------------------------------
+# clearvoice_simple.sh - Script per ottimizzare l'audio 5.1 di film e serie TV
+#-----------------------------------------------------------------------------------------------
+# Equalizzazione e funzionalità:
+#   - Voce centrale: filtro passa-alto ed aumento volume per dialoghi più chiari
+#   - Subwoofer: taglio frequenze troppo basse e controllo dei bassi
+#   - Surround: potenziamento laterale per maggiore immersione senza invadere
+#   - Frontali: bilanciamento per mantenere naturalezza
+#   - Limiter: previene distorsioni e picchi improvvisi
+#   - Tutti i parametri sono ottimizzati per ascolto su soundbar e TV
+#-----------------------------------------------------------------------------------------------
+# Requisiti: ffmpeg, ffprobe
 #
-# UTILIZZO:
-#     1. nome_file.mkv   - File video MKV/MP4 con audio 5.1
-#     2. bitrate         - 256k-320k-384k-448k-512k-640k-768k (default: 768k)
-#     3. originale       - si/no per traccia originale (default: si)
-#     4. codec           - eac3/ac3 (default: eac3)
+# Utilizzo:
+#   ./clearvoice_simple.sh "file.mkv" [bitrate] [originale] [codec]
+#   - bitrate: 256k-1024k (default 768k)
+#   - originale: si/no (default si)
+#   - codec: eac3/ac3 (default eac3)
 #
-# ESEMPI:
-#   ./clearvoice_simple.sh "film.mkv"                    # Default
-#   ./clearvoice_simple.sh "serie.mkv" 448k no ac3       # Personalizzato
-#
-# OUTPUT: Crea "nome_file_clearvoice_simple.mkv" con traccia audio ottimizzata per dialoghi top.
-#------------------------------------------------------------------------------------------------
+# Esempio:
+#   ./clearvoice_simple.sh "film.mkv" 448k no ac3
+#-----------------------------------------------------------------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -111,9 +113,7 @@ HIGHSUB=50
 
 # Equalizzatori per ogni canale (VOICE, SUB, SURROUND, FRONT)
 EQ_VOICE="[FC]highpass=f=${HIGHPASS},volume=${VOICE_BOOST}dB[FCout];"
-EQ_SUB="[LFE]highpass=f=${HIGHSUB},volume=${LFE_VOL},alimiter=limit=0.45:attack=7:release=105[LFEout];"
-#EQ_VOICE="[FC]highpass=f=${HIGHPASS},volume=${VOICE_BOOST}dB,equalizer=f=1850:t=q:w=280:g=2,equalizer=f=3050:t=q:w=400:g=1.5,compand=attacks=3:decays=6:points=-90/-90|-17/-5|0/0:soft-knee=3[FCout];"
-#EQ_SUB="[LFE]highpass=f=${HIGHSUB},volume=${LFE_VOL}dB,equalizer=f=80:t=q:w=30:g=1.7,equalizer=f=60:t=q:w=40:g=-2,equalizer=f=110:t=q:w=50:g=-1.5[LFEout];"
+EQ_SUB="[LFE]highpass=f=${HIGHSUB},volume=${LFE_VOL}dB,equalizer=f=80:t=q:w=30:g=1.7,equalizer=f=60:t=q:w=40:g=-2,equalizer=f=110:t=q:w=50:g=-1.5[LFEout];"
 EQ_SURROUND="[SL]volume=${SURROUND_BOOST}[SLout]; [SR]volume=${SURROUND_BOOST}[SRout];"
 EQ_FRONT="[FL]volume=${FRONT_VOL}[FLout]; [FR]volume=${FRONT_VOL}[FRout];"
 

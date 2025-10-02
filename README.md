@@ -1,9 +1,12 @@
 
-# 🎙️ ClearVoice - Intelligent Processing System
+# 🎙️ ClearVoice Simple - Audio Enhancement System
 
-Pipeline avanzata per chiarezza voci e bassi LFE in audio 5.1 mkv/mp4. Analisi loudness multi-segmento (LUFS/LRA/TP), 3 profili dinamici automatici, processing adattivo, True Peak Analysis, Conservative Mode, Voice Protection Plus, Multi-Segment Analysis, Headroom Management, SoXR 28-bit Precision, LFE Chirurgico.
+Sistema di ottimizzazione audio per file MKV/MP4 5.1. Migliora la chiarezza dei dialoghi e bilancia l'audio per un'esperienza ottimale su soundbar e TV. Utilizza processing audio di alta qualità con SoXR 28-bit e gestione intelligente di voci, bassi e surround.
 
-![Version](https://img.shields.io/badge/Versione-10.0-blue) ![Audio](https://img.shields.io/badge/Audio-5.1-green) ![FFmpeg](https://img.shields.io/badge/FFmpeg-Required-orange) ![SELECT name AS 'Sandro Sabbioni', handle AS 'D@mocle77' FROM developers](https://img.shields.io/badge/SELECT%20name%20AS%20'Sandro%20Sabbioni'%2C%20handle%20AS%20'D%40mocle77'%20FROM%20developers-blue)
+![Version](https://img.shields.io/badge/Versione-10.1-blue) 
+![Audio](https://img.shields.io/badge/Audio-5.1-green) 
+![FFmpeg](https://img.shields.io/badge/FFmpeg-Required-orange) 
+![Author](https://img.shields.io/badge/Author-Sandro_Sabbioni-blue)
 
 ---
 
@@ -23,13 +26,13 @@ Pipeline avanzata per chiarezza voci e bassi LFE in audio 5.1 mkv/mp4. Analisi l
 
 ## Caratteristiche principali
 
-ClearVoice è uno script bash avanzato che porta l'audio a nuovi livelli:
+ClearVoice è uno script bash che ottimizza l'audio dei tuoi contenuti multimediali:
 
-- **🧠 Profili automatici ridefiniti**: Algoritmo intelligente per Cinema/Premium, Broadcast, Streaming
-- **📊 Analisi loudness multi-segmento**: LUFS/LRA/TP su 3-7 segmenti per precisione massima
-- **✅ True Peak Analysis Engine**: Limiter dinamico, Conservative Mode, Voice Protection Plus
-- **🔊 Voice boost adattivo**: Riduzione automatica per contenuti HOT/WARM
-- **🎯 Headroom Management**: Limiti sicuri e ceiling dinamico
+- **🎯 Ottimizzazione dialoghi**: Migliora la chiarezza delle voci mantenendo un suono naturale
+- **� Gestione bassi intelligente**: Controlla i bassi evitando rimbombi e vibrazioni
+- **🎵 Surround bilanciato**: Aumenta l'immersione senza compromettere i dialoghi
+- **✨ Processing di alta qualità**: Utilizza SoXR 28-bit per la massima fedeltà
+- **🛠️ Facile da usare**: Configurazione automatica con parametri personalizzabili
 - **⚡ SoXR 28-bit + oversampling 2×**: Precisione massima, audio ultra-clean
 - **🔬 LFE chirurgico**: Boost bilanciato, cut selettivi, anti sub-bomba
 - **🛡️ Processing pulito**: Highpass progressivo, eliminazione artifacts
@@ -93,25 +96,26 @@ Assicurati che ffmpeg sia nel tuo PATH.
 
 ## Utilizzo
 
-### Script principale
+Lo script è semplice da usare e richiede solo ffmpeg come dipendenza:
 
 ```bash
-./clearvoice_simple.sh "video.mkv" [bitrate] [originale] [codec]
+./clearvoice_simple.sh "file.mkv" [bitrate] [originale] [codec]
 ```
 
-Parametri:
-- `video.mkv`: File video MKV/MP4 con audio 5.1 (obbligatorio)
-- `bitrate`: 128k-1024k (default: 768k)
-- `originale`: si/no per traccia originale (default: si)
-- `codec`: eac3/ac3 (default: eac3)
+### Parametri
+- **file.mkv**: File video MKV/MP4 con audio 5.1
+- **bitrate**: Qualità audio (256k-1024k, default: 768k)
+- **originale**: Mantenere traccia originale (si/no, default: si)
+- **codec**: Formato audio (eac3/ac3, default: eac3)
 
-Esempi:
+### Esempi
 ```bash
+# Utilizzo base
 ./clearvoice_simple.sh "film.mkv"
-./clearvoice_simple.sh "serie.mkv" 448k no eac3
-```
 
-Lo script analizza il contenuto, seleziona il profilo ottimale e applica processing adattivo, limiter dinamico, voice boost intelligente e LFE chirurgico. Nessuna configurazione manuale necessaria.
+# Configurazione personalizzata
+./clearvoice_simple.sh "serie.mkv" 448k no ac3
+```
 
 ---
 
@@ -144,7 +148,7 @@ Lo script batch esegue automaticamente `clearvoice_simple.sh` su ogni file MKV t
 
 Ogni profilo utilizza parametri calibrati dal sistema adattivo V10:
 
-- **Alta Dinamica**: Highpass 88Hz, Voice boost 2.36, LFE 2.2dB, Limiter adattivo
+- **Alta Dinamica**: Highpass 88Hz, Voice boost 2.36, LFE 2.2dB, Limiter adattivo, Conservative Mode
 - **Media Dinamica**: Highpass 92Hz, Voice boost 2.34, LFE 2.3dB, Limiter adattivo
 - **Bassa Dinamica**: Highpass 95Hz, Voice boost 2.32, LFE 2.4dB, Limiter adattivo
 
@@ -152,7 +156,7 @@ Tecnologie:
 - **True Peak Analysis**: Limiter dinamico, Conservative Mode, Voice Protection Plus
 - **SoXR 28-bit**: Oversampling 2×, audio ultra-clean
 - **LFE chirurgico**: Boost bilanciato, cut selettivi
-- **Highpass progressivo**: Eliminazione artifacts
+- **Processing pulito**: Highpass progressivo, eliminazione artifacts
 
 ---
 
@@ -170,12 +174,13 @@ Per risultati ottimali, segui la guida bitrate ClearVoice V10:
 
 ## Parametri di Elaborazione
 
-Per ogni profilo, lo script applica parametri calibrati specifici con sistema adattivo V10. Mostra a schermo i parametri attivi e segnala quando viene attivata la protezione LFE avanzata per contenuti ad alta dinamica:
+Lo script applica le seguenti ottimizzazioni:
 
-```bash
-[Info] Dinamica rilevata: Alta (LRA: xx, LUFS: xx, TP: xx)
-[Engine] Profilo selezionato: Alta con algoritmo "Adaptive Audio"
-```
+- **Voce Centrale**: Filtro passa-alto e boost volume per dialoghi cristallini
+- **Subwoofer**: Controllo frequenze basse per evitare vibrazioni
+- **Surround**: Potenziamento bilanciato per maggiore immersione
+- **Processing**: SoXR 28-bit per massima qualità audio
+- **Limiter**: Prevenzione distorsioni e controllo dinamico
 
 ## Perché ClearVoice
 
@@ -191,4 +196,6 @@ Per ogni profilo, lo script applica parametri calibrati specifici con sistema ad
 
 ---
 
-**Developed by Sandro Sabbioni (Audio Processing Engineer)**
+## Autore
+
+Sviluppato da Sandro Sabbioni (Audio Processing Engineer)
